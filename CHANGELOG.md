@@ -4,6 +4,35 @@
 
 ---
 
+## v1.2.0 · 2026-03-22 · `8d8784d`
+
+**模拟交易 vs 实盘对比模块**
+- 个股详情页 K 线图：日K + MA5/10/20/30/60/200 + 实盘/模拟双套交易打点（同日不重叠）
+- 持仓对比卡：实盘 vs 模拟持仓盈亏/市值/均价并排
+- 交易统计：胜率/EV/盈亏比/最大连亏，实盘/模拟分栏对比
+- 统一时间轴：实盘+模拟合并，色块区分「只有实盘」/「只有模拟」
+- 模拟持仓自动跟单：Kelly 仓位入场 + 三种出场（止损/止盈/超时）
+- 演示模式完整覆盖：K线/持仓/成交/统计均有合成 fixture 数据
+
+**detail 页 UI 重构**
+- 与 positions.html 统一风格：深紫 header band / `#eceaf8` 背景 / 光剑 Logo
+- 演示模式黄色提示条
+- 涨跌色值统一为 `#d93025` / `#188038`
+
+**新增文件**
+- `app/models/sim_position.py` — 模拟持仓表
+- `app/services/futu_kline_service.py` — 富途K线 + CSV缓存 + MA
+- `app/services/futu_deal_sync_service.py` — 富途历史成交同步
+- `app/services/trade_timeline_service.py` — 统一时间轴
+- `scripts/migrate_add_simulated.py` / `scripts/init_sim_positions.py`
+
+**Bug 修复（15条）**
+- 止损方向用 `abs()` 防呆、模拟SELL入场价None保护、幂等查询区分模拟/真实
+- futu_deal 无前缀symbol告警、单条失败savepoint隔离
+- K线展示窗口动态6个月、stats颜色方向标志、pct字段与pct_label分离等
+
+---
+
 ## v1.0.0 · 2026-03-21 · `890167c`
 
 **演示模式**
