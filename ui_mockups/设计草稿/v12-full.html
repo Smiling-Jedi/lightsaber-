@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>光剑 · 持仓 — v12</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+      background: #f8f9fa;
+      color: #202124;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ══ Nav ══ */
+    .nav {
+      background: #fff;
+      border-bottom: 1px solid #e8eaed;
+      padding: 0 32px; height: 62px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand { font-size: 19px; font-weight: 500; color: #1a73e8; text-decoration: none; letter-spacing: -0.3px; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link { padding: 7px 18px; border-radius: 20px; color: #5f6368; text-decoration: none; font-size: 15px; font-weight: 500; }
+    .nav-link.active { background: #e8f0fe; color: #1a73e8; }
+    .nav-link:hover:not(.active) { background: #f1f3f4; }
+
+    /* ══ Page ══ */
+    .page { max-width: 1280px; margin: 0 auto; padding: 28px 28px 100px; }
+
+    /* ══ Top bar ══ */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+    .status-text { font-size: 13px; color: #9aa0a6; }
+    .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #34a853; margin-right: 6px; vertical-align: middle; }
+    .action-btns { display: flex; gap: 8px; }
+    .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid #dadce0; background: #fff; font-size: 13px; font-weight: 500; cursor: pointer; color: #3c4043; }
+    .btn-primary { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+    .btn:hover { background: #f1f3f4; }
+    .btn-primary:hover { background: #1765cc; }
+
+    /* ══ Summary — 第一行：盈亏概览 ══ */
+    .summary-row-1 {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin-bottom: 12px;
+    }
+    /* ══ Summary — 第二行：仓位详情 ══ */
+    .summary-row-2 {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px; margin-bottom: 28px;
+    }
+    .summary-card {
+      background: #fff; border-radius: 12px;
+      padding: 18px 22px; border: 1px solid #e8eaed;
+    }
+    .s-label { font-size: 12px; color: #9aa0a6; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .s-value { font-size: 26px; font-weight: 400; letter-spacing: -0.6px; }
+    .s-sub   { font-size: 14px; margin-top: 3px; }
+    .up   { color: #d93025; }
+    .down { color: #188038; }
+    .muted { color: #9aa0a6; }
+
+    /* 仓位卡片内部 */
+    .pos-card-inner { display: flex; gap: 24px; }
+    .pos-market-label {
+      font-size: 13px; font-weight: 600; color: #3c4043;
+      display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+    }
+    .mkt-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-hk { background: #1a73e8; }
+    .dot-us { background: #9334e6; }
+    .pos-pct { font-size: 22px; font-weight: 400; letter-spacing: -0.4px; color: #202124; }
+    .pos-lines { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .pos-line { display: flex; justify-content: space-between; font-size: 13px; }
+    .pos-line-label { color: #5f6368; }
+    .pos-line-val   { color: #202124; font-variant-numeric: tabular-nums; }
+    .pos-line-sub   { color: #9aa0a6; font-size: 12px; }
+    .pos-divider { width: 1px; background: #f1f3f4; flex-shrink: 0; }
+
+    /* ══ Tabs ══ */
+    .tabs { display: flex; margin-bottom: 18px; border-bottom: 2px solid #e8eaed; }
+    .tab { padding: 10px 22px; font-size: 15px; font-weight: 500; color: #5f6368; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; background: none; border-top: none; border-left: none; border-right: none; }
+    .tab.active { color: #1a73e8; border-bottom-color: #1a73e8; }
+    .tab:hover:not(.active) { color: #202124; background: #f8f9fa; }
+    .tab-count { font-size: 12px; color: #bdc1c6; margin-left: 5px; }
+
+    /* ══ Stock card ══ */
+    .stock-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e8eaed;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: box-shadow 0.15s;
+    }
+    .stock-card:hover { box-shadow: 0 2px 12px rgba(32,33,36,0.1); }
+    .stock-card.profit { border-left: 4px solid #d93025; }
+    .stock-card.loss   { border-left: 4px solid #188038; }
+
+    /* 卡片主体：4列 */
+    .card-body {
+      display: grid;
+      grid-template-columns: 185px 1fr 240px 72px;
+      gap: 0;
+      min-height: 1px;
+    }
+
+    /* ── 列1：股票信息 ── */
+    .col-stock {
+      padding: 20px 18px 20px 20px;
+      border-right: 1px solid #f1f3f4;
+      display: flex; flex-direction: column; justify-content: flex-start;
+    }
+    .stock-name { font-size: 17px; font-weight: 600; color: #202124; }
+    .stock-row2 { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+    .chip { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+    .chip-hk { background: #e8f0fe; color: #1a73e8; }
+    .chip-us { background: #f3e8fd; color: #7b1ea2; }
+    .stock-code { font-size: 12px; color: #9aa0a6; }
+    .stock-pos-lines { margin-top: 14px; display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: #5f6368; }
+    .pos-pnl { font-size: 14px; font-weight: 500; }
+
+    /* ── 列2：价格 + 完整原力信号 ── */
+    .col-signal {
+      padding: 20px 22px;
+      border-right: 1px solid #f1f3f4;
+    }
+
+    /* 价格区 */
+    .price-main { font-size: 28px; font-weight: 300; letter-spacing: -0.7px; line-height: 1.1; }
+    .price-detail { font-size: 13px; color: #9aa0a6; margin-top: 5px; margin-bottom: 16px; }
+
+    /* 策略标题行 */
+    .strategy-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f1f3f4;
+    }
+    .strategy-name { font-size: 14px; font-weight: 600; color: #3c4043; }
+    .strategy-stars { font-size: 13px; }
+
+    /* 指标表 */
+    .ind-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+    .ind-table th {
+      font-size: 11px; color: #9aa0a6;
+      text-transform: uppercase; letter-spacing: 0.3px;
+      padding: 0 6px 6px 0; text-align: left;
+      font-weight: 600; border-bottom: 1px solid #f1f3f4;
+    }
+    .ind-table th:last-child { text-align: right; }
+    .ind-table td { padding: 5px 6px 5px 0; vertical-align: middle; border-bottom: 1px solid #fafafa; }
+    .ind-table tr:last-child td { border-bottom: none; }
+
+    .ind-name-cell { font-size: 13px; color: #5f6368; white-space: nowrap; }
+    .ind-name-cell .tip { border-bottom: 1px dotted #bdc1c6; cursor: help; }
+    .ind-thresh-cell { font-size: 12px; color: #9aa0a6; padding-left: 12px !important; }
+    .ind-val-cell { font-size: 13px; color: #202124; padding-left: 12px !important; }
+    .ind-status-cell { text-align: right; padding-left: 8px !important; }
+    .st-ok      { color: #188038; font-size: 15px; }
+    .st-bad     { color: #d93025; font-size: 15px; }
+    .st-warn    { color: #f9ab00; font-size: 15px; }
+    .st-neutral { color: #dadce0; font-size: 15px; }
+
+    /* 今日小结 */
+    .daily-summary {
+      font-size: 13.5px; color: #3c4043;
+      line-height: 1.7;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border-left: 3px solid #e8eaed;
+    }
+    .daily-label { font-size: 11px; font-weight: 600; color: #9aa0a6; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+
+    /* 动作徽章行 */
+    .action-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .action-badge {
+      font-size: 13px; font-weight: 700;
+      padding: 5px 14px; border-radius: 6px;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .ab-hold  { background: #fef3c7; color: #92400e; }
+    .ab-buy   { background: #d1fae5; color: #065f46; }
+    .ab-sell  { background: #fee2e2; color: #7f1d1d; }
+    .ab-watch { background: #f1f3f4; color: #5f6368; }
+    .conf-tag { font-size: 12px; color: #9aa0a6; border: 1px solid #e8eaed; padding: 4px 10px; border-radius: 5px; }
+    .env-tag  { font-size: 12px; padding: 4px 10px; border-radius: 5px; }
+    .env-bear { background: #e8f5e9; color: #2e7d32; }
+    .env-bull { background: #fce8e6; color: #b71c1c; }
+    .env-weak { background: #fff8e1; color: #f57f17; }
+    .env-neutral { background: #f1f3f4; color: #5f6368; }
+
+    /* ── 列3：止损/目标 + 新闻 ── */
+    .col-right {
+      padding: 20px 18px;
+      border-right: 1px solid #f1f3f4;
+      display: flex; flex-direction: column; gap: 0;
+    }
+
+    /* 止损/目标 */
+    .targets-section { margin-bottom: 14px; }
+    .targets-label { font-size: 11px; font-weight: 600; color: #9aa0a6; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
+    .target-tags { display: flex; flex-direction: column; gap: 5px; }
+    .t-tag { font-size: 13px; padding: 5px 12px; border-radius: 5px; display: flex; justify-content: space-between; }
+    .t-stop   { background: #fce8e6; color: #c5221f; }
+    .t-target { background: #e6f4ea; color: #1e7e34; }
+    .t-label { font-weight: 500; }
+    .t-val   { }
+
+    /* 回测参考行 */
+    .backtest-row {
+      margin-top: 8px;
+      font-size: 12px; color: #5f6368;
+      display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    }
+    .bt-label { color: #9aa0a6; }
+    .bt-sep   { color: #dadce0; }
+    .bt-val   { color: #3c4043; font-weight: 500; }
+
+    /* 新闻区 */
+    .news-section { }
+    .news-label { font-size: 11px; font-weight: 600; color: #9aa0a6; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
+    .news-item {
+      font-size: 12px; color: #5f6368;
+      padding: 5px 0;
+      border-bottom: 1px solid #fafafa;
+      line-height: 1.5;
+    }
+    .news-item:last-child { border-bottom: none; }
+    .news-item a { color: #3c4043; text-decoration: none; }
+    .news-item a:hover { color: #1a73e8; }
+    .news-src { color: #bdc1c6; font-size: 11px; }
+
+    /* ── 列4：详情按钮 ── */
+    .col-detail {
+      padding: 20px 14px;
+      display: flex; align-items: flex-start; justify-content: center;
+    }
+    .btn-detail { padding: 7px 14px; border-radius: 6px; border: 1px solid #dadce0; background: #fff; color: #1a73e8; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+    .btn-detail:hover { background: #e8f0fe; border-color: #1a73e8; }
+
+    /* ══ FAB ══ */
+    .fab { position: fixed; bottom: 30px; right: 30px; width: 54px; height: 54px; border-radius: 50%; background: #1a73e8; color: #fff; font-size: 24px; border: none; cursor: pointer; box-shadow: 0 3px 10px rgba(26,115,232,0.4); display: flex; align-items: center; justify-content: center; }
+    .fab:hover { background: #1765cc; }
+
+    .version-note { text-align: center; font-size: 12px; color: #dadce0; margin-top: 44px; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="#">Lightsaber</a>
+  <div class="nav-links">
+    <a class="nav-link active" href="#">持仓</a>
+    <a class="nav-link" href="#">分析</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="top-bar">
+    <span class="status-text"><span class="status-dot"></span>上次更新：2026-03-21 15:54</span>
+    <div class="action-btns">
+      <button class="btn btn-primary">🔄 更新行情</button>
+      <button class="btn">📰 更新资讯</button>
+      <button class="btn">📡 同步富途</button>
+    </div>
+  </div>
+
+  <!-- 第一行：盈亏概览 -->
+  <div class="summary-row-1">
+    <div class="summary-card">
+      <div class="s-label">总资产 (RMB)</div>
+      <div class="s-value">¥8,165,932</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">今日盈亏</div>
+      <div class="s-value muted">+¥0</div>
+      <div class="s-sub muted">休市</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">持仓总盈亏</div>
+      <div class="s-value down">−¥259,542</div>
+      <div class="s-sub down">−3.48%</div>
+    </div>
+  </div>
+
+  <!-- 第二行：仓位详情 -->
+  <div class="summary-row-2">
+    <div class="summary-card">
+      <div class="s-label">港股仓位 <span style="color:#1a73e8;font-weight:600">74%</span></div>
+      <div class="pos-card-inner">
+        <div style="flex:1">
+          <div class="pos-lines">
+            <div class="pos-line">
+              <span class="pos-line-label">股票持仓</span>
+              <span class="pos-line-val">HKD 6,515,340</span>
+            </div>
+            <div class="pos-line">
+              <span class="pos-line-label">港元基金</span>
+              <span class="pos-line-val">HKD 322,085</span>
+            </div>
+            <div class="pos-line">
+              <span class="pos-line-label pos-line-sub">非持仓占比</span>
+              <span class="pos-line-val pos-line-sub">4.7%</span>
+            </div>
+          </div>
+        </div>
+        <div class="pos-divider"></div>
+        <div style="flex:1">
+          <div class="pos-lines">
+            <div class="pos-line">
+              <span class="pos-line-label">持股数</span>
+              <span class="pos-line-val">9 只</span>
+            </div>
+            <div class="pos-line">
+              <span class="pos-line-label">最大仓位</span>
+              <span class="pos-line-val">腾讯 52%</span>
+            </div>
+            <div class="pos-line">
+              <span class="pos-line-label">今日涨跌</span>
+              <span class="pos-line-val muted">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">美股仓位 <span style="color:#9334e6;font-weight:600">26%</span></div>
+      <div class="pos-card-inner">
+        <div style="flex:1">
+          <div class="pos-lines">
+            <div class="pos-line">
+              <span class="pos-line-label">股票持仓</span>
+              <span class="pos-line-val">USD 211,830</span>
+            </div>
+            <div class="pos-line">
+              <span class="pos-line-label">美元基金</span>
+              <span class="pos-line-val">USD 78,621</span>
+            </div>
+            <div class="pos-line">
+              <span class="pos-line-label">美元现金</span>
+              <span class="pos-line-val">USD 21,440</span>
+            </div>
+            <div class="pos-line">
+              <span class="pos-line-label pos-line-sub">非持仓占比</span>
+              <span class="pos-line-val pos-line-sub">32.1%</span>
+            </div>
+          </div>
+        </div>
+        <div class="pos-divider"></div>
+        <div style="flex:1">
+          <div class="pos-lines">
+            <div class="pos-line">
+              <span class="pos-line-label">持股数</span>
+              <span class="pos-line-val">10 只</span>
+            </div>
+            <div class="pos-line">
+              <span class="pos-line-label">可用现金</span>
+              <span class="pos-line-val">USD 21,440</span>
+            </div>
+            <div class="pos-line">
+              <span class="pos-line-label">今日涨跌</span>
+              <span class="pos-line-val muted">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active">港股 <span class="tab-count">9</span></button>
+    <button class="tab">美股 <span class="tab-count">10</span></button>
+  </div>
+
+  <!-- ══ 腾讯控股 ══ -->
+  <div class="stock-card profit">
+    <div class="card-body">
+
+      <div class="col-stock">
+        <div class="stock-name">腾讯控股</div>
+        <div class="stock-row2">
+          <span class="chip chip-hk">港股</span>
+          <span class="stock-code">00700</span>
+        </div>
+        <div class="stock-pos-lines">
+          <span>底仓 0股 @ 488.84</span>
+          <span>波段 7000股</span>
+          <span>仓位 52.0%</span>
+          <span class="pos-pnl up">持仓盈亏 +25.9%</span>
+          <span style="font-size:12px;color:#9aa0a6">+HKD 731,815</span>
+        </div>
+      </div>
+
+      <div class="col-signal">
+        <div class="price-main">HKD 508.00</div>
+        <div class="price-detail">市值 HKD 3,556,000 &nbsp;|&nbsp; 盈亏 +731,815</div>
+
+        <div class="strategy-row">
+          <span class="strategy-name">RSI极值策略</span>
+          <span class="strategy-stars">⭐⭐⭐⭐</span>
+        </div>
+
+        <table class="ind-table">
+          <thead>
+            <tr>
+              <th>指标</th>
+              <th>目标条件</th>
+              <th>当前值</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ind-name-cell"><span class="tip" title="相对强弱指数，衡量超买超卖">RSI</span></td>
+              <td class="ind-thresh-cell">&lt; 30</td>
+              <td class="ind-val-cell">33.5</td>
+              <td class="ind-status-cell"><span class="st-neutral">—</span></td>
+            </tr>
+            <tr>
+              <td class="ind-name-cell"><span class="tip" title="平均真实波幅，衡量波动性">ATR</span></td>
+              <td class="ind-thresh-cell">波动参考</td>
+              <td class="ind-val-cell">日波动 4.3%</td>
+              <td class="ind-status-cell"><span class="st-neutral">—</span></td>
+            </tr>
+            <tr>
+              <td class="ind-name-cell"><span class="tip" title="市场趋势方向">市场趋势</span></td>
+              <td class="ind-thresh-cell">EMA20&gt;EMA60</td>
+              <td class="ind-val-cell">偏弱</td>
+              <td class="ind-status-cell"><span class="st-warn">⚠</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="daily-summary">
+          <div class="daily-label">今日小结</div>
+          RSI接近30极值但尚未触发，维持底仓持有，若RSI跌破30且大盘企稳可加仓波段，跌破−7%止损。
+        </div>
+
+        <div class="action-row">
+          <span class="action-badge ab-hold">⚡ 持有</span>
+          <span class="conf-tag">信心 中</span>
+          <span class="env-tag env-weak">▼ 市场偏弱</span>
+        </div>
+      </div>
+
+      <div class="col-right">
+        <div class="targets-section">
+          <div class="targets-label">止损 / 目标</div>
+          <div class="target-tags">
+            <span class="t-tag t-stop"><span class="t-label">止损</span><span class="t-val">−7%</span></span>
+            <span class="t-tag t-target"><span class="t-label">目标一</span><span class="t-val">+12%</span></span>
+            <span class="t-tag t-target"><span class="t-label">目标二</span><span class="t-val">+22%</span></span>
+          </div>
+          <div class="backtest-row">
+            <span class="bt-label">回测参考：</span>
+            <span class="bt-val">胜率 42%</span>
+            <span class="bt-sep">|</span>
+            <span class="bt-val">EV +8.3%</span>
+            <span class="bt-sep">|</span>
+            <span class="bt-val">Kelly 8%</span>
+          </div>
+        </div>
+        <div class="news-section">
+          <div class="news-label">最新资讯</div>
+          <div class="news-item">
+            <a href="#">南向资金连续5日净流入腾讯控股</a>
+            <span class="news-src"> · 东方财富</span>
+          </div>
+          <div class="news-item">
+            <a href="#">Q4 财报超预期，广告收入同比+23%</a>
+            <span class="news-src"> · 彭博社</span>
+          </div>
+          <div class="news-item">
+            <a href="#">微信视频号广告收入突破 100 亿人民币</a>
+            <span class="news-src"> · 36氪</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-detail">
+        <button class="btn-detail">详情</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ 阿里巴巴 ══ -->
+  <div class="stock-card loss">
+    <div class="card-body">
+
+      <div class="col-stock">
+        <div class="stock-name">阿里巴巴-W</div>
+        <div class="stock-row2">
+          <span class="chip chip-hk">港股</span>
+          <span class="stock-code">09988</span>
+        </div>
+        <div class="stock-pos-lines">
+          <span>底仓 0股 @ 135.83</span>
+          <span>波段 12000股</span>
+          <span>仓位 21.7%</span>
+          <span class="pos-pnl down">持仓盈亏 −6.9%</span>
+          <span style="font-size:12px;color:#9aa0a6">−HKD 109,884</span>
+        </div>
+      </div>
+
+      <div class="col-signal">
+        <div class="price-main">HKD 123.70</div>
+        <div class="price-detail">市值 HKD 1,484,400 &nbsp;|&nbsp; 盈亏 −109,884</div>
+
+        <div class="strategy-row">
+          <span class="strategy-name">均线趋势策略</span>
+          <span class="strategy-stars">⭐⭐⭐</span>
+        </div>
+
+        <table class="ind-table">
+          <thead>
+            <tr>
+              <th>指标</th>
+              <th>目标条件</th>
+              <th>当前值</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ind-name-cell"><span class="tip" title="相对强弱指数">RSI</span></td>
+              <td class="ind-thresh-cell">40–60</td>
+              <td class="ind-val-cell">42.1</td>
+              <td class="ind-status-cell"><span class="st-warn">⚠</span></td>
+            </tr>
+            <tr>
+              <td class="ind-name-cell"><span class="tip" title="指数移动平均线趋势">MACD</span></td>
+              <td class="ind-thresh-cell">DIF &gt; DEA</td>
+              <td class="ind-val-cell">死叉</td>
+              <td class="ind-status-cell"><span class="st-bad">✗</span></td>
+            </tr>
+            <tr>
+              <td class="ind-name-cell"><span class="tip" title="布林带位置">布林带</span></td>
+              <td class="ind-thresh-cell">中轨上方</td>
+              <td class="ind-val-cell">中轨下方</td>
+              <td class="ind-status-cell"><span class="st-bad">✗</span></td>
+            </tr>
+            <tr>
+              <td class="ind-name-cell"><span class="tip" title="市场趋势">市场趋势</span></td>
+              <td class="ind-thresh-cell">EMA20&gt;EMA60</td>
+              <td class="ind-val-cell">偏弱</td>
+              <td class="ind-status-cell"><span class="st-warn">⚠</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="daily-summary">
+          <div class="daily-label">今日小结</div>
+          技术面偏弱，MACD死叉形成，短期趋势向下。维持观望，等待HK$118支撑位企稳确认。云业务增长是潜在催化剂，关注下周财报。
+        </div>
+
+        <div class="action-row">
+          <span class="action-badge ab-watch">⚡ 观望</span>
+          <span class="conf-tag">信心 中</span>
+          <span class="env-tag env-weak">▼ 市场偏弱</span>
+        </div>
+      </div>
+
+      <div class="col-right">
+        <div class="targets-section">
+          <div class="targets-label">止损 / 目标</div>
+          <div class="target-tags">
+            <span class="t-tag t-stop"><span class="t-label">止损</span><span class="t-val">−12%</span></span>
+            <span class="t-tag t-target"><span class="t-label">目标</span><span class="t-val">+18%</span></span>
+          </div>
+          <div class="backtest-row">
+            <span class="bt-label">回测参考：</span>
+            <span class="bt-val">胜率 35%</span>
+            <span class="bt-sep">|</span>
+            <span class="bt-val">EV +5.1%</span>
+            <span class="bt-sep">|</span>
+            <span class="bt-val">Kelly 6%</span>
+          </div>
+        </div>
+        <div class="news-section">
+          <div class="news-label">最新资讯</div>
+          <div class="news-item">
+            <a href="#">Alibaba Q3 cloud revenue beats estimates by 8%</a>
+            <span class="news-src"> · Reuters</span>
+          </div>
+          <div class="news-item">
+            <a href="#">阿里巴巴宣布 AI 基础设施投资计划</a>
+            <span class="news-src"> · 财联社</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-detail">
+        <button class="btn-detail">详情</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ 百济神州 ══ -->
+  <div class="stock-card loss">
+    <div class="card-body">
+
+      <div class="col-stock">
+        <div class="stock-name">百济神州</div>
+        <div class="stock-row2">
+          <span class="chip chip-hk">港股</span>
+          <span class="stock-code">06160</span>
+        </div>
+        <div class="stock-pos-lines">
+          <span>底仓 0股 @ 181.77</span>
+          <span>波段 1700股</span>
+          <span>仓位 4.2%</span>
+          <span class="pos-pnl down">持仓盈亏 −4.2%</span>
+          <span style="font-size:12px;color:#9aa0a6">−HKD 12,480</span>
+        </div>
+      </div>
+
+      <div class="col-signal">
+        <div class="price-main">HKD 169.00</div>
+        <div class="price-detail">市值 HKD 287,300 &nbsp;|&nbsp; 盈亏 −12,480</div>
+
+        <div class="strategy-row">
+          <span class="strategy-name">RSI极值策略</span>
+          <span class="strategy-stars">⭐</span>
+        </div>
+
+        <table class="ind-table">
+          <thead>
+            <tr>
+              <th>指标</th>
+              <th>目标条件</th>
+              <th>当前值</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ind-name-cell"><span class="tip" title="相对强弱指数">RSI</span></td>
+              <td class="ind-thresh-cell">&lt; 30</td>
+              <td class="ind-val-cell">33.5</td>
+              <td class="ind-status-cell"><span class="st-neutral">—</span></td>
+            </tr>
+            <tr>
+              <td class="ind-name-cell"><span class="tip" title="平均真实波幅">ATR</span></td>
+              <td class="ind-thresh-cell">波动参考</td>
+              <td class="ind-val-cell">日波动 4.3%</td>
+              <td class="ind-status-cell"><span class="st-neutral">—</span></td>
+            </tr>
+            <tr>
+              <td class="ind-name-cell"><span class="tip" title="市场趋势">市场趋势</span></td>
+              <td class="ind-thresh-cell">EMA20&gt;EMA60</td>
+              <td class="ind-val-cell">偏弱</td>
+              <td class="ind-status-cell"><span class="st-warn">⚠</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="daily-summary">
+          <div class="daily-label">今日小结</div>
+          RSI接近30极值但尚未触发，维持底仓持有，若RSI跌破30且大盘企稳可加仓波段，跌破−7%止损。
+        </div>
+
+        <div class="action-row">
+          <span class="action-badge ab-hold">⚡ 持有</span>
+          <span class="conf-tag">信心 中</span>
+          <span class="env-tag env-weak">▼ 市场偏弱</span>
+        </div>
+      </div>
+
+      <div class="col-right">
+        <div class="targets-section">
+          <div class="targets-label">止损 / 目标</div>
+          <div class="target-tags">
+            <span class="t-tag t-stop"><span class="t-label">止损</span><span class="t-val">−7%</span></span>
+            <span class="t-tag t-target"><span class="t-label">目标一</span><span class="t-val">+20%</span></span>
+            <span class="t-tag t-target"><span class="t-label">目标二</span><span class="t-val">+38%</span></span>
+          </div>
+          <div class="backtest-row">
+            <span class="bt-label">回测参考：</span>
+            <span class="bt-val">胜率 30%</span>
+            <span class="bt-sep">|</span>
+            <span class="bt-val">EV +5.8%</span>
+            <span class="bt-sep">|</span>
+            <span class="bt-val">Kelly 5%</span>
+          </div>
+        </div>
+        <div class="news-section">
+          <div class="news-label">最新资讯</div>
+          <div class="news-item">
+            <a href="#">BRUKINSA 欧洲获批新适应症，商业化加速</a>
+            <span class="news-src"> · 医药魔方</span>
+          </div>
+          <div class="news-item">
+            <a href="#">百济神州 Q4 收入创历史新高，净亏收窄</a>
+            <span class="news-src"> · 彭博社</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-detail">
+        <button class="btn-detail">详情</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:16px;color:#9aa0a6;font-size:13px">港股还有 6 只 · 点击「详情」查看完整页面</div>
+
+  <div class="version-note">v12 · Full · 2026-03-21</div>
+</div>
+
+<button class="fab">+</button>
+
+</body>
+</html>
