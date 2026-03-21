@@ -393,21 +393,17 @@
                data-swing-cost="{{ '%.2f'|format(pos.swing_cost) if pos.swing_cost else '' }}"
                data-currency="{{ pos.currency }}"></div>
 
-          {% if pos.latest_news %}
-          <div>
+          <div id="news-{{ key }}">
+            {% if is_demo and pos.latest_news %}
             <div class="section-label">最新资讯</div>
             <div class="ls-news-item">
               {% if pos.latest_news_url %}
               <a href="{{ pos.latest_news_url }}" target="_blank">{{ pos.latest_news }}</a>
-              {% else %}
-              {{ pos.latest_news }}
-              {% endif %}
-              {% if pos.latest_news_source %}
-              <span class="ls-news-src"> · {{ pos.latest_news_source }}</span>
-              {% endif %}
+              {% else %}{{ pos.latest_news }}{% endif %}
+              {% if pos.latest_news_source %}<span class="ls-news-src"> · {{ pos.latest_news_source }}</span>{% endif %}
             </div>
+            {% endif %}
           </div>
-          {% endif %}
         </div>
 
       </div>
@@ -703,7 +699,42 @@ async function loadSignalsAndSummaries() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', loadSignalsAndSummaries);
+// ── 新闻异步加载 ─────────────────────────────────────────────
+
+function renderNewsItem(n) {
+    const title = n.title_zh || n.title;
+    const src   = n.source ? `<span class="ls-news-src"> · ${n.source}</span>` : '';
+    const link  = n.url && n.url !== '#'
+        ? `<a href="${n.url}" target="_blank">${title}</a>`
+        : title;
+    return `<div class="ls-news-item">${link}${src}</div>`;
+}
+
+async function loadNews(symbol) {
+    if (IS_DEMO) return;   // demo 模式直接用模板渲染的 fixture
+    const key = symbol.replace(':', '_');
+    const el  = document.getElementById('news-' + key);
+    if (!el) return;
+    try {
+        const resp = await fetch(`/api/news/${key}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (!data.news || data.news.length === 0) return;
+        el.innerHTML = `<div class="section-label">最新资讯</div>` +
+                       data.news.map(renderNewsItem).join('');
+    } catch (_) {}
+}
+
+async function loadAllNews() {
+    const keys = Array.from(document.querySelectorAll('[id^="news-"]'))
+        .map(el => el.id.replace('news-', '').replace('_', ':'));
+    await Promise.all(keys.map(sym => loadNews(sym)));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadSignalsAndSummaries();
+    loadAllNews();
+});
 
 // ── 标签页切换 ───────────────────────────────────────────────
 function lsSwitchTab(market) {

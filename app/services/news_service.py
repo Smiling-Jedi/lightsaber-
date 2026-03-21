@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.models.stock import Stock
 from app.models.news import News
 from app.data_sources.news_source import SinaNewsSource as NewsSource
+from app.services.news_process_service import process_news
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class NewsService:
         self.db = db
         self.news_source = NewsSource()
 
-    def fetch_news_for_stock(self, stock: Stock, max_results: int = 5) -> List[News]:
+    def fetch_news_for_stock(self, stock: Stock, max_results: int = 10) -> List[News]:
         """
         获取单只股票的新闻
 
@@ -33,24 +34,25 @@ class NewsService:
             新闻对象列表
         """
         try:
-            # 获取股票代码（不含市场前缀）
-            symbol = stock.symbol.split(":")[-1] if ":" in stock.symbol else stock.symbol
+            # 直接传完整 symbol（news_source 内部处理 HK:00700 → 0700.HK 转换）
+            news_data_list = self.news_source.get_news(stock.symbol, max_results)
 
-            # 从数据源获取新闻
-            news_data_list = self.news_source.get_news(symbol, max_results)
+            # 过滤已存在的（URL 去重）
+            new_items = []
+            for news_data in news_data_list:
+                existing = self.db.query(News).filter(News.url == news_data.url).first()
+                if not existing:
+                    new_items.append(news_data)
+
+            if not new_items:
+                return []
+
+            # LLM 批量翻译+打分
+            raw_dicts = [{"title": nd.title, "summary": nd.summary or ""} for nd in new_items]
+            processed = process_news(raw_dicts)
 
             added_news = []
-            for news_data in news_data_list:
-                # 检查是否已存在（根据 URL 去重）
-                existing = (
-                    self.db.query(News)
-                    .filter(News.url == news_data.url)
-                    .first()
-                )
-                if existing:
-                    continue
-
-                # 创建新闻记录
+            for news_data, proc in zip(new_items, processed):
                 news = News(
                     stock_symbol=stock.symbol,
                     title=news_data.title,
@@ -58,13 +60,14 @@ class NewsService:
                     url=news_data.url,
                     source=news_data.source,
                     published_at=news_data.published_at,
+                    title_zh=proc.get("title_zh"),
+                    importance=proc.get("importance"),
                 )
                 self.db.add(news)
                 added_news.append(news)
 
-            if added_news:
-                self.db.commit()
-                logger.info(f"为 {stock.symbol} 新增 {len(added_news)} 条新闻")
+            self.db.commit()
+            logger.info(f"为 {stock.symbol} 新增 {len(added_news)} 条新闻")
 
             return added_news
 
@@ -72,7 +75,7 @@ class NewsService:
             logger.error(f"获取 {stock.symbol} 新闻失败: {e}")
             return []
 
-    def fetch_all_news(self, max_per_stock: int = 5) -> Dict:
+    def fetch_all_news(self, max_per_stock: int = 10) -> Dict:
         """
         获取所有持仓股票的新闻
 
@@ -117,6 +120,19 @@ class NewsService:
             .all()
         )
         return news
+
+    def get_top_news(self, symbol: str, limit: int = 3) -> List[News]:
+        """返回重要度为 HIGH/MEDIUM 的 TOP N 条新闻，按发布时间倒序"""
+        return (
+            self.db.query(News)
+            .filter(
+                News.stock_symbol == symbol,
+                News.importance.in_(["HIGH", "MEDIUM"]),
+            )
+            .order_by(News.published_at.desc())
+            .limit(limit)
+            .all()
+        )
 
     def get_recent_news(self, hours: int = 24, limit: int = 50) -> List[News]:
         """
@@ -163,16 +179,16 @@ class NewsService:
         return result
 
     def to_dict(self, news: News) -> Dict:
-        """
-        将新闻对象转为字典（用于 API 返回）
-        """
+        """将新闻对象转为字典（用于 API 返回）"""
         return {
             "id": news.id,
             "symbol": news.stock_symbol,
             "title": news.title,
+            "title_zh": news.title_zh,
             "summary": news.summary,
             "url": news.url,
             "source": news.source,
+            "importance": news.importance,
             "published_at": news.published_at.isoformat() if news.published_at else None,
-            "created_at": news.created_at.isoformat() if news.created_at else None,
+            "fetched_at": news.fetched_at.isoformat() if news.fetched_at else None,
         }

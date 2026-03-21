@@ -235,6 +235,20 @@ def get_signal_history(symbol: str = None, limit: int = 50, db: Session = Depend
     return {"count": len(logs), "logs": [l.to_dict() for l in logs]}
 
 
+@router.get("/news/{symbol}")
+def get_stock_news(symbol: str, request: Request, db: Session = Depends(get_db)) -> Dict:
+    """
+    获取单只股票的 TOP 3 重要资讯（HIGH + MEDIUM）
+    symbol 格式：HK_00700 或 HK:00700
+    """
+    if is_demo_mode(request):
+        return {"symbol": symbol, "news": []}
+    symbol = symbol.replace("_", ":") if ":" not in symbol else symbol
+    news_service = NewsService(db)
+    news = news_service.get_top_news(symbol, limit=3)
+    return {"symbol": symbol, "news": [news_service.to_dict(n) for n in news]}
+
+
 @router.get("/exchange_rate/{from_currency}")
 def get_exchange_rate(from_currency: str, db: Session = Depends(get_db)) -> Dict:
     """

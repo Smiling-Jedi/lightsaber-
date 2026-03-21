@@ -12,8 +12,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db, init_db
+from app.core.database import get_db, init_db, SessionLocal
 from app.routers import position_router, dashboard_router, api_router
+from app.scheduler import create_scheduler
 
 # 配置日志
 logging.basicConfig(
@@ -26,12 +27,17 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
-    # 启动时初始化数据库
     logger.info("Initializing database...")
     init_db()
     logger.info("Database initialized.")
+
+    scheduler = create_scheduler(SessionLocal)
+    scheduler.start()
+    logger.info("Scheduler started.")
+
     yield
-    # 关闭时清理
+
+    scheduler.shutdown()
     logger.info("Shutting down...")
 
 

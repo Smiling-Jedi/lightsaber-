@@ -1,7 +1,7 @@
 """
 数据库连接管理
 """
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -35,3 +35,13 @@ def init_db():
     from app.models import stock, position, trade, news, signal_log
 
     Base.metadata.create_all(bind=engine)
+
+    # 补 news 表新增字段（SQLite 不支持 IF NOT EXISTS，需手动检查）
+    if "sqlite" in DATABASE_URL:
+        with engine.connect() as conn:
+            cols = [r[1] for r in conn.execute(text("PRAGMA table_info(news)"))]
+            if "title_zh" not in cols:
+                conn.execute(text("ALTER TABLE news ADD COLUMN title_zh VARCHAR(500)"))
+            if "importance" not in cols:
+                conn.execute(text("ALTER TABLE news ADD COLUMN importance VARCHAR(10)"))
+            conn.commit()

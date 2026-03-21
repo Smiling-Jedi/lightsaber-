@@ -39,14 +39,12 @@ class News(Base):
     # 获取时间
     fetched_at = Column(DateTime, default=datetime.now, nullable=False, comment="获取时间")
 
+    # LLM 处理结果
+    title_zh   = Column(String(500), nullable=True, comment="中文标题（LLM翻译）")
+    importance = Column(String(10),  nullable=True, comment="重要度 HIGH/MEDIUM/LOW")
+
     # 关联股票
     stock: "Stock" = relationship("Stock", back_populates="news")
 
     def __repr__(self) -> str:
         return f"<News(id={self.id}, stock='{self.stock_symbol}', title='{self.title[:30]}...')>"
-
-    @property
-    def is_stale(self) -> bool:
-        """判断新闻是否过期（超过24小时）"""
-        from datetime import timedelta
-        return datetime.now() - self.fetched_at > timedelta(hours=24)
