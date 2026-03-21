@@ -3,9 +3,13 @@
 使用真实股票代码，但仓位/价格/盈亏全部为模拟值
 港股 5 只 / 美股 5 只，总资金各约 10 万
 """
-from datetime import datetime
+import math
+import random
+from datetime import datetime, timedelta
+from typing import Optional, List, Dict
 
-_TODAY = datetime.now().strftime("%Y-%m-%d")
+def _today() -> str:
+    return datetime.now().strftime("%Y-%m-%d")
 
 # ─── 港股持仓 ────────────────────────────────────────────────
 
@@ -185,9 +189,9 @@ def get_demo_portfolio() -> dict:
     us_today = sum(p["today_profit_amount"] for p in _US_POSITIONS)
     today_rmb = hk_today * hkd_rate + us_today * usd_rate
 
-    # 重新算权重（不修改 module-level 数据，返回带权重的副本）
-    hk_positions = [{**p, "position_weight": round(p["market_value"] / hk_total * 100, 1)} for p in _HK_POSITIONS]
-    us_positions = [{**p, "position_weight": round(p["market_value"] / us_total * 100, 1)} for p in _US_POSITIONS]
+    # 重新算权重（基数只用股票市值，不含现金，和真实持仓页语义一致）
+    hk_positions = [{**p, "position_weight": round(p["market_value"] / hk_mv * 100, 1) if hk_mv else 0} for p in _HK_POSITIONS]
+    us_positions = [{**p, "position_weight": round(p["market_value"] / us_mv * 100, 1) if us_mv else 0} for p in _US_POSITIONS]
 
     return {
         "markets": {
@@ -238,6 +242,17 @@ def get_demo_portfolio() -> dict:
     }
 
 
+# ─── 单只持仓查询 ────────────────────────────────────────────────
+
+_ALL_POSITIONS = _HK_POSITIONS + _US_POSITIONS
+_POS_BY_SYMBOL = {p["symbol"]: p for p in _ALL_POSITIONS}
+
+
+def get_demo_position(symbol: str) -> Optional[dict]:
+    """按 symbol 获取演示持仓（如 HK:00700）"""
+    return _POS_BY_SYMBOL.get(symbol)
+
+
 # ─── 信号 Fixture ─────────────────────────────────────────────
 
 def get_demo_signals() -> dict:
@@ -245,7 +260,7 @@ def get_demo_signals() -> dict:
         # 腾讯 - RSI接近超卖，HOLD medium（市场偏弱降级）
         {
             "symbol": "HK:00700", "name": "腾讯控股", "category": "large_tech",
-            "generated_at": _TODAY,
+            "generated_at": _today(),
             "action": "HOLD", "confidence": "MEDIUM",
             "summary": "EMA金叉持续，但ADX偏弱，市场环境偏弱，维持持有",
             "triggers": ["EMA20 > EMA60 金叉持续中"],
@@ -264,7 +279,7 @@ def get_demo_signals() -> dict:
         # 阿里 - EMA死叉，WATCH medium
         {
             "symbol": "HK:09988", "name": "阿里巴巴-W", "category": "large_tech",
-            "generated_at": _TODAY,
+            "generated_at": _today(),
             "action": "WATCH", "confidence": "MEDIUM",
             "summary": "EMA死叉形成，短期趋势向下，观望等待企稳信号",
             "triggers": ["MACD死叉形成"],
@@ -283,7 +298,7 @@ def get_demo_signals() -> dict:
         # 小米 - EMA金叉+ADX强，HOLD high
         {
             "symbol": "HK:01810", "name": "小米集团-W", "category": "large_tech",
-            "generated_at": _TODAY,
+            "generated_at": _today(),
             "action": "HOLD", "confidence": "HIGH",
             "summary": "EMA金叉且ADX确认趋势，多头信号明确，继续持有",
             "triggers": ["EMA20 > EMA60 金叉持续中", "ADX=31.4 趋势明确"],
@@ -302,7 +317,7 @@ def get_demo_signals() -> dict:
         # 美团 - RSI超卖触发，BUY medium
         {
             "symbol": "HK:03690", "name": "美团-W", "category": "cyclical",
-            "generated_at": _TODAY,
+            "generated_at": _today(),
             "action": "BUY", "confidence": "MEDIUM",
             "summary": "RSI跌入超卖区，布林带下轨支撑，可考虑小仓位加仓",
             "triggers": ["RSI=28.3 触及超卖阈值30", "布林带下轨支撑位 181.2"],
@@ -321,7 +336,7 @@ def get_demo_signals() -> dict:
         # 百济 - RSI偏低观望，WATCH low
         {
             "symbol": "HK:06160", "name": "百济神州", "category": "biotech",
-            "generated_at": _TODAY,
+            "generated_at": _today(),
             "action": "WATCH", "confidence": "LOW",
             "summary": "RSI接近超卖但未触发，生物医药板块波动大，观望为主",
             "triggers": [],
@@ -340,7 +355,7 @@ def get_demo_signals() -> dict:
         # META - EMA金叉强势，HOLD high
         {
             "symbol": "US:META", "name": "Meta Platforms", "category": "large_tech",
-            "generated_at": _TODAY,
+            "generated_at": _today(),
             "action": "HOLD", "confidence": "HIGH",
             "summary": "EMA金叉+ADX强势确认，趋势明确，继续持有",
             "triggers": ["EMA20 > EMA60 多头排列 (+5.2%)", "ADX=34.7 趋势强劲"],
@@ -359,7 +374,7 @@ def get_demo_signals() -> dict:
         # MSFT - 横盘整理，HOLD medium
         {
             "symbol": "US:MSFT", "name": "Microsoft", "category": "large_tech",
-            "generated_at": _TODAY,
+            "generated_at": _today(),
             "action": "HOLD", "confidence": "MEDIUM",
             "summary": "EMA金叉维持但ADX偏弱横盘，持有等待方向选择",
             "triggers": ["EMA20 > EMA60 持续中"],
@@ -378,7 +393,7 @@ def get_demo_signals() -> dict:
         # TSLA - EMA死叉，WATCH medium
         {
             "symbol": "US:TSLA", "name": "Tesla", "category": "cyclical",
-            "generated_at": _TODAY,
+            "generated_at": _today(),
             "action": "WATCH", "confidence": "MEDIUM",
             "summary": "EMA死叉形成，短期趋势向下，等待支撑位企稳",
             "triggers": ["MACD动能走弱"],
@@ -397,7 +412,7 @@ def get_demo_signals() -> dict:
         # AMZN - 稳健持有，HOLD medium
         {
             "symbol": "US:AMZN", "name": "Amazon", "category": "large_tech",
-            "generated_at": _TODAY,
+            "generated_at": _today(),
             "action": "HOLD", "confidence": "MEDIUM",
             "summary": "EMA金叉持续，ADX轻度趋势，AWS增长支撑，持有为主",
             "triggers": ["EMA20 > EMA60 持续中"],
@@ -416,7 +431,7 @@ def get_demo_signals() -> dict:
         # NVDA - RSI超卖区，BUY medium
         {
             "symbol": "US:NVDA", "name": "NVIDIA", "category": "large_tech",
-            "generated_at": _TODAY,
+            "generated_at": _today(),
             "action": "BUY", "confidence": "MEDIUM",
             "summary": "RSI跌入超卖，基本面强劲，可考虑逢低加仓，止损-10%",
             "triggers": ["RSI=27.4 进入超卖区", "布林带下轨附近"],
@@ -434,3 +449,228 @@ def get_demo_signals() -> dict:
         },
     ]
     return {"count": len(signals), "signals": signals}
+
+
+# ─── 演示K线数据 ──────────────────────────────────────────────────
+
+def _gen_trading_dates(n: int) -> List[str]:
+    """生成最近 n 个交易日日期（跳过周末）"""
+    dates = []
+    d = datetime.now().date()
+    while len(dates) < n:
+        if d.weekday() < 5:
+            dates.append(d.strftime("%Y-%m-%d"))
+        d -= timedelta(days=1)
+    return list(reversed(dates))
+
+
+def _calc_ma(closes: List[float], period: int) -> List[Optional[float]]:
+    result = []
+    for i in range(len(closes)):
+        if i < period - 1:
+            result.append(None)
+        else:
+            result.append(round(sum(closes[i - period + 1: i + 1]) / period, 4))
+    return result
+
+
+def get_demo_kline(symbol: str) -> Dict:
+    """
+    生成演示用K线数据（随机游走，从均价走向当前价）
+    返回格式与 /api/stock/{symbol}/kline 一致
+    """
+    pos = get_demo_position(symbol)
+    if not pos:
+        return {"symbol": symbol, "ohlcv": [], "real_trades": [], "sim_trades": []}
+
+    avg_cost    = pos["avg_cost"]
+    cur_price   = pos["current_price"]
+    total_bars  = 250   # 生成250根，前70根只用于MA预热，前端显示180根
+
+    # 用 symbol 做随机种子，确保同一 symbol 每次生成结果一致
+    seed = sum(ord(c) for c in symbol)
+    rng = random.Random(seed)
+
+    # 波动率：价格的 1.5%
+    vol = avg_cost * 0.015
+
+    # 让收盘价从 avg_cost 逐渐漂移到 cur_price
+    drift_per_bar = (cur_price - avg_cost) / total_bars
+
+    closes = []
+    price = avg_cost
+    for i in range(total_bars):
+        price += drift_per_bar + rng.gauss(0, vol)
+        price = max(price, avg_cost * 0.5)  # 不低于均价一半
+        closes.append(round(price, 3))
+
+    # 最后一根强制对齐当前价
+    closes[-1] = cur_price
+
+    dates = _gen_trading_dates(total_bars)
+
+    ohlcv = []
+    for i, (d, c) in enumerate(zip(dates, closes)):
+        prev_c = closes[i - 1] if i > 0 else c
+        o = round(prev_c + rng.gauss(0, vol * 0.3), 3)
+        h = round(max(o, c) + abs(rng.gauss(0, vol * 0.5)), 3)
+        l = round(min(o, c) - abs(rng.gauss(0, vol * 0.5)), 3)
+        vol_shares = int(rng.uniform(500_000, 3_000_000))
+        ohlcv.append({"date": d, "open": o, "high": h, "low": l, "close": c, "volume": vol_shares})
+
+    # 附加均线
+    for period in [5, 10, 20, 30, 60, 200]:
+        ma_vals = _calc_ma(closes, period)
+        for j, bar in enumerate(ohlcv):
+            bar[f"ma{period}"] = ma_vals[j]
+
+    # 演示交易打点（真实 2 笔，模拟 3 笔）
+    # 真实：买入（约90天前）+ 加仓（约45天前）
+    buy1_idx  = total_bars - 90
+    buy2_idx  = total_bars - 45
+    sell1_idx = total_bars - 15
+
+    real_trades = [
+        {"date": dates[buy1_idx],  "type": "BUY",  "price": round(closes[buy1_idx] * 0.99, 3),
+         "shares": pos["total_shares"] // 2, "pct": None},
+        {"date": dates[buy2_idx],  "type": "BUY",  "price": round(closes[buy2_idx] * 1.01, 3),
+         "shares": pos["total_shares"] // 2, "pct": None},
+    ]
+
+    sim_buy1_price  = round(closes[buy1_idx - 5] * 0.98, 3)
+    sim_sell1_price = closes[sell1_idx]
+    sim_pct = round((sim_sell1_price - sim_buy1_price) / sim_buy1_price * 100, 2)
+
+    sim_trades = [
+        {"date": dates[buy1_idx - 5], "type": "BUY",  "price": sim_buy1_price,
+         "shares": int(pos["total_shares"] * 1.1), "pct": None},
+        {"date": dates[sell1_idx],    "type": "SELL", "price": round(sim_sell1_price, 3),
+         "shares": int(pos["total_shares"] * 1.1), "pct": sim_pct},
+        {"date": dates[total_bars - 8], "type": "BUY", "price": round(closes[-8] * 0.995, 3),
+         "shares": int(pos["total_shares"] * 0.8), "pct": None},
+    ]
+
+    return {
+        "symbol":      symbol,
+        "ohlcv":       ohlcv,
+        "real_trades": real_trades,
+        "sim_trades":  sim_trades,
+    }
+
+
+# ─── 演示持仓对比 ─────────────────────────────────────────────────
+
+def get_demo_positions_compare(symbol: str) -> Dict:
+    """返回演示的实盘 vs 模拟持仓对比数据"""
+    pos = get_demo_position(symbol)
+    if not pos:
+        return {"symbol": symbol, "current_price": None, "real": None, "sim": None, "cash": {}}
+
+    cur = pos["current_price"]
+    avg = pos["avg_cost"]
+    shares = pos["total_shares"]
+
+    real = {
+        "shares":       shares,
+        "avg_cost":     avg,
+        "market_value": round(cur * shares, 0),
+        "pnl_amount":   round((cur - avg) * shares, 0),
+        "pnl_pct":      round((cur - avg) / avg * 100, 1),
+    }
+
+    # 模拟持仓：比实盘多买了10%，成本略低
+    sim_shares   = int(shares * 1.1)
+    sim_avg_cost = round(avg * 0.97, 3)
+    sim_mv       = round(cur * sim_shares, 0)
+    sim_pnl      = round((cur - sim_avg_cost) * sim_shares, 0)
+    sim_pnl_pct  = round((cur - sim_avg_cost) / sim_avg_cost * 100, 1)
+
+    sim = {
+        "snapshot_date":    "2026-02-21",
+        "shares":           sim_shares,
+        "avg_cost":         sim_avg_cost,
+        "market_value":     sim_mv,
+        "pnl_amount":       sim_pnl,
+        "pnl_pct":          sim_pnl_pct,
+        "initial_shares":   shares,
+        "initial_avg_cost": avg,
+    }
+
+    cash = {"HKD": 85200.0, "USD": 12400.0} if pos["market"] == "HK" else {"HKD": 0, "USD": 18600.0}
+
+    return {
+        "symbol":        symbol,
+        "current_price": cur,
+        "real":  real,
+        "sim":   sim,
+        "cash":  cash,
+        "demo":  True,
+    }
+
+
+# ─── 演示交易统计 + 时间轴 ────────────────────────────────────────
+
+def get_demo_trades(symbol: str) -> Dict:
+    """返回演示的交易统计和统一时间轴"""
+    pos = get_demo_position(symbol)
+    if not pos:
+        return {"real": {"stats": {}}, "sim": {"stats": {}}, "timeline": []}
+
+    avg  = pos["avg_cost"]
+    cur  = pos["current_price"]
+
+    # 用 K线里算好的打点日期，直接复用
+    kline = get_demo_kline(symbol)
+    real_trades = kline["real_trades"]
+    sim_trades  = kline["sim_trades"]
+
+    # 统计
+    real_stats = {
+        "total_trades": 2,
+        "win_rate": 63.0,
+        "avg_win_pct": 12.4,
+        "avg_loss_pct": -6.1,
+        "ev_pct": 5.6,
+        "profit_factor": 2.03,
+        "max_consecutive_loss": 1,
+    }
+    sim_stats = {
+        "total_trades": 3,
+        "win_rate": 66.7,
+        "avg_win_pct": 14.2,
+        "avg_loss_pct": -5.8,
+        "ev_pct": 7.1,
+        "profit_factor": 2.45,
+        "max_consecutive_loss": 1,
+    }
+
+    # 合并时间轴
+    sim_sell = sim_trades[1]  # 已出场的模拟卖出
+    all_dates = sorted(
+        set([t["date"] for t in real_trades] + [t["date"] for t in sim_trades]),
+        reverse=True
+    )
+
+    real_by_date = {t["date"]: t for t in real_trades}
+    sim_by_date  = {t["date"]: t for t in sim_trades}
+
+    timeline = []
+    for d in all_dates:
+        r = real_by_date.get(d)
+        s = sim_by_date.get(d)
+        timeline.append({
+            "date": d,
+            "real": {"direction": "买入" if r["type"] == "BUY" else "卖出",
+                     "price": r["price"], "shares": r["shares"],
+                     "pct": r["pct"]} if r else None,
+            "sim":  {"direction": "买入" if s["type"] == "BUY" else "卖出",
+                     "price": s["price"], "shares": s["shares"],
+                     "pct": s["pct"]} if s else None,
+        })
+
+    return {
+        "real":     {"stats": real_stats},
+        "sim":      {"stats": sim_stats},
+        "timeline": timeline,
+        "demo":     True,
+    }

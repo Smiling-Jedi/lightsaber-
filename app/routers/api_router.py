@@ -16,6 +16,12 @@ from app.services.analysis_service import AnalysisService
 from app.services.signal_service import SignalService
 from app.services.signal_log_service import SignalLogService
 from app.services.futu_sync_service import FutuSyncService
+from app.services.futu_kline_service import FutuKlineService
+from app.services.trade_timeline_service import TradeTimelineService
+from app.models.sim_position import SimPosition
+from app.models.position import Position
+from app.models.stock import Stock
+from app.models.cash import CashBalance
 
 router = APIRouter()
 
@@ -247,6 +253,163 @@ def get_stock_news(symbol: str, request: Request, db: Session = Depends(get_db))
     news_service = NewsService(db)
     news = news_service.get_top_news(symbol, limit=5)
     return {"symbol": symbol, "news": [news_service.to_dict(n) for n in news]}
+
+
+@router.get("/stock/{symbol}/kline")
+def get_stock_kline(symbol: str, request: Request, db: Session = Depends(get_db)) -> Dict:
+    """
+    获取个股K线数据（含均线 + 两套交易打点）
+    symbol 格式：HK_00700 或 HK:00700
+    """
+    symbol = symbol.replace("_", ":") if ":" not in symbol else symbol
+
+    if is_demo_mode(request):
+        from app.fixtures.demo_data import get_demo_kline
+        return get_demo_kline(symbol)
+
+    # K线 + MA
+    kline_svc = FutuKlineService()
+    kline_data = kline_svc.get_kline(symbol, count=500)
+
+    # 真实成交打点（从 trades 表）
+    position = db.query(Position).filter_by(stock_symbol=symbol).first()
+    real_trades = []
+    if position:
+        from app.models.trade import Trade
+        trades = db.query(Trade).filter_by(position_id=position.id).order_by(Trade.trade_date).all()
+        for t in trades:
+            real_trades.append({
+                "date":   t.trade_date.isoformat() if t.trade_date else None,
+                "type":   t.trade_type,
+                "price":  float(t.price) if t.price else None,
+                "shares": t.shares,
+                "pct":    None,
+            })
+
+    # 模拟成交打点（从 signal_logs is_simulated=True）
+    from app.models.signal_log import SignalLog
+    sim_logs = (
+        db.query(SignalLog)
+        .filter(
+            SignalLog.symbol == symbol,
+            SignalLog.is_simulated == True,
+            SignalLog.action.in_(["BUY", "SELL"]),
+            SignalLog.entered == True,
+        )
+        .order_by(SignalLog.entered_at)
+        .all()
+    )
+    sim_trades = []
+    for log in sim_logs:
+        trade_date = (log.entered_at.date() if log.entered_at else
+                      log.generated_at.date() if log.generated_at else None)
+        sim_trades.append({
+            "date":   trade_date.isoformat() if trade_date else None,
+            "type":   log.action,
+            "price":  log.entered_price or log.entry_price,
+            "shares": None,
+            "pct":    log.actual_pct,
+        })
+
+    return {
+        "symbol": symbol,
+        "ohlcv":  kline_data,
+        "real_trades": real_trades,
+        "sim_trades":  sim_trades,
+    }
+
+
+@router.get("/stock/{symbol}/trades")
+def get_stock_trades(symbol: str, request: Request, db: Session = Depends(get_db)) -> Dict:
+    """
+    获取个股交易统计（实盘 + 模拟各自胜率/EV/盈亏比）+ 统一时间轴
+    symbol 格式：HK_00700 或 HK:00700
+    """
+    symbol = symbol.replace("_", ":") if ":" not in symbol else symbol
+
+    if is_demo_mode(request):
+        from app.fixtures.demo_data import get_demo_trades
+        return get_demo_trades(symbol)
+
+    log_svc = SignalLogService(db)
+
+    real_perf = log_svc.get_performance(symbol=symbol, is_simulated=False)
+    sim_perf  = log_svc.get_performance(symbol=symbol, is_simulated=True)
+
+    timeline_svc = TradeTimelineService(db)
+    timeline = timeline_svc.get_timeline(symbol)
+
+    return {
+        "real": {"stats": real_perf},
+        "sim":  {"stats": sim_perf},
+        "timeline": timeline["rows"],
+    }
+
+
+@router.get("/stock/{symbol}/positions/compare")
+def get_positions_compare(symbol: str, request: Request, db: Session = Depends(get_db)) -> Dict:
+    """
+    获取实盘 vs 模拟持仓对比数据
+    symbol 格式：HK_00700 或 HK:00700
+    """
+    symbol = symbol.replace("_", ":") if ":" not in symbol else symbol
+
+    if is_demo_mode(request):
+        from app.fixtures.demo_data import get_demo_positions_compare
+        return get_demo_positions_compare(symbol)
+
+    # 真实持仓
+    position = db.query(Position).filter_by(stock_symbol=symbol).first()
+    stock = db.get(Stock, symbol)
+    current_price = float(stock.current_price) if stock and stock.current_price else 0
+
+    real = None
+    if position:
+        invested = position.total_shares * float(position.avg_cost or 0)
+        market_val = position.total_shares * current_price
+        pnl_amount = market_val - invested
+        pnl_pct = (pnl_amount / invested * 100) if invested > 0 else 0
+        real = {
+            "shares":       position.total_shares,
+            "avg_cost":     float(position.avg_cost) if position.avg_cost else None,
+            "market_value": round(market_val, 2),
+            "pnl_amount":   round(pnl_amount, 2),
+            "pnl_pct":      round(pnl_pct, 1),
+        }
+
+    # 模拟持仓
+    sim_pos = db.query(SimPosition).filter_by(symbol=symbol).first()
+    sim = None
+    if sim_pos:
+        invested_sim = (sim_pos.shares or 0) * (sim_pos.avg_cost or 0)
+        market_val_sim = (sim_pos.shares or 0) * current_price
+        pnl_amount_sim = market_val_sim - invested_sim
+        pnl_pct_sim = (pnl_amount_sim / invested_sim * 100) if invested_sim > 0 else 0
+        sim = {
+            "snapshot_date":    sim_pos.snapshot_date.isoformat() if sim_pos.snapshot_date else None,
+            "shares":           sim_pos.shares,
+            "avg_cost":         sim_pos.avg_cost,
+            "market_value":     round(market_val_sim, 2),
+            "pnl_amount":       round(pnl_amount_sim, 2),
+            "pnl_pct":          round(pnl_pct_sim, 1),
+            "initial_shares":   sim_pos.initial_shares,
+            "initial_avg_cost": sim_pos.initial_avg_cost,
+        }
+
+    # 现金
+    cash_hk = db.get(CashBalance, "HK")
+    cash_us = db.get(CashBalance, "US")
+
+    return {
+        "symbol":        symbol,
+        "current_price": current_price,
+        "real":  real,
+        "sim":   sim,
+        "cash": {
+            "HKD": float(cash_hk.amount) if cash_hk else 0,
+            "USD": float(cash_us.amount) if cash_us else 0,
+        },
+    }
 
 
 @router.get("/exchange_rate/{from_currency}")

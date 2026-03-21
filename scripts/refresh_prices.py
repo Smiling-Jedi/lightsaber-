@@ -72,6 +72,39 @@ def refresh_all_prices():
             for s in failed_stocks:
                 print(f"   - {s}")
 
+        # ── 模拟出场检查 ─────────────────────────────────────
+        print("\n🔮 检查模拟交易出场条件...")
+        try:
+            from app.services.signal_log_service import SignalLogService
+            from app.models.stock import Stock
+
+            # 构建价格 map
+            price_map = {}
+            all_stocks = db.query(Stock).all()
+            for s in all_stocks:
+                if s.current_price:
+                    price_map[s.symbol] = {
+                        "high":  float(s.high_price or s.current_price),
+                        "low":   float(s.low_price or s.current_price),
+                        "close": float(s.current_price),
+                    }
+
+            log_svc = SignalLogService(db)
+            n = log_svc.auto_check_sim_exits(price_map)
+            print(f"   模拟出场: {n} 条")
+        except Exception as e:
+            print(f"⚠️  模拟出场检查失败: {e}")
+
+        # ── 富途成交同步 ─────────────────────────────────────
+        print("\n📥 同步富途历史成交...")
+        try:
+            from app.services.futu_deal_sync_service import FutuDealSyncService
+            deal_svc = FutuDealSyncService(db)
+            result = deal_svc.sync()
+            print(f"   新增: {result['synced']}, 跳过: {result['skipped']}")
+        except Exception as e:
+            print(f"⚠️  富途成交同步失败: {e}")
+
     finally:
         db.close()
 

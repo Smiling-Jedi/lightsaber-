@@ -212,11 +212,12 @@ class SignalService:
         # 回测参考（合并STOCK_PARAMS + JSON报告）
         backtest_ref = self._load_backtest_ref(symbol) or {}
         backtest_ref.update({
-            "kelly_pct": kelly_limit,
+            "kelly_pct":     kelly_limit,
             "stop_loss_pct": stop_pct,
-            "target_pct_1": target_pct,
-            "wf_robust": wf_robust,
-            "credibility": STOCK_PARAMS.get(symbol, {}).get("credibility", "LOW"),
+            "target_pct_1":  target_pct,
+            "hold_months":   STOCK_PARAMS.get(symbol, {}).get("hold_months"),
+            "wf_robust":     wf_robust,
+            "credibility":   STOCK_PARAMS.get(symbol, {}).get("credibility", "LOW"),
         })
 
         # 股票名称

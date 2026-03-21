@@ -39,6 +39,9 @@ class SignalLog(Base):
     triggers_json  = Column(Text, nullable=True)
     conflicts_json = Column(Text, nullable=True)
 
+    # 是否为模拟交易（True=系统自动模拟，False=真实信号跟踪）
+    is_simulated = Column(Boolean, default=False, nullable=False, index=True)
+
     # 是否已入场（用户确认）
     entered = Column(Boolean, default=False, nullable=False)
     entered_at    = Column(DateTime, nullable=True)
@@ -94,6 +97,7 @@ class SignalLog(Base):
             "wf_robust": self.wf_robust,
             "triggers": self.triggers,
             "conflicts": self.conflicts,
+            "is_simulated": self.is_simulated,
             "entered": self.entered,
             "entered_price": self.entered_price,
             "status": self.status,

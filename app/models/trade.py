@@ -50,6 +50,9 @@ class Trade(Base):
     # 剩余股数（用于跟踪波段仓是否已卖出）
     remaining_shares = Column(Integer, nullable=True, comment="剩余股数")
 
+    # 富途订单ID（用于幂等去重）
+    futu_order_id = Column(String(50), nullable=True, unique=True, index=True)
+
     # 交易日期
     trade_date = Column(Date, nullable=False, default=date.today, comment="交易日期")
 

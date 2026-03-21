@@ -620,9 +620,13 @@ function renderSignalRight(sig) {
     const bt = sig.backtest_ref;
     let btHtml = '';
     if (bt && bt.win_rate) {
-        const parts = [`胜率 ${(bt.win_rate * 100).toFixed(0)}%`];
-        if (bt.ev_pct != null) parts.push(`EV ${bt.ev_pct > 0 ? '+' : ''}${bt.ev_pct.toFixed(1)}%`);
-        if (bt.kelly_pct) parts.push(`Kelly ${bt.kelly_pct}%`);
+        const winRateTip = '胜率：该信号在历史回测中的盈利次数占比';
+        const evTip = 'EV（期望收益）：平均每次交易的预期收益率，考虑胜率和盈亏比';
+        const kellyTip = 'Kelly%：根据凯利公式计算的最优仓位占比，用于控制风险和最大化收益';
+
+        const parts = [`<span class="ind-tip" data-tip="${winRateTip}">胜率</span> ${(bt.win_rate * 100).toFixed(0)}%`];
+        if (bt.ev_pct != null) parts.push(`<span class="ind-tip" data-tip="${evTip}">EV</span> ${bt.ev_pct > 0 ? '+' : ''}${bt.ev_pct.toFixed(1)}%`);
+        if (bt.kelly_pct) parts.push(`<span class="ind-tip" data-tip="${kellyTip}">Kelly</span> ${bt.kelly_pct}%`);
         const joined = parts.map(p => `<span class="bt-val">${p}</span>`)
                             .join('<span class="bt-sep">|</span>');
         btHtml = `<div class="backtest-row"><span class="bt-label">回测参考：</span>${joined}</div>`;

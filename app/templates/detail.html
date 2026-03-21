@@ -1,171 +1,626 @@
 {% extends "base.html" %}
 
-{% block title %}{{ position.name }} - 持仓详情{% endblock %}
+{% block title %}{{ position.name }} · 光剑{% endblock %}
 
-{% block content %}
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/positions/">持仓</a></li>
-        <li class="breadcrumb-item active">{{ position.name }}</li>
-    </ol>
-</nav>
+{# Suppress default navbar — header-band replaces it #}
+{% block navbar %}{% endblock %}
 
-<div class="row">
-    <!-- 左侧：持仓详情 -->
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    {{ position.name }}
-                    <span class="badge market-badge-{{ position.market|lower }} ms-2">{{ position.market }}</span>
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <small class="text-muted">股票代码</small>
-                        <div class="fw-bold">{{ position.symbol }}</div>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-muted">币种</small>
-                        <div class="fw-bold">{{ position.currency }}</div>
-                    </div>
-                </div>
+{% block extra_css %}
+<style>
+/* ── 布局基础 ─────────────────────────────────────── */
+body { background: #eceaf8 !important; }
 
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <small class="text-muted">总持仓</small>
-                        <div class="fw-bold">{{ position.total_shares }} 股</div>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-muted">底仓</small>
-                        <div class="fw-bold">{{ position.base_shares }} 股</div>
-                    </div>
-                </div>
+/* ── 头部 ─────────────────────────────────────────── */
+.ls-header-band { background: #38346a; box-shadow: 0 4px 20px rgba(0,0,0,0.18); }
+.ls-header-inner { max-width: 1280px; margin: 0 auto; padding: 0 28px 24px; }
+.ls-nav { height: 62px; display: flex; align-items: center; justify-content: space-between; }
+.ls-nav-brand { display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 600; color: #fff; text-decoration: none; letter-spacing: -0.3px; }
+.ls-nav-brand span { color: #a5b4fc; }
+.ls-nav-links { display: flex; gap: 4px; }
+.ls-nav-link { padding: 6px 16px; border-radius: 20px; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 15px; font-weight: 500; }
+.ls-nav-link.active { background: rgba(255,255,255,0.15); color: #fff; }
+.ls-nav-link:hover:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
 
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <small class="text-muted">成本价</small>
-                        <div class="fw-bold">{{ "%.2f"|format(position.avg_cost) }}</div>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-muted">当前价</small>
-                        <div class="fw-bold {% if position.current_price > position.avg_cost %}profit{% else %}loss{% endif %}">
-                            {{ "%.2f"|format(position.current_price) if position.current_price else "未更新" }}
-                        </div>
-                    </div>
-                </div>
+/* ── 面包屑 ───────────────────────────────────────── */
+.ls-breadcrumb { font-size: 13px; color: rgba(255,255,255,0.5); }
+.ls-breadcrumb a { color: rgba(255,255,255,0.5); text-decoration: none; }
+.ls-breadcrumb a:hover { color: #fff; }
+.ls-breadcrumb-sep { margin: 0 6px; }
 
-                {% if position.market_value %}
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <small class="text-muted">市值</small>
-                        <div class="fw-bold">{{ "%.0f"|format(position.market_value) }}</div>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-muted">仓位占比</small>
-                        <div class="fw-bold">{{ "%.1f"|format(position.position_weight) }}%</div>
-                    </div>
-                </div>
+/* ── 股票标题 ─────────────────────────────────────── */
+.ls-stock-title { color: #fff; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+.ls-chip { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+.ls-chip-hk { background: #dbeafe; color: #1d4ed8; }
+.ls-chip-us { background: #ede9fe; color: #6d28d9; }
+.ls-chip-a  { background: #dcfce7; color: #15803d; }
+.ls-price-band { font-size: 26px; font-weight: 300; letter-spacing: -0.6px; }
+.ls-price-up { color: #fca5a5; }
+.ls-price-dn { color: #6ee7b7; }
+.ls-price-muted { color: rgba(255,255,255,0.35); }
+.ls-currency-label { font-size: 12px; color: rgba(255,255,255,0.4); }
 
-                <div class="row">
-                    <div class="col-6">
-                        <small class="text-muted">盈亏金额</small>
-                        <div class="fw-bold {% if position.profit >= 0 %}profit{% else %}loss{% endif %}">
-                            {{ "+%.0f"|format(position.profit) if position.profit >= 0 else "%.0f"|format(position.profit) }}
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-muted">盈亏比例</small>
-                        <div class="fw-bold {% if position.profit_pct >= 0 %}profit{% else %}loss{% endif %}">
-                            {{ "+%.2f"|format(position.profit_pct) if position.profit_pct >= 0 else "%.2f"|format(position.profit_pct) }}%
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+/* ── 主内容区 ─────────────────────────────────────── */
+.ls-page { max-width: 1280px; margin: 0 auto; padding: 28px 28px 100px; }
 
-    <!-- 右侧：新闻 -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">📰 相关新闻</h5>
-                <button class="btn btn-sm btn-outline-primary" onclick="refreshNews()">刷新</button>
-            </div>
-            <div class="card-body">
-                {% if news %}
-                <div class="list-group list-group-flush">
-                    {% for item in news %}
-                    <a href="{{ item.url }}" target="_blank" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">{{ item.title }}</h6>
-                            <small class="text-muted">{{ item.source }}</small>
-                        </div>
-                        {% if item.summary %}
-                        <p class="mb-1 small text-muted">{{ item.summary[:100] }}...</p>
-                        {% endif %}
-                        {% if item.published_at %}
-                        <small class="text-muted">{{ item.published_at[:10] }}</small>
-                        {% endif %}
-                    </a>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center text-muted py-4">暂无新闻</div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+/* ── 卡片 ─────────────────────────────────────────── */
+.ls-card { background: #fff; border-radius: 12px; border: 1px solid #dcdaf0; box-shadow: 0 1px 4px rgba(56,52,106,0.07), 0 3px 10px rgba(56,52,106,0.05); }
+.ls-card-header { border-bottom: 1px solid #eeedf8; padding: 14px 20px; font-weight: 600; font-size: 14px; color: #38346a; background: transparent; border-radius: 12px 12px 0 0; }
 
-<!-- 交易记录 -->
-{% if trades %}
-<div class="card mt-4">
-    <div class="card-header">
-        <h5 class="mb-0">📝 交易记录</h5>
-    </div>
-    <div class="card-body">
-        <table class="table table-sm">
-            <thead>
-                <tr>
-                    <th>日期</th>
-                    <th>类型</th>
-                    <th>股数</th>
-                    <th>价格</th>
-                    <th>目标价</th>
-                    <th>备注</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for trade in trades %}
-                <tr>
-                    <td>{{ trade.trade_date.strftime('%Y-%m-%d') }}</td>
-                    <td>
-                        {% if trade.trade_type == 'BUY' %}
-                        <span class="badge bg-success">买入</span>
-                        {% else %}
-                        <span class="badge bg-danger">卖出</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ trade.shares }}</td>
-                    <td>{{ "%.2f"|format(trade.price) }}</td>
-                    <td>{{ "%.2f"|format(trade.target_sell_price) if trade.target_sell_price else '-' }}</td>
-                    <td><small>{{ trade.notes or '' }}</small></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+/* ── K线区 ─────────────────────────── */
+#klineChart { width: 100%; height: 500px; }
+.kline-loading { height: 500px; display:flex; align-items:center; justify-content:center; color:#6c757d; background:#f8f9fa; border-radius: 0 0 12px 12px; }
+
+/* ── section-title ──────────────────── */
+.section-title { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #38346a; margin-bottom: 0.6rem; }
+
+/* ── 持仓对比卡片 ──────────────────── */
+.compare-card { border-radius: 10px; padding: 18px 20px; }
+.compare-real { background: linear-gradient(135deg, #e8f4fd, #d0e8f8); border: 1px solid #b8d9f0; }
+.compare-sim  { background: linear-gradient(135deg, #f0ebfc, #e4d8f8); border: 1px solid #cdb8ee; }
+.compare-card .pnl-big { font-size: 1.5rem; font-weight: 700; }
+.compare-card .pnl-red  { color: #d93025; }
+.compare-card .pnl-green { color: #188038; }
+.compare-card .total-fund { font-size: 1.1rem; font-weight: 600; color: #333; }
+.compare-card .label { font-size: 0.75rem; color: #6c757d; }
+.holdings-table { font-size: 0.82rem; }
+.holdings-table td { padding: 4px 6px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.holdings-table tr:last-child td { border-bottom: none; }
+
+/* ── 统计区 ─────────────────────────── */
+.stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.stat-cell { background: #f0eef9; border-radius: 6px; padding: 8px 10px; text-align: center; border: 1px solid #dcdaf0; }
+.stat-cell .s-label { font-size: 0.7rem; color: #7c76a6; }
+.stat-cell .s-value { font-size: 1rem; font-weight: 600; }
+.stat-cell .s-value.red { color: #d93025; }
+.stat-cell .s-value.grn { color: #188038; }
+.stats-real { border-top: 3px solid #3498db; }
+.stats-sim  { border-top: 3px solid #9b59b6; }
+
+/* ── 时间轴表格 ─────────────────────── */
+.timeline-table { font-size: 0.82rem; }
+.timeline-table th { font-size: 0.72rem; color: #7c76a6; font-weight: 600; letter-spacing: 0.04em; background: #f0eef9; }
+.timeline-table td { vertical-align: middle; }
+.row-only-real { background: rgba(52, 152, 219, 0.08); }
+.row-only-sim  { background: rgba(155, 89, 182, 0.08); }
+.dir-buy  { color: #d93025; font-weight: 600; }
+.dir-sell { color: #188038; font-weight: 600; }
+.pct-pos { color: #d93025; }
+.pct-neg { color: #188038; }
+.dash { color: #adb5bd; }
+</style>
+{% endblock %}
+
+{% block page_wrapper %}
+{% if is_demo %}
+<div id="demoBanner" style="background:#f59e0b;color:#1c1917;text-align:center;padding:9px 16px;font-size:13px;font-weight:600;letter-spacing:0.2px;">
+  🎭 演示模式 · 当前数据为模拟数据，非真实持仓
 </div>
 {% endif %}
+
+<!-- ── 头部区域 ─────────────────────────────────────── -->
+<div class="ls-header-band">
+  <div class="ls-header-inner">
+    <nav class="ls-nav">
+      <a class="ls-nav-brand" href="/">
+        <svg width="18" height="30" viewBox="0 0 18 30" fill="none">
+          <rect x="7.5" y="0" width="3" height="19" rx="1.5" fill="url(#bladeD)"/>
+          <rect x="5" y="20" width="8" height="10" rx="3" fill="rgba(255,255,255,0.28)"/>
+          <rect x="5" y="23" width="8" height="1.5" fill="rgba(255,255,255,0.14)"/>
+          <rect x="5" y="26" width="8" height="1.5" fill="rgba(255,255,255,0.14)"/>
+          <defs>
+            <linearGradient id="bladeD" x1="9" y1="0" x2="9" y2="19" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#e0e7ff"/>
+              <stop offset="100%" stop-color="#a5b4fc"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        Lightsaber<span>.</span>
+      </a>
+      <div class="ls-nav-links">
+        <a class="ls-nav-link active" href="/positions/">持仓</a>
+        <a class="ls-nav-link" href="/dashboard/">分析</a>
+        {# detail 页归属于"持仓"，持仓链接始终 active #}
+      </div>
+    </nav>
+
+    <!-- 面包屑 + 股票标题 -->
+    <div class="ls-breadcrumb mb-2">
+      <a href="/positions/">持仓</a>
+      <span class="ls-breadcrumb-sep">/</span>
+      <span style="color:rgba(255,255,255,0.8)">{{ position.name }}</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <div>
+        <div class="ls-stock-title">{{ position.name }}</div>
+        <div class="d-flex align-items-center gap-2 mt-1">
+          {% set mkt = position.market|lower %}
+          <span class="ls-chip ls-chip-{{ mkt }}">{{ position.market }}</span>
+          <span style="color:rgba(255,255,255,0.4);font-size:12px;">{{ position.symbol }}</span>
+        </div>
+      </div>
+      <div class="ms-auto text-end">
+        <div class="ls-price-band {% if position.current_price and position.avg_cost and position.current_price >= position.avg_cost %}ls-price-up{% elif position.current_price %}ls-price-dn{% else %}ls-price-muted{% endif %}">
+          {{ "%.2f"|format(position.current_price) if position.current_price else "—" }}
+        </div>
+        <div class="ls-currency-label">{{ position.currency }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 主内容 ─────────────────────────────────────── -->
+<div class="ls-page">
+
+<!-- K 线 图 -->
+<div class="ls-card mb-4">
+  <div class="ls-card-header">📈 K线走势</div>
+  <div class="p-2">
+    <div id="klineLoading" class="kline-loading">
+      <div class="text-center">
+        <div class="spinner-border spinner-border-sm text-secondary mb-2"></div>
+        <div>正在加载K线...</div>
+      </div>
+    </div>
+    <div id="klineChart" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- 持仓对比 -->
+<div class="row g-3 mb-4" id="posCompare">
+  <div class="col-md-6">
+    <div class="compare-card compare-real h-100">
+      <div class="section-title">📌 实盘持仓</div>
+      <div id="realPosContent"><div class="text-muted small">加载中...</div></div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="compare-card compare-sim h-100">
+      <div class="section-title">🔮 模拟持仓</div>
+      <div id="simPosContent"><div class="text-muted small">加载中...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 统计指标对比 -->
+<div class="ls-card mb-4">
+  <div class="ls-card-header">📊 交易统计对比</div>
+  <div class="p-3">
+    <div class="row g-3" id="statsCompare">
+      <div class="col-md-6">
+        <div class="section-title" style="color:#3498db;">实盘统计</div>
+        <div id="realStats" class="stats-real p-2 rounded"><div class="text-muted small">加载中...</div></div>
+      </div>
+      <div class="col-md-6">
+        <div class="section-title" style="color:#9b59b6;">模拟统计</div>
+        <div id="simStats" class="stats-sim p-2 rounded"><div class="text-muted small">加载中...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 统一时间轴 -->
+<div class="ls-card mb-4">
+  <div class="ls-card-header">
+    📅 交易时间轴对比
+    <span class="ms-3 small" style="color:#9aa0a6;font-weight:400;">
+      <span class="d-inline-block me-1" style="width:10px;height:10px;background:rgba(52,152,219,0.25);border-radius:2px;display:inline-block;"></span>只有实盘
+      <span class="d-inline-block ms-2 me-1" style="width:10px;height:10px;background:rgba(155,89,182,0.25);border-radius:2px;display:inline-block;"></span>只有模拟
+    </span>
+  </div>
+  <div class="p-0">
+    <div id="timelineContainer">
+      <div class="text-center text-muted py-4">加载中...</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /.ls-page -->
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <script>
-function refreshNews() {
-    location.reload();
+const SYMBOL = "{{ position.symbol }}";
+const SYMBOL_URL = SYMBOL.replace(":", "_");
+
+// ── 辅助函数 ──────────────────────────────────────────────────────────
+function fmt(n, dec=2) {
+  if (n == null) return "—";
+  return Number(n).toLocaleString("zh-CN", {minimumFractionDigits:dec, maximumFractionDigits:dec});
 }
+function pctHtml(v, label) {
+  if (label) return `<span class="text-warning" style="font-size:0.78rem">${label}</span>`;
+  if (v == null) return '<span class="dash">—</span>';
+  const cls = v >= 0 ? "pct-pos" : "pct-neg";
+  const sign = v >= 0 ? "+" : "";
+  return `<span class="${cls}">${sign}${fmt(v)}%</span>`;
+}
+function dirHtml(d) {
+  if (!d) return '<span class="dash">—</span>';
+  return `<span class="${d==="买入"?"dir-buy":"dir-sell"}">${d}</span>`;
+}
+
+// ── 1. K线 ────────────────────────────────────────────────────────────
+async function loadKline() {
+  const resp = await fetch(`/api/stock/${SYMBOL_URL}/kline`);
+  if (!resp.ok) { document.getElementById("klineLoading").textContent = "K线加载失败"; return; }
+  const data = await resp.json();
+  if (!data.ohlcv || data.ohlcv.length === 0) {
+    document.getElementById("klineLoading").innerHTML = '<div class="text-center text-muted"><div style="font-size:2rem">📊</div><div>暂无K线数据</div></div>';
+    return;
+  }
+
+  document.getElementById("klineLoading").style.display = "none";
+  const el = document.getElementById("klineChart");
+  el.style.display = "block";
+
+  const chart = echarts.init(el);
+
+  // 过滤展示区间：最近 6 个月（动态计算，不硬编码日期）
+  const showFrom = (() => {
+    const d = new Date(); d.setMonth(d.getMonth() - 6);
+    return d.toISOString().slice(0, 10);
+  })();
+  const ohlcv = data.ohlcv || [];
+  const showIdx = ohlcv.findIndex(r => r.date >= showFrom);
+  const showData = showIdx >= 0 ? ohlcv.slice(showIdx) : ohlcv;
+
+  const dates    = showData.map(r => r.date);
+  const candles  = showData.map(r => [r.open, r.close, r.low, r.high]);
+  const volumes  = showData.map(r => r.volume);
+
+  // MA 系列
+  const maConfig = [
+    { n:5,   color:"#f39c12" },
+    { n:10,  color:"#f1c40f" },
+    { n:20,  color:"#3498db" },
+    { n:30,  color:"#9b59b6" },
+    { n:60,  color:"#2ecc71" },
+    { n:200, color:"#e74c3c", dash: true },
+  ];
+  const maSeries = maConfig.map(({ n, color, dash }) => ({
+    name: `MA${n}`,
+    type: "line",
+    data: showData.map(r => r[`ma${n}`]),
+    smooth: false,
+    symbol: "none",
+    lineStyle: { color, width: 1.2, type: dash ? "dashed" : "solid" },
+    xAxisIndex: 0, yAxisIndex: 0,
+    z: 2,
+  }));
+
+  // 计算交易打点（markLine）
+  const realTrades = data.real_trades || [];
+  const simTrades  = data.sim_trades  || [];
+
+  // 价格范围（用于固定标注strip位置）
+  const closes = showData.map(r => r.close);
+  const priceMin = Math.min(...showData.map(r => r.low));
+  const priceMax = Math.max(...showData.map(r => r.high));
+  const priceRange = priceMax - priceMin;
+  const ROW_H = priceRange * 0.06;
+
+  // Buy strip（K线图下方），Sell strip（K线图上方）
+  const stripBuyBot  = priceMin - priceRange * 0.04;
+  const stripSellBot = priceMax + priceRange * 0.04;
+
+  // 统计每个日期出现的交易数（用于同日多标注时的行偏移）
+  function getDateGroup(trades) {
+    const map = {};
+    trades.forEach(t => { if (t.date) { map[t.date] = (map[t.date]||0) + 1; }});
+    return map;
+  }
+  const realDateCnt = getDateGroup(realTrades);
+
+  // 用日期查找显示区间index
+  function findDateIdx(date) {
+    const i = dates.indexOf(date);
+    return i >= 0 ? i : -1;
+  }
+
+  function makeMarkLines(trades, isReal, initialOffsets = {}) {
+    const lines = [];
+    const dateSeen = Object.assign({}, initialOffsets);
+    trades.forEach(t => {
+      if (!t.date || !t.price) return;
+      const idx = findDateIdx(t.date);
+      if (idx < 0) return;
+
+      const isBuy = t.type === "BUY";
+      const rowOffset = dateSeen[t.date] || 0;
+      dateSeen[t.date] = rowOffset + 1;
+
+      // Label strip Y
+      const labelY = isBuy
+        ? stripBuyBot - rowOffset * ROW_H
+        : stripSellBot + rowOffset * ROW_H;
+
+      // Candle Y （买入→蜡烛低点，卖出→蜡烛高点）
+      const candleY = isBuy ? showData[idx].low : showData[idx].high;
+
+      // Colors
+      let bgColor, borderColor;
+      if (isReal) {
+        bgColor     = isBuy ? "rgba(196,220,245,1)" : "rgba(245,196,196,1)";
+        borderColor = isBuy ? "#2980b9" : "#c0392b";
+      } else {
+        bgColor     = isBuy ? "rgba(220,196,245,1)" : "rgba(245,220,196,1)";
+        borderColor = isBuy ? "#8e44ad" : "#d35400";
+      }
+
+      const prefix = isReal ? "实" : "模";
+      const priceStr = Number(t.price).toFixed(2);
+      const sharesStr = t.shares ? `·${t.shares}股` : "";
+      const labelText = `${prefix} ${priceStr}${sharesStr}`;
+
+      lines.push([
+        {
+          coord: [t.date, labelY],
+          symbol: "none",
+          label: {
+            show: true,
+            formatter: labelText,
+            position: "insideStart",
+            rotate: 0,
+            fontSize: 9,
+            padding: [2, 5],
+            backgroundColor: bgColor,
+            borderColor: borderColor,
+            borderWidth: 0.8,
+            borderRadius: 3,
+            color: "#333",
+          },
+          lineStyle: { color: borderColor, width: 0.8, opacity: 0.5, type: "solid" },
+        },
+        {
+          coord: [t.date, candleY],
+          symbol: isBuy ? "arrow" : "arrow",
+          symbolSize: 5,
+          symbolRotate: isBuy ? 0 : 180,
+          lineStyle: { color: borderColor, width: 0.8, opacity: 0.5 },
+        }
+      ]);
+    });
+    return lines;
+  }
+
+  const realLines = makeMarkLines(realTrades, true);
+  // 模拟标注在实盘基础上偏移，同日不重叠
+  const simLines  = makeMarkLines(simTrades, false, realDateCnt);
+
+  // candlestick series（带打点）
+  const candleSeries = {
+    name: "日K",
+    type: "candlestick",
+    data: candles,
+    xAxisIndex: 0,
+    yAxisIndex: 0,
+    itemStyle: {
+      color: "#e74c3c", color0: "#2ecc71",
+      borderColor: "#e74c3c", borderColor0: "#2ecc71",
+    },
+    markLine: {
+      silent: true,
+      symbol: ["none", "arrow"],
+      animation: false,
+      data: [...realLines, ...simLines],
+    },
+  };
+
+  // Volume series
+  const volColors = showData.map(r => r.close >= r.open ? "#e74c3c" : "#2ecc71");
+  const volSeries = {
+    name: "成交量",
+    type: "bar",
+    xAxisIndex: 1,
+    yAxisIndex: 1,
+    data: volumes,
+    itemStyle: { color: (params) => volColors[params.dataIndex] },
+    barMaxWidth: 6,
+  };
+
+  const yPadBottom = priceRange * 0.30;
+  const yPadTop    = priceRange * 0.08;
+
+  const option = {
+    backgroundColor: "#fff",
+    legend: {
+      top: 4,
+      left: "center",
+      data: ["日K", ...maConfig.map(m => `MA${m.n}`)],
+      itemWidth: 12,
+      itemHeight: 8,
+      textStyle: { fontSize: 11 },
+      inactiveColor: "#ccc",
+    },
+    tooltip: {
+      trigger: "axis",
+      axisPointer: { type: "cross" },
+      formatter(params) {
+        const d = params.find(p => p.seriesName === "日K");
+        if (!d) return "";
+        const [o, c, l, h] = d.data;
+        let s = `<b>${d.name}</b><br/>开 ${o}　高 ${h}　低 ${l}　收 ${c}<br/>`;
+        params.filter(p => p.seriesName.startsWith("MA")).forEach(p => {
+          if (p.value != null) s += `${p.seriesName}: ${Number(p.value).toFixed(3)}<br/>`;
+        });
+        return s;
+      },
+    },
+    axisPointer: { link: [{ xAxisIndex: "all" }] },
+    dataZoom: (() => {
+      // 默认展示最近 ~180 根K线，让蜡烛图可读
+      const initStart = Math.max(0, Math.round((1 - 180 / Math.max(dates.length, 1)) * 100));
+      return [
+        { type: "inside", xAxisIndex: [0, 1], start: initStart, end: 100 },
+        { type: "slider", xAxisIndex: [0, 1], start: initStart, end: 100, bottom: 4, height: 18 },
+      ];
+    })(),
+    grid: [
+      { left: 60, right: 20, top: 40, bottom: 80 },
+      { left: 60, right: 20, height: "15%", bottom: 30 },
+    ],
+    xAxis: [
+      { type: "category", data: dates, scale: true, boundaryGap: false,
+        axisLine: { onZero: false }, splitLine: { show: false },
+        axisLabel: { fontSize: 10 }, gridIndex: 0 },
+      { type: "category", data: dates, scale: true, boundaryGap: false,
+        axisLine: { onZero: false }, axisTick: { show: false },
+        axisLabel: { show: false }, splitLine: { show: false }, gridIndex: 1 },
+    ],
+    yAxis: [
+      { scale: true, splitArea: { show: true },
+        min: v => v.min - yPadBottom,
+        max: v => v.max + yPadTop,
+        axisLabel: { fontSize: 10 }, gridIndex: 0 },
+      { scale: true, gridIndex: 1, splitNumber: 2,
+        axisLabel: { fontSize: 9, formatter: v => v >= 1e6 ? (v/1e6).toFixed(1)+"M" : v >= 1e3 ? (v/1e3).toFixed(0)+"K" : v },
+        splitLine: { show: false } },
+    ],
+    series: [candleSeries, ...maSeries, volSeries],
+  };
+
+  chart.setOption(option);
+  window.addEventListener("resize", () => chart.resize());
+}
+
+// ── 2. 持仓对比 ───────────────────────────────────────────────────────
+async function loadPositions() {
+  const resp = await fetch(`/api/stock/${SYMBOL_URL}/positions/compare`);
+  if (!resp.ok) {
+    ["realPosContent", "simPosContent"].forEach(id => {
+      document.getElementById(id).innerHTML = '<div class="text-muted small">持仓数据加载失败</div>';
+    });
+    return;
+  }
+  const d = await resp.json();
+
+  function renderPos(data, elId, isReal) {
+    const el = document.getElementById(elId);
+    if (!data) {
+      el.innerHTML = `<div class="text-muted small">${isReal ? "无实盘持仓" : "未初始化模拟持仓"}</div>`;
+      return;
+    }
+    const sign = data.pnl_amount >= 0 ? "+" : "";
+    const pnlCls = data.pnl_amount >= 0 ? "pnl-red" : "pnl-green";
+    el.innerHTML = `
+      <div class="d-flex align-items-end gap-2 mb-2">
+        <div class="pnl-big ${pnlCls}">${sign}${fmt(data.pnl_amount, 0)}</div>
+        <div class="text-muted mb-1 small">${sign}${fmt(data.pnl_pct, 1)}%</div>
+      </div>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="total-fund">市值 ${fmt(data.market_value, 0)}</div>
+        ${data.snapshot_date ? `<span style="font-size:11px;color:#9aa0a6;border:1px solid #dcdaf0;border-radius:4px;padding:1px 7px;">起点 ${data.snapshot_date}</span>` : ""}
+      </div>
+      <table class="holdings-table w-100">
+        <tr>
+          <td>${SYMBOL.split(":")[1] || SYMBOL}</td>
+          <td>${fmt(data.shares, 0)} 股</td>
+          <td>均价 ${fmt(data.avg_cost)}</td>
+          <td class="${data.pnl_amount>=0?"pnl-red":"pnl-green"}">${sign}${fmt(data.pnl_amount, 0)}</td>
+        </tr>
+      </table>
+    `;
+  }
+
+  renderPos(d.real, "realPosContent", true);
+  renderPos(d.sim,  "simPosContent",  false);
+}
+
+// ── 3. 统计 + 时间轴 ──────────────────────────────────────────────────
+async function loadTrades() {
+  const resp = await fetch(`/api/stock/${SYMBOL_URL}/trades`);
+  if (!resp.ok) return;
+  const d = await resp.json();
+
+  function renderStats(perf, elId) {
+    const el = document.getElementById(elId);
+    if (!perf || perf.message) {
+      el.innerHTML = `<div class="text-muted small">${perf?.message || "暂无数据"}</div>`;
+      return;
+    }
+    // isGood: true=数值越大越好(红色)，false=数值越大越差(绿色)，null=中性无色
+    const stats = [
+      { label: "胜率",     value: perf.win_rate,             unit: "%",  isGood: true  },
+      { label: "EV",       value: perf.ev_pct,               unit: "%",  isGood: true  },
+      { label: "盈亏比",   value: perf.profit_factor,        unit: "",   isGood: true  },
+      { label: "最大连亏", value: perf.max_consecutive_loss, unit: "笔", isGood: false },
+      { label: "总交易",   value: perf.total_trades,         unit: "笔", isGood: null  },
+    ];
+    el.innerHTML = `
+      <div class="stats-grid">
+        ${stats.map(s => {
+          let cls = "";
+          if (s.isGood === true  && s.value > 0)  cls = "red";
+          if (s.isGood === true  && s.value < 0)  cls = "grn";
+          if (s.isGood === false && s.value > 0)  cls = "grn";
+          if (s.isGood === false && s.value <= 0) cls = "red";
+          return `
+          <div class="stat-cell">
+            <div class="s-label">${s.label}</div>
+            <div class="s-value ${cls}">
+              ${s.value != null ? s.value : "—"}${s.unit}
+            </div>
+          </div>`;
+        }).join("")}
+      </div>`;
+  }
+
+  renderStats(d.real?.stats, "realStats");
+  renderStats(d.sim?.stats,  "simStats");
+
+  // Timeline
+  const rows = d.timeline || [];
+  const container = document.getElementById("timelineContainer");
+  if (!rows.length) {
+    container.innerHTML = `<div class="text-center text-muted py-4">暂无交易记录</div>`;
+    return;
+  }
+
+  const header = `
+    <table class="table timeline-table mb-0">
+      <thead>
+        <tr>
+          <th style="width:90px">日期</th>
+          <th style="width:60px">实盘方向</th>
+          <th style="width:80px">实盘价</th>
+          <th style="width:70px">实盘股数</th>
+          <th style="width:80px">实盘收益</th>
+          <th style="width:60px">模拟方向</th>
+          <th style="width:80px">模拟价</th>
+          <th style="width:70px">模拟股数</th>
+          <th>模拟收益</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  const bodyRows = rows.map(row => {
+    const r = row.real;
+    const s = row.sim;
+    const hasReal = !!r;
+    const hasSim  = !!s;
+    const rowCls = !hasSim && hasReal ? "row-only-real" : !hasReal && hasSim ? "row-only-sim" : "";
+    const orDash = (v) => v ? v : '<span class="dash">—</span>';
+    return `
+      <tr class="${rowCls}">
+        <td>${row.date}</td>
+        <td>${hasReal ? dirHtml(r.direction) : '<span class="dash">—</span>'}</td>
+        <td>${hasReal ? orDash(r.price && fmt(r.price)) : '<span class="dash">—</span>'}</td>
+        <td>${hasReal && r.shares ? fmt(r.shares, 0) : '<span class="dash">—</span>'}</td>
+        <td>${hasReal ? pctHtml(r.pct, r.pct_label) : '<span class="dash">—</span>'}</td>
+        <td>${hasSim  ? dirHtml(s.direction) : '<span class="dash">—</span>'}</td>
+        <td>${hasSim  ? orDash(s.price && fmt(s.price)) : '<span class="dash">—</span>'}</td>
+        <td>${hasSim  && s.shares ? fmt(s.shares, 0) : '<span class="dash">—</span>'}</td>
+        <td>${hasSim  ? pctHtml(s.pct, s.pct_label) : '<span class="dash">—</span>'}</td>
+      </tr>`;
+  }).join("");
+
+  container.innerHTML = header + bodyRows + `</tbody></table>`;
+}
+
+// ── 启动 ─────────────────────────────────────────────────────────────
+loadKline().catch(console.error);
+loadPositions().catch(console.error);
+loadTrades().catch(console.error);
 </script>
 {% endblock %}

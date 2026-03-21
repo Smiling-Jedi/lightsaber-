@@ -14,7 +14,7 @@ from app.services.price_service import PriceService
 from app.services.news_service import NewsService
 from app.services.futu_sync_service import FutuSyncService
 from app.services.demo_service import is_demo_mode
-from app.fixtures.demo_data import get_demo_portfolio
+from app.fixtures.demo_data import get_demo_portfolio, get_demo_position
 from app.models.cash import CashBalance
 
 logger = logging.getLogger(__name__)
@@ -58,23 +58,36 @@ def positions_list(request: Request, db: Session = Depends(get_db)):
 @router.get("/{symbol}")
 def position_detail(symbol: str, request: Request, db: Session = Depends(get_db)):
     """持仓详情页"""
+    # symbol URL格式：HK_00700 → HK:00700
+    canonical = symbol.replace("_", ":") if ":" not in symbol else symbol
+
+    if is_demo_mode(request):
+        demo_pos = get_demo_position(canonical)
+        if not demo_pos:
+            raise HTTPException(status_code=404, detail="演示持仓不存在")
+        return templates.TemplateResponse("detail.html", {
+            "request": request,
+            "position": demo_pos,
+            "news": [],
+            "trades": [],
+            "is_demo": True,
+        })
+
     position_service = PositionService(db)
     news_service = NewsService(db)
 
-    position = position_service.get_position_by_symbol(symbol)
+    position = position_service.get_position_by_symbol(canonical)
     if not position:
         raise HTTPException(status_code=404, detail="持仓不存在")
 
-    # 获取持仓摘要
     summary = position_service.get_position_summary(position)
-
-    # 获取相关新闻
-    news_list = news_service.get_stock_news(symbol, limit=10)
+    news_list = news_service.get_stock_news(canonical, limit=10)
     news_dicts = [news_service.to_dict(n) for n in news_list]
 
     return templates.TemplateResponse("detail.html", {
         "request": request,
         "position": summary,
         "news": news_dicts,
-        "trades": position.trades
+        "trades": position.trades,
+        "is_demo": False,
     })
