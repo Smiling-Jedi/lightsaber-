@@ -31,7 +31,7 @@
 **新闻模块**
 - yfinance 港美股统一拉取（修复港股 symbol 格式 bug）
 - LLM（claude-haiku）批量翻译英文标题 + 重要度打分（HIGH/MEDIUM/LOW）
-- 每张持仓卡展示 TOP 3 重要资讯（JS 异步加载）
+- 每张持仓卡展示 TOP 5 重要资讯（JS 异步加载），72小时内，按重要度排序
 - 定时自动拉取：港股 16:15 HKT / 美股 05:30 HKT（APScheduler）
 - 演示模式下显示 fixture 静态新闻，不发 LLM 请求
 
