@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""
+刷新持仓股价 - 从多数据源获取最新价格
+优先级：港股 Yahoo > Tushare > 东财 > Alpha，美股 Yahoo > Alpha
+"""
+import sys
+from pathlib import Path
+from datetime import datetime
+
+# 添加项目根目录到路径
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from app.core.database import SessionLocal, init_db
+from app.services.position_service import PositionService
+from app.data_sources.aggregated_source import AggregatedPriceSource
+
+
+def refresh_all_prices():
+    """刷新所有持仓股票的股价"""
+    print("🔄 初始化数据库...")
+    init_db()
+
+    db = SessionLocal()
+    try:
+        position_service = PositionService(db)
+        price_source = AggregatedPriceSource()
+
+        # 获取所有持仓
+        positions = position_service.get_all_positions()
+        print(f"📊 发现 {len(positions)} 只持仓股票\n")
+
+        success_count = 0
+        fail_count = 0
+        failed_stocks = []
+
+        for pos in positions:
+            symbol = pos.stock_symbol
+            stock = pos.stock
+            if not stock:
+                print(f"⚠️  {symbol}: 无股票信息，跳过")
+                continue
+
+            try:
+                # 获取最新价格
+                price_data = price_source.get_price(symbol)
+
+                # 更新数据库
+                stock.current_price = price_data.current_price
+                stock.open_price = price_data.open_price
+                stock.high_price = price_data.high_price
+                stock.low_price = price_data.low_price
+                stock.volume = price_data.volume
+                stock.price_updated_at = datetime.now()
+
+                db.commit()
+
+                print(f"✅ {symbol:12} | {price_data.current_price:>10} | 来源: {price_data.source}")
+                success_count += 1
+
+            except Exception as e:
+                print(f"❌ {symbol:12} | 失败: {str(e)[:50]}")
+                fail_count += 1
+                failed_stocks.append(symbol)
+
+        print(f"\n{'='*50}")
+        print(f"🎉 刷新完成!")
+        print(f"   成功: {success_count}/{len(positions)}")
+        print(f"   失败: {fail_count}")
+
+        if failed_stocks:
+            print(f"\n⚠️  失败的持仓:")
+            for s in failed_stocks:
+                print(f"   - {s}")
+
+    finally:
+        db.close()
+
+
+if __name__ == "__main__":
+    refresh_all_prices()

@@ -1,0 +1,807 @@
+{% extends "base.html" %}
+
+{% block title %}持仓列表 - 光剑 Lightsaber{% endblock %}
+
+{% block extra_css %}
+<style>
+    .summary-card {
+        border: none;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .summary-value {
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+    .summary-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    .market-tabs {
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 1rem;
+    }
+    .market-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+        padding: 0.75rem 1.25rem;
+        font-weight: 500;
+    }
+    .market-tabs .nav-link.active {
+        color: #0d6efd;
+        border-bottom: 2px solid #0d6efd;
+        background: transparent;
+    }
+    .market-badge {
+        font-size: 0.75rem;
+        padding: 0.25em 0.6em;
+        border-radius: 10px;
+        margin-left: 0.5rem;
+    }
+    .position-row {
+        background: #fff;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid #e9ecef;
+        border-left: 4px solid #dee2e6;
+        transition: all 0.2s;
+    }
+    .position-row:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .position-row.profit {
+        border-left-color: #dc3545;
+    }
+    .position-row.loss {
+        border-left-color: #198754;
+    }
+    .stock-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    .stock-meta {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    .price-display {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    .change-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin-left: 0.5rem;
+    }
+    .change-badge.up {
+        background: #dc3545;
+        color: white;
+    }
+    .change-badge.down {
+        background: #198754;
+        color: white;
+    }
+    .advice-box {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+    }
+    .advice-title {
+        font-weight: 600;
+        color: #495057;
+    }
+    .monitor-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    .monitor-tag {
+        display: inline-block;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin: 0.15rem;
+        background: #e9ecef;
+        color: #495057;
+    }
+    .monitor-tag.target-pending {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    .monitor-tag.target-reached {
+        background: #fff3cd;
+        color: #856404;
+    }
+    .monitor-tag.support {
+        background: #d4edda;
+        color: #155724;
+    }
+    .monitor-tag.resistance {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    .progress-market {
+        height: 24px;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .progress-market .progress-bar {
+        font-size: 0.75rem;
+        line-height: 24px;
+    }
+    /* 原力信号区块 */
+    .signal-section {
+        border-top: 1px solid #e9ecef;
+        padding-top: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .signal-action-badge {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.2rem 0.55rem;
+        border-radius: 4px;
+        letter-spacing: 0.03em;
+    }
+    .signal-action-badge.BUY    { background: #d1f0d9; color: #155724; }
+    .signal-action-badge.SELL   { background: #f8d7da; color: #721c24; }
+    .signal-action-badge.WATCH  { background: #fff3cd; color: #856404; }
+    .signal-action-badge.HOLD   { background: #e9ecef; color: #495057; }
+    .signal-conf {
+        font-size: 0.7rem;
+        padding: 0.15rem 0.4rem;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+        color: #6c757d;
+        margin-left: 0.25rem;
+    }
+    .signal-summary {
+        font-size: 0.8rem;
+        color: #495057;
+        margin-top: 0.25rem;
+        line-height: 1.3;
+    }
+    .signal-meta {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .signal-meta .sep { margin: 0 0.35rem; color: #dee2e6; }
+    .signal-trigger {
+        font-size: 0.75rem;
+        color: #6c757d;
+        line-height: 1.4;
+        margin-top: 0.1rem;
+    }
+    .signal-loading {
+        color: #adb5bd;
+        font-size: 0.78rem;
+    }
+    .signal-env-bear { color: #198754; font-size: 0.72rem; }
+    .signal-env-bull { color: #dc3545; font-size: 0.72rem; }
+    /* 换线监控区块 */
+    .signal-monitor-header {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-bottom: 0.25rem;
+    }
+    .signal-strategy-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #495057;
+    }
+    .signal-stars { font-size: 0.72rem; }
+    .signal-monitor-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 0.3rem;
+        font-size: 0.72rem;
+    }
+    .signal-monitor-table td { padding: 0.08rem 0.2rem; vertical-align: middle; }
+    .ind-name-cell  { color: #495057; white-space: nowrap; }
+    .ind-thresh-cell { color: #6c757d; white-space: nowrap; padding-left: 0.35rem; }
+    .ind-value-cell { color: #212529; padding-left: 0.35rem; }
+    .ind-status-cell { text-align: right; white-space: nowrap; padding-left: 0.25rem; }
+    .ind-ok      { color: #198754; font-weight: 600; }
+    .ind-bad     { color: #dc3545; font-weight: 600; }
+    .ind-warn    { color: #fd7e14; font-weight: 600; }
+    .ind-neutral { color: #6c757d; }
+    .ind-note    { color: #6c757d; font-size: 0.67rem; }
+    .signal-degrade-note {
+        font-size: 0.7rem;
+        color: #fd7e14;
+        margin-top: 0.15rem;
+        line-height: 1.3;
+    }
+    .signal-summary-block {
+        font-size: 0.78rem;
+        color: #343a40;
+        line-height: 1.5;
+        margin: 0.35rem 0 0.3rem;
+        padding-left: 0.1rem;
+    }
+    .signal-summary-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .signal-summary-loading {
+        color: #adb5bd;
+        font-size: 0.72rem;
+    }
+    /* 指标名 Tooltip */
+    .ind-tip {
+        border-bottom: 1px dotted #adb5bd;
+        cursor: help;
+        position: relative;
+        display: inline-block;
+    }
+    .ind-tip[data-tip]:hover::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: 0;
+        top: 120%;
+        background: rgba(33,37,41,0.92);
+        color: #fff;
+        padding: 0.4rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.68rem;
+        white-space: normal;
+        width: 210px;
+        line-height: 1.4;
+        z-index: 200;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 顶部更新栏 -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="text-muted small">
+        上次更新：<span id="lastUpdate">{{ last_update.strftime('%Y-%m-%d %H:%M:%S') if last_update else '未更新' }}</span>
+        <span class="badge bg-success ms-2">数据正常</span>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary btn-sm" id="updateBtn" onclick="updateData()">
+            <span class="spinner-border spinner-border-sm d-none" id="updateSpinner"></span>
+            🔄 更新行情
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" id="newsBtn" onclick="updateNews()">
+            <span class="spinner-border spinner-border-sm d-none" id="newsSpinner"></span>
+            📰 更新资讯
+        </button>
+        <button class="btn btn-outline-info btn-sm" id="futuSyncBtn" onclick="futuSync()">
+            <span class="spinner-border spinner-border-sm d-none" id="futuSyncSpinner"></span>
+            📡 同步富途
+        </button>
+    </div>
+</div>
+
+<!-- 统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card summary-card text-center">
+            <div class="card-body">
+                <div class="summary-label">总资产 (RMB)</div>
+                <div class="summary-value">¥{{ "%.0f"|format(portfolio.total_market_value_rmb) if portfolio.total_market_value_rmb else "-.-" }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card summary-card text-center">
+            <div class="card-body">
+                <div class="summary-label">今日盈亏</div>
+                <div class="summary-value {% if portfolio.today_profit is not none and portfolio.today_profit >= 0 %}text-danger{% else %}text-success{% endif %}">
+                    {% if portfolio.today_profit is not none %}
+                        {{ "+%.0f"|format(portfolio.today_profit) if portfolio.today_profit >= 0 else "%.0f"|format(portfolio.today_profit) }}
+                    {% else %}
+                        -.-
+                    {% endif %}
+                </div>
+                {% if portfolio.today_profit_pct %}
+                <small class="{% if portfolio.today_profit_pct >= 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ "+%.2f"|format(portfolio.today_profit_pct) if portfolio.today_profit_pct >= 0 else "%.2f"|format(portfolio.today_profit_pct) }}%
+                </small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card summary-card text-center">
+            <div class="card-body">
+                <div class="summary-label">持仓盈亏</div>
+                <div class="summary-value {% if portfolio.total_profit >= 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ "+%.0f"|format(portfolio.total_profit) if portfolio.total_profit >= 0 else "%.0f"|format(portfolio.total_profit) }}
+                </div>
+                <small class="{% if portfolio.total_profit_pct >= 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ "+%.2f"|format(portfolio.total_profit_pct) if portfolio.total_profit_pct >= 0 else "%.2f"|format(portfolio.total_profit_pct) }}%
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card summary-card">
+            <div class="card-body p-3">
+                <div class="summary-label text-center mb-2">仓位分布</div>
+                <div class="progress progress-market mb-3">
+                    {% for market, data in portfolio.markets.items() %}
+                    {% set pct = data.weight_pct|default(0) %}
+                    <div class="progress-bar {% if market == 'HK' %}bg-primary{% elif market == 'US' %}bg-secondary{% else %}bg-success{% endif %}"
+                         style="width: {{ pct }}%">
+                        {{ market }} {{ "%.0f"|format(pct) }}%
+                    </div>
+                    {% endfor %}
+                </div>
+                {% for mkt_key, mkt_label in [("HK", "港股"), ("US", "美股")] %}
+                {% set d = portfolio.markets.get(mkt_key) %}
+                {% if d %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <small class="fw-semibold">{{ mkt_label }}资金</small>
+                        <small class="text-muted">{{ "%.1f"|format(d.weight_pct) }}%</small>
+                    </div>
+                    <div style="font-size:0.8rem; color:#495057; line-height:1.7;">
+                        <div class="d-flex justify-content-between">
+                            <span>持仓</span>
+                            <span>{{ d.currency }} {{ "{:,.0f}".format(d.total_market_value) }}</span>
+                        </div>
+                        {% if mkt_key == "HK" and d.fund_hkd > 0 %}
+                        <div class="d-flex justify-content-between">
+                            <span>港元基金</span>
+                            <span>HKD {{ "{:,.0f}".format(d.fund_hkd) }}</span>
+                        </div>
+                        {% endif %}
+                        {% if mkt_key == "US" and d.fund_usd > 0 %}
+                        <div class="d-flex justify-content-between">
+                            <span>美元基金</span>
+                            <span>USD {{ "{:,.0f}".format(d.fund_usd) }}</span>
+                        </div>
+                        {% endif %}
+                        {% if d.cash > 0 %}
+                        <div class="d-flex justify-content-between">
+                            <span>{{ "港元" if mkt_key == "HK" else "美元" }}现金</span>
+                            <span>{{ d.currency }} {{ "{:,.0f}".format(d.cash) }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between text-muted" style="font-size:0.75rem;">
+                            <span>非持仓</span>
+                            <span>{{ "%.1f"|format((d.fund_hkd + d.cash if mkt_key == "HK" else d.fund_usd + d.cash) / d.total_with_cash * 100 if d.total_with_cash > 0 else 0) }}%</span>
+                        </div>
+                    </div>
+                </div>
+                {% if not loop.last %}<hr class="my-1">{% endif %}
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 市场标签页 -->
+<ul class="nav market-tabs" id="marketTab" role="tablist">
+    {% for market, data in portfolio.markets.items() %}
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if loop.first %}active{% endif %}"
+                id="{{ market|lower }}-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#{{ market|lower }}"
+                type="button">
+            {{ "港股" if market == "HK" else ("美股" if market == "US" else "A股") }}
+            <span class="badge bg-primary market-badge">{{ data.positions|length }}</span>
+        </button>
+    </li>
+    {% endfor %}
+</ul>
+
+<!-- 持仓列表 -->
+<div class="tab-content" id="marketTabContent">
+    {% for market, data in portfolio.markets.items() %}
+    <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="{{ market|lower }}" role="tabpanel">
+
+        {% for pos in data.positions %}
+        <div class="position-row {% if pos.profit_pct is not none and pos.profit_pct >= 0 %}profit{% else %}loss{% endif %}">
+            <div class="row align-items-center">
+                <div class="col-md-2">
+                    <div class="stock-name">{{ pos.name }}</div>
+                    <div class="stock-meta">
+                        <span class="badge {% if pos.market == 'HK' %}bg-primary{% elif pos.market == 'US' %}bg-secondary{% else %}bg-success{% endif %}">
+                            {{ "港股" if pos.market == "HK" else ("美股" if pos.market == "US" else "A股") }}
+                        </span>
+                        {{ pos.symbol.split(':')[-1] }}
+                    </div>
+                    <div class="stock-meta mt-2">
+                        <div>底仓: {{ pos.base_shares }}股 @ {{ "%.2f"|format(pos.base_cost) if pos.base_cost else "-" }}</div>
+                        <div>波段: {{ pos.swing_shares }}股 @ {{ "%.2f"|format(pos.swing_cost) if pos.swing_cost else "-" }}</div>
+                        <div>仓位: {{ "%.1f"|format(pos.position_weight) }}%</div>
+                        <div>盈亏: <span class="{% if pos.profit_pct >= 0 %}text-danger{% else %}text-success{% endif %}">{{ "+%.1f"|format(pos.profit_pct) if pos.profit_pct >= 0 else "%.1f"|format(pos.profit_pct) }}%</span></div>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    {% if pos.current_price %}
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="price-display">{{ pos.currency }} {{ "%.2f"|format(pos.current_price) }}</span>
+                        {% if pos.price_change_pct %}
+                        <span class="change-badge {% if pos.price_change_pct >= 0 %}up{% else %}down{% endif %}">
+                            {{ "+%.1f"|format(pos.price_change_pct) if pos.price_change_pct >= 0 else "%.1f"|format(pos.price_change_pct) }}%
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="text-muted small mb-2">
+                        市值 {{ pos.currency }} {{ "%.0f"|format(pos.market_value) }} |
+                        盈亏 {{ "+%.0f"|format(pos.profit) if pos.profit >= 0 else "%.0f"|format(pos.profit) }}
+                    </div>
+                    <!-- 原力信号：左列（action + summary + triggers） -->
+                    <div class="signal-left" id="signal-left-{{ pos.symbol.replace(':', '_') }}">
+                        <div class="signal-loading">
+                            <span class="spinner-border spinner-border-sm"></span> 加载原力信号…
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-muted">暂无股价数据</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <!-- 原力信号：右列（止损/目标/回测参考） -->
+                    <div id="signal-right-{{ pos.symbol.replace(':', '_') }}"
+                         data-swing-shares="{{ pos.swing_shares }}"
+                         data-swing-cost="{{ '%.2f'|format(pos.swing_cost) if pos.swing_cost else '' }}"
+                         data-currency="{{ pos.currency }}"></div>
+                    {% if pos.latest_news %}
+                    <div class="mt-2 small">
+                        <span class="text-muted fw-bold">最新资讯：</span>
+                        {% if pos.latest_news_url %}
+                        <a href="{{ pos.latest_news_url }}" target="_blank" class="text-dark text-decoration-none">{{ pos.latest_news }}</a>
+                        {% else %}
+                        <span class="text-dark">{{ pos.latest_news }}</span>
+                        {% endif %}
+                        {% if pos.latest_news_source %}
+                        <span class="text-muted ms-1">({{ pos.latest_news_source }})</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-1 text-end">
+                    <a href="/positions/{{ pos.symbol }}" class="btn btn-outline-primary btn-sm">详情</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if data.cash_position %}
+        {% set cp = data.cash_position %}
+        <div class="position-row" style="border-left-color: #6c757d;">
+            <div class="row align-items-center">
+                <div class="col-md-2">
+                    <div class="stock-name">💵 现金</div>
+                    <div class="stock-meta">
+                        <span class="badge bg-secondary">{{ "港股" if market == "HK" else ("美股" if market == "US" else "A股") }}</span>
+                        {{ cp.currency }}
+                    </div>
+                    <div class="stock-meta mt-2">
+                        <div>仓位: {{ "%.1f"|format(cp.position_weight) }}%</div>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="price-display">{{ cp.currency }} {{ "%.2f"|format(cp.amount) }}</div>
+                    <div class="text-muted small mt-1">闲置现金</div>
+                </div>
+                <div class="col-md-4"></div>
+                <div class="col-md-1"></div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── 原力信号异步加载 ────────────────────────────────────────
+const ACTION_LABEL = { BUY: '买入', SELL: '卖出', WATCH: '观察', HOLD: '持有' };
+const CONF_LABEL   = { HIGH: '高', MEDIUM: '中', LOW: '低' };
+const CRED_STARS   = { HIGH: '⭐⭐⭐', MEDIUM: '⭐⭐', LOW: '⭐' };
+const STRATEGY_LABEL = {
+    large_tech: 'EMA金叉策略',
+    cyclical:   'RSI超卖策略',
+    defensive:  '布林均值策略',
+    biotech:    'RSI极值策略'
+};
+const IND_TOOLTIP = {
+    'EMA20/60': 'EMA（指数移动平均）：EMA20上穿EMA60为金叉（买入），下穿为死叉（卖出）',
+    'ADX':      'ADX（趋势强度指标）：>25趋势明确是真金叉，<15横盘震荡是假金叉噪音',
+    'RSI':      'RSI（相对强弱指数）：衡量涨跌动能，<30极度超卖反转机会，>70超买止盈区间',
+    'MACD':     'MACD（移动平均收敛散度）：柱由负转正=动能增强，由正转负=动能减弱',
+    '布林带':   '布林带（价格标准差通道）：触下轨=超卖支撑位，触上轨=超买压力位',
+    'ATR':      'ATR（真实波动幅度）：衡量日均波动%，用于合理设置止损宽度',
+    '市场趋势': '大盘环境：恒生/S&P500的EMA20<EMA60时处于下跌趋势，个股买入信号自动降级'
+};
+
+function indTip(name) {
+    const tip = IND_TOOLTIP[name] || '';
+    return tip
+        ? `<span class="ind-tip" data-tip="${tip}">${name}</span>`
+        : `<span>${name}</span>`;
+}
+
+function statusIcon(status) {
+    if (status === 'ok')      return '<span class="ind-ok">✓</span>';
+    if (status === 'bad')     return '<span class="ind-bad">✗</span>';
+    if (status === 'warn')    return '<span class="ind-warn">⚠</span>';
+    return '<span class="ind-neutral">—</span>';
+}
+
+function buildIndicatorRows(sig) {
+    const ind = sig.indicators || {};
+    const cat = sig.category || 'large_tech';
+    const env = sig.market_env || 'NEUTRAL';
+    const rows = [];
+
+    if (cat === 'large_tech') {
+        const ema20 = ind.ema20, ema60 = ind.ema60;
+        const emaBull = ema20 != null && ema60 != null && ema20 > ema60;
+        const emaDiff = (ema20 && ema60) ? ((ema20 - ema60) / ema60 * 100).toFixed(1) : null;
+        rows.push({
+            name: 'EMA20/60', threshold: '金叉持续',
+            value: emaDiff != null ? (emaBull ? `多头排列 (+${emaDiff}%)` : `空头排列 (${emaDiff}%)`) : '—',
+            status: emaBull ? 'ok' : 'bad'
+        });
+        const adx = ind.adx14;
+        let adxStatus = 'neutral', adxNote = '趋势偏弱';
+        if (adx >= 25) {
+            if (emaBull) { adxStatus = 'ok';   adxNote = '多头趋势确认'; }
+            else         { adxStatus = 'warn';  adxNote = '空头趋势明确'; }
+        } else if (adx < 15) { adxStatus = 'bad'; adxNote = '横盘噪音（金叉不可信）'; }
+        rows.push({
+            name: 'ADX', threshold: '> 25',
+            value: adx != null ? adx.toFixed(1) : '—',
+            status: adxStatus, note: adxNote
+        });
+
+    } else if (cat === 'cyclical') {
+        const rsi = ind.rsi14;
+        rows.push({
+            name: 'RSI', threshold: '< 40',
+            value: rsi != null ? rsi.toFixed(1) : '—',
+            status: rsi != null ? (rsi < 40 ? 'ok' : rsi < 55 ? 'neutral' : 'bad') : 'neutral'
+        });
+        const close = ind.close, bbL = ind.bb_lower, bbU = ind.bb_upper, bbM = ind.bb_mid;
+        let bbVal = '中轨附近', bbSt = 'neutral';
+        if (close && bbL) {
+            if (close <= bbL * 1.02)  { bbVal = '触下轨'; bbSt = 'ok'; }
+            else if (close >= bbU * 0.98) { bbVal = '触上轨'; bbSt = 'bad'; }
+            else if (bbM) { const p = ((close - bbM) / bbM * 100).toFixed(1); bbVal = `中轨${p > 0 ? '+' : ''}${p}%`; }
+        }
+        rows.push({ name: '布林带', threshold: '触下轨', value: bbVal, status: bbSt });
+
+    } else if (cat === 'defensive') {
+        const close = ind.close, bbL = ind.bb_lower, bbU = ind.bb_upper, bbM = ind.bb_mid;
+        let bbVal = '中轨附近', bbSt = 'neutral';
+        if (close && bbL) {
+            if (close <= bbL * 1.015) { bbVal = '触下轨'; bbSt = 'ok'; }
+            else if (close >= bbU * 0.985) { bbVal = '触上轨'; bbSt = 'bad'; }
+            else if (bbM) { const p = ((close - bbM) / bbM * 100).toFixed(1); bbVal = `中轨${p > 0 ? '+' : ''}${p}%`; }
+        }
+        rows.push({ name: '布林带', threshold: '触下轨', value: bbVal, status: bbSt });
+        const rsi = ind.rsi14;
+        rows.push({
+            name: 'RSI', threshold: '< 45',
+            value: rsi != null ? rsi.toFixed(1) : '—',
+            status: rsi != null ? (rsi < 45 ? 'ok' : rsi < 55 ? 'neutral' : 'bad') : 'neutral'
+        });
+
+    } else { // biotech
+        const rsi = ind.rsi14;
+        rows.push({
+            name: 'RSI', threshold: '< 30',
+            value: rsi != null ? rsi.toFixed(1) : '—',
+            status: rsi != null ? (rsi < 30 ? 'ok' : rsi < 45 ? 'neutral' : 'bad') : 'neutral'
+        });
+        const atr = ind.atr14, close = ind.close;
+        const atrPct = (atr && close) ? (atr / close * 100).toFixed(1) : null;
+        rows.push({ name: 'ATR', threshold: '波动参考', value: atrPct ? `日波动 ${atrPct}%` : '—', status: 'neutral' });
+    }
+
+    // 市场趋势（所有类别共用）
+    let envVal = '中性', envSt = 'neutral';
+    if (env === 'BEAR') { envVal = '偏弱'; envSt = 'warn'; }
+    else if (env === 'BULL') { envVal = '偏强'; envSt = 'ok'; }
+    rows.push({ name: '市场趋势', threshold: 'EMA20>EMA60', value: envVal, status: envSt });
+
+    return rows;
+}
+
+function renderSignalLeft(sig) {
+    const action  = sig.action || 'HOLD';
+    const conf    = sig.confidence || 'MEDIUM';
+    const bt      = sig.backtest_ref || {};
+    const stars   = CRED_STARS[bt.credibility] || '⭐';
+    const strategyLabel = STRATEGY_LABEL[sig.category] || sig.category || '';
+
+    let envStr = '';
+    if (sig.market_env === 'BEAR') envStr = `<span class="signal-env-bear">▼ 市场偏弱</span>`;
+    else if (sig.market_env === 'BULL') envStr = `<span class="signal-env-bull">▲ 市场偏强</span>`;
+
+    const rows = buildIndicatorRows(sig);
+    const rowsHtml = rows.map(r => `
+        <tr>
+            <td class="ind-name-cell">${indTip(r.name)}</td>
+            <td class="ind-thresh-cell">${r.threshold}</td>
+            <td class="ind-value-cell">${r.value}${r.note ? ` <span class="ind-note">${r.note}</span>` : ''}</td>
+            <td class="ind-status-cell">${statusIcon(r.status)}</td>
+        </tr>`).join('');
+
+    let degradeNote = '';
+
+    const summaryKey = sig.symbol.replace(':', '_');
+    return `
+        <div class="signal-monitor-header">
+            <span class="signal-strategy-label">${strategyLabel}</span>
+            <span class="signal-stars">${stars}</span>
+        </div>
+        <table class="signal-monitor-table">${rowsHtml}</table>
+        <div id="summary-${summaryKey}" class="signal-summary-loading">今日小结生成中…</div>
+        <div class="d-flex align-items-center flex-wrap gap-1">
+            <span class="signal-action-badge ${action}">⚡ ${ACTION_LABEL[action] || action}</span>
+            <span class="signal-conf">信心 ${CONF_LABEL[conf] || conf}</span>
+            ${envStr}
+        </div>
+        ${degradeNote}
+    `;
+}
+
+function renderSignalRight(sig, el) {
+    const stopStr   = sig.stop_loss_pct != null ? `<span class="monitor-tag resistance">止损 ${sig.stop_loss_pct.toFixed(1)}%</span>` : '';
+    const targetStr = sig.target_pct_1  != null ? `<span class="monitor-tag target-pending">目标 +${sig.target_pct_1.toFixed(0)}%</span>` : '';
+
+    const bt = sig.backtest_ref;
+    let btHtml = '';
+    if (bt && bt.win_rate) {
+        let btParts = [`胜率 ${(bt.win_rate * 100).toFixed(0)}%`];
+        if (bt.ev_pct != null) btParts.push(`EV ${bt.ev_pct > 0 ? '+' : ''}${bt.ev_pct.toFixed(1)}%`);
+        if (bt.kelly_pct) btParts.push(`Kelly ${bt.kelly_pct}%`);
+        btHtml = `<div class="signal-meta mt-1">回测参考：${btParts.join('<span class="sep">|</span>')}</div>`;
+    }
+
+    // 波段持仓上下文（从 data 属性读取）
+    let swingHtml = '';
+    if (el) {
+        const swingShares = parseInt(el.dataset.swingShares || '0');
+        const swingCost   = el.dataset.swingCost;
+        const currency    = el.dataset.currency || '';
+        if (swingShares > 0 && swingCost) {
+            swingHtml = `<div class="signal-meta mt-1">当前波段：${swingShares}股 @ ${currency} ${swingCost}</div>`;
+        }
+    }
+
+    if (!stopStr && !targetStr && !btHtml) return '';
+
+    return `
+        <div class="monitor-title">⚡ 原力参数</div>
+        <div class="mb-1">${stopStr} ${targetStr}</div>
+        ${btHtml}
+        ${swingHtml}
+    `;
+}
+
+async function loadSignals() {
+    try {
+        const resp = await fetch('/api/signals/portfolio');
+        if (!resp.ok) throw new Error(resp.status);
+        const data = await resp.json();
+        for (const sig of data.signals) {
+            const key = sig.symbol.replace(':', '_');
+            const leftEl  = document.getElementById('signal-left-'  + key);
+            const rightEl = document.getElementById('signal-right-' + key);
+            if (leftEl)  leftEl.innerHTML  = renderSignalLeft(sig);
+            if (rightEl) rightEl.innerHTML = renderSignalRight(sig, rightEl);
+        }
+    } catch (e) {
+        document.querySelectorAll('.signal-loading').forEach(el => {
+            el.innerHTML = '<span class="text-muted" style="font-size:0.75rem">原力信号暂不可用</span>';
+        });
+    }
+}
+
+async function loadSummary(symbol) {
+    const key = symbol.replace(':', '_');
+    const el = document.getElementById('summary-' + key);
+    if (!el) return;
+    try {
+        const resp = await fetch(`/api/signals/${key}/summary`);
+        if (!resp.ok) throw new Error(resp.status);
+        const data = await resp.json();
+        if (data.summary) {
+            el.className = 'signal-summary-block';
+            el.innerHTML = `<span class="signal-summary-label">今日小结：</span>${data.summary}`;
+        } else {
+            el.remove();
+        }
+    } catch (e) {
+        el.remove();
+    }
+}
+
+async function loadSignalsAndSummaries() {
+    await loadSignals();
+    // 信号渲染完成后逐只加载小结（串行，避免并发太多）
+    const keys = Array.from(document.querySelectorAll('[id^="summary-"]'))
+        .map(el => el.id.replace('summary-', '').replace('_', ':'));
+    for (const symbol of keys) {
+        await loadSummary(symbol);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadSignalsAndSummaries);
+
+// ── 行情/资讯更新 ───────────────────────────────────────────
+function updateData() {
+    const btn = document.getElementById('updateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 更新中...';
+
+    fetch('/api/prices/update', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = '🔄 更新行情';
+            if (data.success > 0) {
+                location.reload();
+            } else {
+                alert('行情更新失败，请检查网络');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = '🔄 更新行情';
+            alert('更新失败: ' + err.message);
+        });
+}
+
+function updateNews() {
+    const btn = document.getElementById('newsBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 获取中...';
+
+    fetch('/api/news/update', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = '📰 更新资讯';
+            location.reload();
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = '📰 更新资讯';
+            alert('资讯更新失败: ' + err.message);
+        });
+}
+
+function futuSync() {
+    const btn = document.getElementById('futuSyncBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 同步中...';
+
+    fetch('/api/futu/sync', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = '📡 同步富途';
+            if (data.errors && data.errors.length > 0) {
+                alert(`同步完成（${data.synced} 条），部分失败: ${data.errors.join(', ')}`);
+            } else {
+                location.reload();
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = '📡 同步富途';
+            alert('富途同步失败: ' + err.message);
+        });
+}
+</script>
+{% endblock %}

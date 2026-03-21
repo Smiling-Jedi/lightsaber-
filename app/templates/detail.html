@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}{{ position.name }} - 持仓详情{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/positions/">持仓</a></li>
+        <li class="breadcrumb-item active">{{ position.name }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <!-- 左侧：持仓详情 -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    {{ position.name }}
+                    <span class="badge market-badge-{{ position.market|lower }} ms-2">{{ position.market }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">股票代码</small>
+                        <div class="fw-bold">{{ position.symbol }}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">币种</small>
+                        <div class="fw-bold">{{ position.currency }}</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">总持仓</small>
+                        <div class="fw-bold">{{ position.total_shares }} 股</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">底仓</small>
+                        <div class="fw-bold">{{ position.base_shares }} 股</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">成本价</small>
+                        <div class="fw-bold">{{ "%.2f"|format(position.avg_cost) }}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">当前价</small>
+                        <div class="fw-bold {% if position.current_price > position.avg_cost %}profit{% else %}loss{% endif %}">
+                            {{ "%.2f"|format(position.current_price) if position.current_price else "未更新" }}
+                        </div>
+                    </div>
+                </div>
+
+                {% if position.market_value %}
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">市值</small>
+                        <div class="fw-bold">{{ "%.0f"|format(position.market_value) }}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">仓位占比</small>
+                        <div class="fw-bold">{{ "%.1f"|format(position.position_weight) }}%</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted">盈亏金额</small>
+                        <div class="fw-bold {% if position.profit >= 0 %}profit{% else %}loss{% endif %}">
+                            {{ "+%.0f"|format(position.profit) if position.profit >= 0 else "%.0f"|format(position.profit) }}
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">盈亏比例</small>
+                        <div class="fw-bold {% if position.profit_pct >= 0 %}profit{% else %}loss{% endif %}">
+                            {{ "+%.2f"|format(position.profit_pct) if position.profit_pct >= 0 else "%.2f"|format(position.profit_pct) }}%
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：新闻 -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📰 相关新闻</h5>
+                <button class="btn btn-sm btn-outline-primary" onclick="refreshNews()">刷新</button>
+            </div>
+            <div class="card-body">
+                {% if news %}
+                <div class="list-group list-group-flush">
+                    {% for item in news %}
+                    <a href="{{ item.url }}" target="_blank" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ item.title }}</h6>
+                            <small class="text-muted">{{ item.source }}</small>
+                        </div>
+                        {% if item.summary %}
+                        <p class="mb-1 small text-muted">{{ item.summary[:100] }}...</p>
+                        {% endif %}
+                        {% if item.published_at %}
+                        <small class="text-muted">{{ item.published_at[:10] }}</small>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">暂无新闻</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 交易记录 -->
+{% if trades %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">📝 交易记录</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>类型</th>
+                    <th>股数</th>
+                    <th>价格</th>
+                    <th>目标价</th>
+                    <th>备注</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in trades %}
+                <tr>
+                    <td>{{ trade.trade_date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if trade.trade_type == 'BUY' %}
+                        <span class="badge bg-success">买入</span>
+                        {% else %}
+                        <span class="badge bg-danger">卖出</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ trade.shares }}</td>
+                    <td>{{ "%.2f"|format(trade.price) }}</td>
+                    <td>{{ "%.2f"|format(trade.target_sell_price) if trade.target_sell_price else '-' }}</td>
+                    <td><small>{{ trade.notes or '' }}</small></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function refreshNews() {
+    location.reload();
+}
+</script>
+{% endblock %}

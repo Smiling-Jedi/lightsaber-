@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}分析建议 - 光剑 Lightsaber{% endblock %}
+
+{% block content %}
+<h4 class="mb-4">📊 投资组合分析</h4>
+
+{% if summary.advice %}
+<!-- 整体建议 -->
+<div class="alert alert-info mb-4">
+    <h5 class="alert-heading">整体建议</h5>
+    <p class="mb-0">{{ summary.advice.overall }}</p>
+</div>
+
+<!-- 风险警告 -->
+{% if summary.advice.risk_warnings %}
+<div class="alert alert-warning mb-4">
+    <h5 class="alert-heading">⚠️ 风险提示</h5>
+    <ul class="mb-0">
+        {% for warning in summary.advice.risk_warnings %}
+        <li>{{ warning }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- 市场分布 -->
+{% if summary.advice.market_distribution %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">市场分布</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for market, pct in summary.advice.market_distribution.items() %}
+            <div class="col-md-3 mb-3">
+                <div class="d-flex justify-content-between">
+                    <span>{{ market }}</span>
+                    <span class="fw-bold">{{ "%.1f"|format(pct) }}%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar" role="progressbar" style="width: {{ pct }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 个股建议 -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">个股交易建议</h5>
+    </div>
+    <div class="card-body">
+        {% if summary.advice.positions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>股票</th>
+                        <th>建议操作</th>
+                        <th>理由</th>
+                        <th>目标价位</th>
+                        <th>风险等级</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pos in summary.advice.positions %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ pos.name }}</div>
+                            <small class="text-muted">{{ pos.symbol }}</small>
+                        </td>
+                        <td>
+                            {% if pos.action == 'BUY' %}
+                            <span class="badge bg-success">买入</span>
+                            {% elif pos.action == 'SELL' %}
+                            <span class="badge bg-danger">卖出</span>
+                            {% elif pos.action == 'REDUCE' %}
+                            <span class="badge bg-warning">减仓</span>
+                            {% else %}
+                            <span class="badge bg-secondary">持有</span>
+                            {% endif %}
+                        </td>
+                        <td style="max-width: 300px;">
+                            <small>{{ pos.reason }}</small>
+                        </td>
+                        <td>
+                            {% if pos.target_low and pos.target_high %}
+                            {{ "%.1f"|format(pos.target_low) }} - {{ "%.1f"|format(pos.target_high) }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if pos.risk == 'high' %}
+                            <span class="badge bg-danger">高</span>
+                            {% elif pos.risk == 'medium' %}
+                            <span class="badge bg-warning">中</span>
+                            {% else %}
+                            <span class="badge bg-success">低</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">暂无持仓数据</div>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <p>暂无分析数据</p>
+    <p class="small">请先导入持仓数据</p>
+</div>
+{% endif %}
+{% endblock %}

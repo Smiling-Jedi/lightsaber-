@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光剑 - 持仓管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .profit { color: #e74c3c; }
+        .loss { color: #27ae60; }
+        .market-badge-hk { background-color: #3498db; }
+        .market-badge-us { background-color: #9b59b6; }
+        .market-badge-a { background-color: #e67e22; }
+        .update-time { font-size: 0.875rem; color: #6c757d; }
+        .position-card { transition: transform 0.2s; border-left: 4px solid #dee2e6; }
+        .position-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .position-card.profit-card { border-left-color: #e74c3c; }
+        .position-card.loss-card { border-left-color: #27ae60; }
+        .advice-summary { background: #f8f9fa; border-radius: 6px; padding: 10px; font-size: 0.9rem; }
+        .monitor-item { font-size: 0.85rem; padding: 4px 8px; border-radius: 4px; }
+        .monitor-alert { background: #fff3cd; color: #856404; }
+        .monitor-normal { background: #d1ecf1; color: #0c5460; }
+        .monitor-success { background: #d4edda; color: #155724; }
+        .stock-header { font-size: 1.1rem; font-weight: 600; }
+        .stock-code { font-size: 0.75rem; color: #6c757d; }
+        .price-large { font-size: 1.5rem; font-weight: 700; }
+        .change-pill { font-size: 0.8rem; padding: 2px 8px; border-radius: 12px; }
+        .static-info { font-size: 0.8rem; color: #6c757d; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">⚔️ 光剑 Lightsaber</a>
+            <div class="navbar-nav flex-row">
+                <a class="nav-link active px-3" href="#">持仓</a>
+                <a class="nav-link px-3" href="#">走势</a>
+                <a class="nav-link px-3" href="#">新闻</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 更新栏 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="update-time">
+                上次更新：<span id="lastUpdate">2026-03-19 15:30:25</span>
+                <span class="badge bg-success ms-2">数据正常</span>
+            </div>
+            <button class="btn btn-primary" id="updateBtn" onclick="updateData()">
+                <span class="spinner-border spinner-border-sm d-none" id="updateSpinner"></span>
+                🔄 更新数据
+            </button>
+        </div>
+
+        <!-- 总览卡片 -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">总资产 (RMB)</h6>
+                        <h3 class="mb-0">¥1,028,000</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">今日盈亏</h6>
+                        <h3 class="mb-0 profit">+¥12,500</h3>
+                        <small class="profit">+1.23%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">持仓盈亏</h6>
+                        <h3 class="mb-0 profit">+¥128,000</h3>
+                        <small class="profit">+14.2%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h6 class="text-muted">仓位分布</h6>
+                        <div class="progress mt-2" style="height: 20px;">
+                            <div class="progress-bar bg-primary" style="width: 40%">HK 40%</div>
+                            <div class="progress-bar bg-secondary" style="width: 35%">US 35%</div>
+                            <div class="progress-bar bg-success" style="width: 25%">A 25%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 市场标签页 -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">全部</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">港股 <span class="badge market-badge-hk">3</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">美股 <span class="badge market-badge-us">2</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">A股 <span class="badge market-badge-a">2</span></a>
+            </li>
+        </ul>
+
+        <!-- 持仓列表 - 新版布局 -->
+        <div class="row">
+            <!-- 港股 - 腾讯 -->
+            <div class="col-12 mb-3">
+                <div class="card position-card profit-card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <!-- 左侧：股票名称和静态信息 -->
+                            <div class="col-md-2">
+                                <div class="stock-header">腾讯控股</div>
+                                <div class="stock-code">
+                                    <span class="badge market-badge-hk">港股</span>
+                                    00700
+                                </div>
+                                <div class="static-info mt-2">
+                                    <div>持仓: 1500股</div>
+                                    <div>成本: HK$350.00</div>
+                                    <div>仓位: 38.5%</div>
+                                    <div>盈亏: <span class="profit">+14.3%</span></div>
+                                </div>
+                            </div>
+
+                            <!-- 中间：动态价格和交易建议 -->
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-baseline mb-2">
+                                    <span class="price-large me-3">HK$400.00</span>
+                                    <span class="change-pill profit bg-danger text-white">+2.5%</span>
+                                </div>
+                                <div class="text-muted small mb-2">
+                                    市值 HK$600,000 | 盈亏 +HK$75,000
+                                </div>
+
+                                <!-- 交易建议摘要 -->
+                                <div class="advice-summary">
+                                    <strong>💡 建议：持有观望</strong><br>
+                                    <small>股价突破400港元阻力，短期趋势向上。仓位35.2%合理，波段仓第二批已接近目标价。</small>
+                                </div>
+                            </div>
+
+                            <!-- 右侧：重点监控事项 -->
+                            <div class="col-md-5">
+                                <h6 class="mb-2">📊 重点监控</h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="monitor-item monitor-success">
+                                        ✅ 目标价1: HK$450 (未达)
+                                    </span>
+                                    <span class="monitor-item monitor-alert">
+                                        ⚠️ 目标价2: HK$420 (已达!)
+                                    </span>
+                                    <span class="monitor-item monitor-normal">
+                                        📈 支撑位: HK$380
+                                    </span>
+                                    <span class="monitor-item monitor-normal">
+                                        📉 阻力位: HK$410 (已突破)
+                                    </span>
+                                </div>
+                                <div class="mt-2 small">
+                                    <span class="text-muted">最新动态:</span>
+                                    <span class="text-dark">Q4财报超预期，南向资金连续5日净流入</span>
+                                </div>
+                            </div>
+
+                            <!-- 操作按钮 -->
+                            <div class="col-md-1 text-end">
+                                <button class="btn btn-outline-primary btn-sm" onclick="showDetail('00700')">
+                                    详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 美股 - 特斯拉 -->
+            <div class="col-12 mb-3">
+                <div class="card position-card loss-card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-2">
+                                <div class="stock-header">特斯拉</div>
+                                <div class="stock-code">
+                                    <span class="badge market-badge-us">美股</span>
+                                    TSLA
+                                </div>
+                                <div class="static-info mt-2">
+                                    <div>持仓: 200股</div>
+                                    <div>成本: $230.00</div>
+                                    <div>仓位: 24.5%</div>
+                                    <div>盈亏: <span class="profit">+8.7%</span></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-baseline mb-2">
+                                    <span class="price-large me-3">$250.00</span>
+                                    <span class="change-pill loss bg-success text-white">-1.2%</span>
+                                </div>
+                                <div class="text-muted small mb-2">
+                                    市值 $50,000 | 盈亏 +$4,000
+                                </div>
+
+                                <div class="advice-summary">
+                                    <strong>💡 建议：观望</strong><br>
+                                    <small>短期回调，等待企稳信号。若跌至$240可考虑加仓波段仓。</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-5">
+                                <h6 class="mb-2">📊 重点监控</h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="monitor-item monitor-normal">
+                                        🎯 目标价: $280 (持有)
+                                    </span>
+                                    <span class="monitor-item monitor-normal">
+                                        📈 加仓点: $240 (观望)
+                                    </span>
+                                    <span class="monitor-item monitor-alert">
+                                        ⚠️ 止损位: $220 (未触发)
+                                    </span>
+                                    <span class="monitor-item monitor-success">
+                                        ✅ 支撑位: $245
+                                    </span>
+                                </div>
+                                <div class="mt-2 small">
+                                    <span class="text-muted">最新动态:</span>
+                                    <span class="text-dark">FSD更新即将发布，Model Y改款传闻</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-1 text-end">
+                                <button class="btn btn-outline-primary btn-sm" onclick="showDetail('TSLA')">
+                                    详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- A股 - 茅台 -->
+            <div class="col-12 mb-3">
+                <div class="card position-card profit-card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-2">
+                                <div class="stock-header">贵州茅台</div>
+                                <div class="stock-code">
+                                    <span class="badge market-badge-a">A股</span>
+                                    600519
+                                </div>
+                                <div class="static-info mt-2">
+                                    <div>持仓: 100股</div>
+                                    <div>成本: ¥1,650.00</div>
+                                    <div>仓位: 17.0%</div>
+                                    <div>盈亏: <span class="profit">+6.1%</span></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-baseline mb-2">
+                                    <span class="price-large me-3">¥1,750.00</span>
+                                    <span class="change-pill profit bg-danger text-white">+0.8%</span>
+                                </div>
+                                <div class="text-muted small mb-2">
+                                    市值 ¥175,000 | 盈亏 +¥10,000
+                                </div>
+
+                                <div class="advice-summary">
+                                    <strong>💡 建议：长期持有</strong><br>
+                                    <small>纯底仓配置，无波段操作。基本面稳健，适合长期持有不动。</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-5">
+                                <h6 class="mb-2">📊 重点监控</h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="monitor-item monitor-normal">
+                                        🏆 长期持有: 无目标价
+                                    </span>
+                                    <span class="monitor-item monitor-success">
+                                        ✅ 股息率: 1.5%
+                                    </span>
+                                    <span class="monitor-item monitor-normal">
+                                        📊 估值: 合理区间
+                                    </span>
+                                </div>
+                                <div class="mt-2 small">
+                                    <span class="text-muted">最新动态:</span>
+                                    <span class="text-dark">春节销售数据良好，经销商库存健康</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-1 text-end">
+                                <button class="btn btn-outline-primary btn-sm" onclick="showDetail('600519')">
+                                    详情
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增持仓按钮 -->
+        <div class="fixed-bottom m-4 text-end">
+            <button class="btn btn-success btn-lg rounded-circle" style="width: 60px; height: 60px;" onclick="addPosition()">
+                +
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateData() {
+            const btn = document.getElementById('updateBtn');
+            const spinner = document.getElementById('updateSpinner');
+
+            btn.disabled = true;
+            spinner.classList.remove('d-none');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 更新中...';
+
+            setTimeout(() => {
+                btn.disabled = false;
+                spinner.classList.add('d-none');
+                btn.innerHTML = '🔄 更新数据';
+
+                const now = new Date();
+                document.getElementById('lastUpdate').textContent = now.toLocaleString('zh-CN');
+
+                alert('数据更新完成！');
+            }, 2000);
+        }
+
+        function showDetail(symbol) {
+            alert('查看 ' + symbol + ' 的详情和新闻');
+        }
+
+        function addPosition() {
+            alert('打开新增持仓表单');
+        }
+    </script>
+</body>
+</html>

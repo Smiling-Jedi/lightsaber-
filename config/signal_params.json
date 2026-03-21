@@ -1,0 +1,188 @@
+{
+  "_comment": "原力模块信号参数配置，基于2026-03-20回测结论。kelly_pct为半Kelly再打折后的实用仓位上限。credibility: HIGH=⭐⭐⭐/MEDIUM=⭐⭐/LOW=⭐",
+  "stocks": {
+    "HK:00700": {
+      "kelly_pct": 10,
+      "stop_pct": -5,
+      "target_pct": 30,
+      "hold_months": 12,
+      "wf_robust": true,
+      "credibility": "HIGH",
+      "note": "腾讯，EMA金叉"
+    },
+    "HK:09988": {
+      "kelly_pct": 7,
+      "stop_pct": -7,
+      "target_pct": 30,
+      "hold_months": 3,
+      "wf_robust": true,
+      "credibility": "MEDIUM",
+      "note": "阿里，EMA金叉"
+    },
+    "HK:01810": {
+      "kelly_pct": 8,
+      "stop_pct": -7,
+      "target_pct": 30,
+      "hold_months": 6,
+      "wf_robust": true,
+      "credibility": "MEDIUM",
+      "note": "小米，EMA金叉"
+    },
+    "HK:03690": {
+      "kelly_pct": 5,
+      "stop_pct": -7,
+      "target_pct": 30,
+      "hold_months": 6,
+      "wf_robust": true,
+      "credibility": "MEDIUM",
+      "note": "美团，EMA金叉"
+    },
+    "HK:00175": {
+      "kelly_pct": 8,
+      "stop_pct": -7,
+      "target_pct": 25,
+      "hold_months": 3,
+      "wf_robust": true,
+      "credibility": "HIGH",
+      "note": "吉利，EMA金叉"
+    },
+    "HK:01888": {
+      "kelly_pct": 7,
+      "stop_pct": -7,
+      "target_pct": 30,
+      "hold_months": 6,
+      "wf_robust": false,
+      "credibility": "LOW",
+      "note": "建滔，过拟合"
+    },
+    "HK:00270": {
+      "kelly_pct": 5,
+      "stop_pct": -7,
+      "target_pct": 30,
+      "hold_months": 9,
+      "wf_robust": false,
+      "credibility": "LOW",
+      "note": "粤海投资，过拟合"
+    },
+    "HK:01276": {
+      "kelly_pct": 0,
+      "stop_pct": -7,
+      "target_pct": 10,
+      "hold_months": 3,
+      "wf_robust": false,
+      "credibility": "LOW",
+      "note": "恒瑞，样本不足（仅10个月数据）"
+    },
+    "HK:06160": {
+      "kelly_pct": 5,
+      "stop_pct": -7,
+      "target_pct": 30,
+      "hold_months": 3,
+      "wf_robust": false,
+      "credibility": "LOW",
+      "note": "百济，过拟合"
+    },
+    "US:AMZN": {
+      "kelly_pct": 11,
+      "stop_pct": -7,
+      "target_pct": 25,
+      "hold_months": 12,
+      "wf_robust": true,
+      "credibility": "HIGH",
+      "note": "亚马逊，EMA金叉"
+    },
+    "US:META": {
+      "kelly_pct": 12,
+      "stop_pct": -5,
+      "target_pct": 30,
+      "hold_months": 12,
+      "wf_robust": true,
+      "credibility": "HIGH",
+      "note": "Meta，EMA金叉（WF误报实为稳健）"
+    },
+    "US:MSFT": {
+      "kelly_pct": 6,
+      "stop_pct": -7,
+      "target_pct": 25,
+      "hold_months": 9,
+      "wf_robust": false,
+      "credibility": "MEDIUM",
+      "note": "微软，过拟合"
+    },
+    "US:NFLX": {
+      "kelly_pct": 12,
+      "stop_pct": -9,
+      "target_pct": 25,
+      "hold_months": 12,
+      "wf_robust": true,
+      "credibility": "HIGH",
+      "note": "奈飞，EMA金叉"
+    },
+    "US:NVDA": {
+      "kelly_pct": 10,
+      "stop_pct": -7,
+      "target_pct": 30,
+      "hold_months": 3,
+      "wf_robust": true,
+      "credibility": "HIGH",
+      "note": "英伟达，EMA金叉"
+    },
+    "US:TSLA": {
+      "kelly_pct": 6,
+      "stop_pct": -7,
+      "target_pct": 30,
+      "hold_months": 3,
+      "wf_robust": true,
+      "credibility": "HIGH",
+      "note": "特斯拉，RSI超卖"
+    },
+    "US:SOFI": {
+      "kelly_pct": 0,
+      "stop_pct": -7,
+      "target_pct": 10,
+      "hold_months": 3,
+      "wf_robust": false,
+      "credibility": "LOW",
+      "note": "SoFi，样本不足（仅8笔）"
+    },
+    "US:UNH": {
+      "kelly_pct": 8,
+      "stop_pct": -7,
+      "target_pct": 25,
+      "hold_months": 12,
+      "wf_robust": false,
+      "credibility": "MEDIUM",
+      "note": "联合健康，过拟合"
+    },
+    "US:RKLB": {
+      "kelly_pct": 6,
+      "stop_pct": -10,
+      "target_pct": 30,
+      "hold_months": 3,
+      "wf_robust": true,
+      "credibility": "MEDIUM",
+      "note": "Rocket Lab，EMA金叉"
+    },
+    "US:CRCL": {
+      "kelly_pct": 0,
+      "stop_pct": -7,
+      "target_pct": 25,
+      "hold_months": 6,
+      "wf_robust": false,
+      "credibility": "LOW",
+      "note": "Circle，数据不足"
+    }
+  },
+  "categories": {
+    "swing_limits": {
+      "large_tech": 0.1,
+      "cyclical": 0.08,
+      "defensive": 0.05,
+      "biotech": 0.08
+    }
+  },
+  "market_indices": {
+    "HK": "HK.800000",
+    "US": "US.SPX"
+  }
+}

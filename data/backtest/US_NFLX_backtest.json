@@ -1,0 +1,5996 @@
+{
+  "symbol": "US:NFLX",
+  "generated_at": "2026-03-20T22:37:56.242173",
+  "data_start": "2016-04-12",
+  "data_end": "2026-03-19",
+  "total_data_days": 2499,
+  "best_params": {
+    "strategy": "EMA_cross",
+    "params": {
+      "strategy": "EMA_cross",
+      "target_pct": 25,
+      "hold_months": 12,
+      "stop_pct": 10
+    },
+    "stats": {
+      "total_trades": 16,
+      "win_trades": 10,
+      "loss_trades": 6,
+      "win_rate": 0.625,
+      "avg_win_pct": 26.22,
+      "avg_loss_pct": -9.0,
+      "ev_pct": 13.01,
+      "profit_factor": 2.91,
+      "max_consecutive_loss": 3,
+      "mae_50th": 5.08,
+      "mae_75th": 9.23,
+      "kelly_pct": 24.8,
+      "expected_contribution": 322.831
+    }
+  },
+  "param_sweep": [
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 10,
+        "loss_trades": 6,
+        "win_rate": 0.625,
+        "avg_win_pct": 26.22,
+        "avg_loss_pct": -9.0,
+        "ev_pct": 13.01,
+        "profit_factor": 2.91,
+        "max_consecutive_loss": 3,
+        "mae_50th": 5.08,
+        "mae_75th": 9.23,
+        "kelly_pct": 24.8,
+        "expected_contribution": 322.831
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 8,
+        "loss_trades": 6,
+        "win_rate": 0.571,
+        "avg_win_pct": 31.16,
+        "avg_loss_pct": -9.0,
+        "ev_pct": 13.95,
+        "profit_factor": 3.46,
+        "max_consecutive_loss": 3,
+        "mae_50th": 5.08,
+        "mae_75th": 9.62,
+        "kelly_pct": 22.4,
+        "expected_contribution": 312.155
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 10,
+        "loss_trades": 6,
+        "win_rate": 0.625,
+        "avg_win_pct": 25.3,
+        "avg_loss_pct": -9.0,
+        "ev_pct": 12.43,
+        "profit_factor": 2.81,
+        "max_consecutive_loss": 3,
+        "mae_50th": 5.08,
+        "mae_75th": 9.23,
+        "kelly_pct": 24.6,
+        "expected_contribution": 305.578
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 8,
+        "loss_trades": 6,
+        "win_rate": 0.571,
+        "avg_win_pct": 29.33,
+        "avg_loss_pct": -9.0,
+        "ev_pct": 12.9,
+        "profit_factor": 3.26,
+        "max_consecutive_loss": 3,
+        "mae_50th": 5.08,
+        "mae_75th": 9.62,
+        "kelly_pct": 22.0,
+        "expected_contribution": 283.691
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 17,
+        "win_trades": 10,
+        "loss_trades": 7,
+        "win_rate": 0.588,
+        "avg_win_pct": 26.29,
+        "avg_loss_pct": -8.01,
+        "ev_pct": 12.17,
+        "profit_factor": 3.28,
+        "max_consecutive_loss": 3,
+        "mae_50th": 5.0,
+        "mae_75th": 9.04,
+        "kelly_pct": 23.1,
+        "expected_contribution": 281.454
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 15,
+        "win_trades": 8,
+        "loss_trades": 7,
+        "win_rate": 0.533,
+        "avg_win_pct": 30.89,
+        "avg_loss_pct": -8.01,
+        "ev_pct": 12.73,
+        "profit_factor": 3.85,
+        "max_consecutive_loss": 3,
+        "mae_50th": 5.0,
+        "mae_75th": 9.43,
+        "kelly_pct": 20.6,
+        "expected_contribution": 262.448
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 7,
+        "loss_trades": 7,
+        "win_rate": 0.5,
+        "avg_win_pct": 31.4,
+        "avg_loss_pct": -6.57,
+        "ev_pct": 12.41,
+        "profit_factor": 4.78,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.58,
+        "mae_75th": 6.92,
+        "kelly_pct": 19.8,
+        "expected_contribution": 245.349
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 10,
+        "loss_trades": 6,
+        "win_rate": 0.625,
+        "avg_win_pct": 20.8,
+        "avg_loss_pct": -9.0,
+        "ev_pct": 9.63,
+        "profit_factor": 2.31,
+        "max_consecutive_loss": 3,
+        "mae_50th": 5.08,
+        "mae_75th": 9.23,
+        "kelly_pct": 23.1,
+        "expected_contribution": 222.709
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 10,
+        "loss_trades": 6,
+        "win_rate": 0.625,
+        "avg_win_pct": 20.8,
+        "avg_loss_pct": -9.0,
+        "ev_pct": 9.63,
+        "profit_factor": 2.31,
+        "max_consecutive_loss": 3,
+        "mae_50th": 5.08,
+        "mae_75th": 9.23,
+        "kelly_pct": 23.1,
+        "expected_contribution": 222.709
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 18,
+        "win_trades": 11,
+        "loss_trades": 7,
+        "win_rate": 0.611,
+        "avg_win_pct": 21.91,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 9.83,
+        "profit_factor": 2.4,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.77,
+        "mae_75th": 9.62,
+        "kelly_pct": 22.4,
+        "expected_contribution": 220.559
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 7,
+        "loss_trades": 7,
+        "win_rate": 0.5,
+        "avg_win_pct": 29.3,
+        "avg_loss_pct": -6.57,
+        "ev_pct": 11.36,
+        "profit_factor": 4.46,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.58,
+        "mae_75th": 6.92,
+        "kelly_pct": 19.4,
+        "expected_contribution": 220.366
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 15,
+        "win_trades": 7,
+        "loss_trades": 8,
+        "win_rate": 0.467,
+        "avg_win_pct": 31.09,
+        "avg_loss_pct": -6.01,
+        "ev_pct": 11.3,
+        "profit_factor": 5.17,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 6.44,
+        "kelly_pct": 18.2,
+        "expected_contribution": 205.384
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 18,
+        "win_trades": 11,
+        "loss_trades": 7,
+        "win_rate": 0.611,
+        "avg_win_pct": 20.62,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 9.04,
+        "profit_factor": 2.25,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.77,
+        "mae_75th": 9.62,
+        "kelly_pct": 21.9,
+        "expected_contribution": 198.356
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 17,
+        "win_trades": 10,
+        "loss_trades": 7,
+        "win_rate": 0.588,
+        "avg_win_pct": 20.74,
+        "avg_loss_pct": -8.01,
+        "ev_pct": 8.9,
+        "profit_factor": 2.59,
+        "max_consecutive_loss": 3,
+        "mae_50th": 5.0,
+        "mae_75th": 9.04,
+        "kelly_pct": 21.5,
+        "expected_contribution": 191.024
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 8,
+        "loss_trades": 8,
+        "win_rate": 0.5,
+        "avg_win_pct": 25.61,
+        "avg_loss_pct": -6.63,
+        "ev_pct": 9.49,
+        "profit_factor": 3.86,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.58,
+        "mae_75th": 7.42,
+        "kelly_pct": 18.5,
+        "expected_contribution": 175.833
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 8,
+        "loss_trades": 8,
+        "win_rate": 0.5,
+        "avg_win_pct": 24.45,
+        "avg_loss_pct": -6.63,
+        "ev_pct": 8.91,
+        "profit_factor": 3.69,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.58,
+        "mae_75th": 7.42,
+        "kelly_pct": 18.2,
+        "expected_contribution": 162.408
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 17,
+        "win_trades": 8,
+        "loss_trades": 9,
+        "win_rate": 0.471,
+        "avg_win_pct": 25.7,
+        "avg_loss_pct": -6.12,
+        "ev_pct": 8.85,
+        "profit_factor": 4.2,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 7.41,
+        "kelly_pct": 17.2,
+        "expected_contribution": 152.428
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 18,
+        "win_trades": 11,
+        "loss_trades": 7,
+        "win_rate": 0.611,
+        "avg_win_pct": 17.39,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 7.07,
+        "profit_factor": 1.9,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.77,
+        "mae_75th": 9.62,
+        "kelly_pct": 20.3,
+        "expected_contribution": 143.755
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 12,
+        "loss_trades": 7,
+        "win_rate": 0.632,
+        "avg_win_pct": 15.1,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 6.17,
+        "profit_factor": 1.65,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 9.43,
+        "kelly_pct": 20.4,
+        "expected_contribution": 125.89
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 12,
+        "loss_trades": 7,
+        "win_rate": 0.632,
+        "avg_win_pct": 15.1,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 6.17,
+        "profit_factor": 1.65,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 9.43,
+        "kelly_pct": 20.4,
+        "expected_contribution": 125.89
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 12,
+        "loss_trades": 7,
+        "win_rate": 0.632,
+        "avg_win_pct": 15.1,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 6.17,
+        "profit_factor": 1.65,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 9.43,
+        "kelly_pct": 20.4,
+        "expected_contribution": 125.89
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 12,
+        "loss_trades": 7,
+        "win_rate": 0.632,
+        "avg_win_pct": 15.1,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 6.17,
+        "profit_factor": 1.65,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 9.43,
+        "kelly_pct": 20.4,
+        "expected_contribution": 125.89
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 8,
+        "loss_trades": 8,
+        "win_rate": 0.5,
+        "avg_win_pct": 21.21,
+        "avg_loss_pct": -6.63,
+        "ev_pct": 7.29,
+        "profit_factor": 3.2,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.58,
+        "mae_75th": 7.42,
+        "kelly_pct": 17.2,
+        "expected_contribution": 125.296
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 8,
+        "loss_trades": 8,
+        "win_rate": 0.5,
+        "avg_win_pct": 21.21,
+        "avg_loss_pct": -6.63,
+        "ev_pct": 7.29,
+        "profit_factor": 3.2,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.58,
+        "mae_75th": 7.42,
+        "kelly_pct": 17.2,
+        "expected_contribution": 125.296
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 18,
+        "win_trades": 9,
+        "loss_trades": 9,
+        "win_rate": 0.5,
+        "avg_win_pct": 20.86,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 7.09,
+        "profit_factor": 3.13,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.26,
+        "mae_75th": 7.45,
+        "kelly_pct": 17.0,
+        "expected_contribution": 120.653
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 18,
+        "win_trades": 9,
+        "loss_trades": 9,
+        "win_rate": 0.5,
+        "avg_win_pct": 19.58,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 6.46,
+        "profit_factor": 2.94,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.26,
+        "mae_75th": 7.45,
+        "kelly_pct": 16.5,
+        "expected_contribution": 106.42
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 17,
+        "win_trades": 8,
+        "loss_trades": 9,
+        "win_rate": 0.471,
+        "avg_win_pct": 21.13,
+        "avg_loss_pct": -6.12,
+        "ev_pct": 6.7,
+        "profit_factor": 3.45,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 7.41,
+        "kelly_pct": 15.9,
+        "expected_contribution": 106.323
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 18,
+        "win_trades": 9,
+        "loss_trades": 9,
+        "win_rate": 0.5,
+        "avg_win_pct": 16.99,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 5.16,
+        "profit_factor": 2.55,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.26,
+        "mae_75th": 7.45,
+        "kelly_pct": 15.2,
+        "expected_contribution": 78.385
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 10,
+        "loss_trades": 9,
+        "win_rate": 0.526,
+        "avg_win_pct": 14.93,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 4.7,
+        "profit_factor": 2.24,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.15,
+        "mae_75th": 7.44,
+        "kelly_pct": 15.7,
+        "expected_contribution": 73.98
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 10,
+        "loss_trades": 9,
+        "win_rate": 0.526,
+        "avg_win_pct": 14.93,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 4.7,
+        "profit_factor": 2.24,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.15,
+        "mae_75th": 7.44,
+        "kelly_pct": 15.7,
+        "expected_contribution": 73.98
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 10,
+        "loss_trades": 9,
+        "win_rate": 0.526,
+        "avg_win_pct": 14.93,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 4.7,
+        "profit_factor": 2.24,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.15,
+        "mae_75th": 7.44,
+        "kelly_pct": 15.7,
+        "expected_contribution": 73.98
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 10,
+        "loss_trades": 9,
+        "win_rate": 0.526,
+        "avg_win_pct": 14.93,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 4.7,
+        "profit_factor": 2.24,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.15,
+        "mae_75th": 7.44,
+        "kelly_pct": 15.7,
+        "expected_contribution": 73.98
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 18,
+        "win_trades": 7,
+        "loss_trades": 11,
+        "win_rate": 0.389,
+        "avg_win_pct": 21.88,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 5.45,
+        "profit_factor": 4.38,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.92,
+        "mae_75th": 7.45,
+        "kelly_pct": 12.5,
+        "expected_contribution": 67.978
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 17,
+        "win_trades": 6,
+        "loss_trades": 11,
+        "win_rate": 0.353,
+        "avg_win_pct": 25.83,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 5.88,
+        "profit_factor": 5.17,
+        "max_consecutive_loss": 9,
+        "mae_50th": 4.02,
+        "mae_75th": 7.41,
+        "kelly_pct": 11.4,
+        "expected_contribution": 66.926
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 17,
+        "win_trades": 6,
+        "loss_trades": 11,
+        "win_rate": 0.353,
+        "avg_win_pct": 25.83,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 5.88,
+        "profit_factor": 5.17,
+        "max_consecutive_loss": 9,
+        "mae_50th": 4.02,
+        "mae_75th": 7.41,
+        "kelly_pct": 11.4,
+        "expected_contribution": 66.926
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 17,
+        "win_trades": 6,
+        "loss_trades": 11,
+        "win_rate": 0.353,
+        "avg_win_pct": 25.83,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 5.88,
+        "profit_factor": 5.17,
+        "max_consecutive_loss": 9,
+        "mae_50th": 4.02,
+        "mae_75th": 7.41,
+        "kelly_pct": 11.4,
+        "expected_contribution": 66.926
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 5,
+        "loss_trades": 11,
+        "win_rate": 0.312,
+        "avg_win_pct": 30.73,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 6.17,
+        "profit_factor": 6.15,
+        "max_consecutive_loss": 9,
+        "mae_50th": 4.34,
+        "mae_75th": 7.42,
+        "kelly_pct": 10.0,
+        "expected_contribution": 61.853
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 5,
+        "loss_trades": 11,
+        "win_rate": 0.312,
+        "avg_win_pct": 30.73,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 6.17,
+        "profit_factor": 6.15,
+        "max_consecutive_loss": 9,
+        "mae_50th": 4.34,
+        "mae_75th": 7.42,
+        "kelly_pct": 10.0,
+        "expected_contribution": 61.853
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 16,
+        "win_trades": 5,
+        "loss_trades": 11,
+        "win_rate": 0.312,
+        "avg_win_pct": 30.54,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 6.11,
+        "profit_factor": 6.11,
+        "max_consecutive_loss": 9,
+        "mae_50th": 4.34,
+        "mae_75th": 7.42,
+        "kelly_pct": 10.0,
+        "expected_contribution": 61.054
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 18,
+        "win_trades": 7,
+        "loss_trades": 11,
+        "win_rate": 0.389,
+        "avg_win_pct": 19.53,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 4.54,
+        "profit_factor": 3.91,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.92,
+        "mae_75th": 7.45,
+        "kelly_pct": 11.6,
+        "expected_contribution": 52.756
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 12,
+        "loss_trades": 7,
+        "win_rate": 0.632,
+        "avg_win_pct": 10.6,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 3.33,
+        "profit_factor": 1.16,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 9.43,
+        "kelly_pct": 15.7,
+        "expected_contribution": 52.232
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 12,
+        "loss_trades": 7,
+        "win_rate": 0.632,
+        "avg_win_pct": 10.6,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 3.33,
+        "profit_factor": 1.16,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 9.43,
+        "kelly_pct": 15.7,
+        "expected_contribution": 52.232
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 12,
+        "loss_trades": 7,
+        "win_rate": 0.632,
+        "avg_win_pct": 10.6,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 3.33,
+        "profit_factor": 1.16,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 9.43,
+        "kelly_pct": 15.7,
+        "expected_contribution": 52.232
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 12,
+        "loss_trades": 7,
+        "win_rate": 0.632,
+        "avg_win_pct": 10.6,
+        "avg_loss_pct": -9.15,
+        "ev_pct": 3.33,
+        "profit_factor": 1.16,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.37,
+        "mae_75th": 9.43,
+        "kelly_pct": 15.7,
+        "expected_contribution": 52.232
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 25.52,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 4.8,
+        "profit_factor": 2.55,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 9.4,
+        "expected_contribution": 45.117
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 25.52,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 4.8,
+        "profit_factor": 2.55,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 9.4,
+        "expected_contribution": 45.117
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 25.52,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 4.8,
+        "profit_factor": 2.55,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 9.4,
+        "expected_contribution": 45.117
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 17,
+        "win_trades": 6,
+        "loss_trades": 11,
+        "win_rate": 0.353,
+        "avg_win_pct": 21.46,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 4.34,
+        "profit_factor": 4.29,
+        "max_consecutive_loss": 9,
+        "mae_50th": 4.02,
+        "mae_75th": 7.41,
+        "kelly_pct": 10.1,
+        "expected_contribution": 43.87
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 17,
+        "win_trades": 6,
+        "loss_trades": 11,
+        "win_rate": 0.353,
+        "avg_win_pct": 21.46,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 4.34,
+        "profit_factor": 4.29,
+        "max_consecutive_loss": 9,
+        "mae_50th": 4.02,
+        "mae_75th": 7.41,
+        "kelly_pct": 10.1,
+        "expected_contribution": 43.87
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 17,
+        "win_trades": 6,
+        "loss_trades": 11,
+        "win_rate": 0.353,
+        "avg_win_pct": 21.46,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 4.34,
+        "profit_factor": 4.29,
+        "max_consecutive_loss": 9,
+        "mae_50th": 4.02,
+        "mae_75th": 7.41,
+        "kelly_pct": 10.1,
+        "expected_contribution": 43.87
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 8,
+        "loss_trades": 11,
+        "win_rate": 0.421,
+        "avg_win_pct": 15.26,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 3.53,
+        "profit_factor": 3.05,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.83,
+        "mae_75th": 7.44,
+        "kelly_pct": 11.6,
+        "expected_contribution": 40.841
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 8,
+        "loss_trades": 11,
+        "win_rate": 0.421,
+        "avg_win_pct": 15.26,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 3.53,
+        "profit_factor": 3.05,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.83,
+        "mae_75th": 7.44,
+        "kelly_pct": 11.6,
+        "expected_contribution": 40.841
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 8,
+        "loss_trades": 11,
+        "win_rate": 0.421,
+        "avg_win_pct": 15.26,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 3.53,
+        "profit_factor": 3.05,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.83,
+        "mae_75th": 7.44,
+        "kelly_pct": 11.6,
+        "expected_contribution": 40.841
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 8,
+        "loss_trades": 11,
+        "win_rate": 0.421,
+        "avg_win_pct": 15.26,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 3.53,
+        "profit_factor": 3.05,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.83,
+        "mae_75th": 7.44,
+        "kelly_pct": 11.6,
+        "expected_contribution": 40.841
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 24.65,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 4.44,
+        "profit_factor": 2.47,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 9.0,
+        "expected_contribution": 39.966
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 18,
+        "win_trades": 7,
+        "loss_trades": 11,
+        "win_rate": 0.389,
+        "avg_win_pct": 16.74,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 3.45,
+        "profit_factor": 3.35,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.92,
+        "mae_75th": 7.45,
+        "kelly_pct": 10.3,
+        "expected_contribution": 35.634
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 10,
+        "loss_trades": 20,
+        "win_rate": 0.333,
+        "avg_win_pct": 26.92,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 4.31,
+        "profit_factor": 3.85,
+        "max_consecutive_loss": 8,
+        "mae_50th": 6.24,
+        "mae_75th": 8.16,
+        "kelly_pct": 8.0,
+        "expected_contribution": 34.445
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 10,
+        "loss_trades": 20,
+        "win_rate": 0.333,
+        "avg_win_pct": 26.92,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 4.31,
+        "profit_factor": 3.85,
+        "max_consecutive_loss": 8,
+        "mae_50th": 6.24,
+        "mae_75th": 8.16,
+        "kelly_pct": 8.0,
+        "expected_contribution": 34.445
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 10,
+        "loss_trades": 20,
+        "win_rate": 0.333,
+        "avg_win_pct": 26.36,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 4.12,
+        "profit_factor": 3.77,
+        "max_consecutive_loss": 8,
+        "mae_50th": 6.24,
+        "mae_75th": 8.16,
+        "kelly_pct": 7.8,
+        "expected_contribution": 32.189
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 22.72,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 3.63,
+        "profit_factor": 2.27,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 8.0,
+        "expected_contribution": 29.052
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 22.72,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 3.63,
+        "profit_factor": 2.27,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 8.0,
+        "expected_contribution": 29.052
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 22.72,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 3.63,
+        "profit_factor": 2.27,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 8.0,
+        "expected_contribution": 29.052
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 22.72,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 3.63,
+        "profit_factor": 2.27,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 8.0,
+        "expected_contribution": 29.052
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 28,
+        "win_trades": 8,
+        "loss_trades": 20,
+        "win_rate": 0.286,
+        "avg_win_pct": 31.42,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 3.98,
+        "profit_factor": 4.49,
+        "max_consecutive_loss": 8,
+        "mae_50th": 6.33,
+        "mae_75th": 8.23,
+        "kelly_pct": 6.3,
+        "expected_contribution": 25.161
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 28,
+        "win_trades": 8,
+        "loss_trades": 20,
+        "win_rate": 0.286,
+        "avg_win_pct": 31.42,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 3.98,
+        "profit_factor": 4.49,
+        "max_consecutive_loss": 8,
+        "mae_50th": 6.33,
+        "mae_75th": 8.23,
+        "kelly_pct": 6.3,
+        "expected_contribution": 25.161
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 10,
+        "loss_trades": 9,
+        "win_rate": 0.526,
+        "avg_win_pct": 10.04,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 2.13,
+        "profit_factor": 1.51,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.15,
+        "mae_75th": 7.44,
+        "kelly_pct": 10.6,
+        "expected_contribution": 22.52
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 10,
+        "loss_trades": 9,
+        "win_rate": 0.526,
+        "avg_win_pct": 10.04,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 2.13,
+        "profit_factor": 1.51,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.15,
+        "mae_75th": 7.44,
+        "kelly_pct": 10.6,
+        "expected_contribution": 22.52
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 10,
+        "loss_trades": 9,
+        "win_rate": 0.526,
+        "avg_win_pct": 10.04,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 2.13,
+        "profit_factor": 1.51,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.15,
+        "mae_75th": 7.44,
+        "kelly_pct": 10.6,
+        "expected_contribution": 22.52
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 10,
+        "loss_trades": 9,
+        "win_rate": 0.526,
+        "avg_win_pct": 10.04,
+        "avg_loss_pct": -6.67,
+        "ev_pct": 2.13,
+        "profit_factor": 1.51,
+        "max_consecutive_loss": 3,
+        "mae_50th": 4.15,
+        "mae_75th": 7.44,
+        "kelly_pct": 10.6,
+        "expected_contribution": 22.52
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 28,
+        "win_trades": 8,
+        "loss_trades": 20,
+        "win_rate": 0.286,
+        "avg_win_pct": 30.03,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 3.58,
+        "profit_factor": 4.29,
+        "max_consecutive_loss": 8,
+        "mae_50th": 6.33,
+        "mae_75th": 8.23,
+        "kelly_pct": 6.0,
+        "expected_contribution": 21.349
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 6,
+        "loss_trades": 6,
+        "win_rate": 0.5,
+        "avg_win_pct": 15.06,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.53,
+        "profit_factor": 1.51,
+        "max_consecutive_loss": 3,
+        "mae_50th": 8.81,
+        "mae_75th": 10.36,
+        "kelly_pct": 8.4,
+        "expected_contribution": 21.24
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 6,
+        "loss_trades": 6,
+        "win_rate": 0.5,
+        "avg_win_pct": 15.06,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.53,
+        "profit_factor": 1.51,
+        "max_consecutive_loss": 3,
+        "mae_50th": 8.81,
+        "mae_75th": 10.36,
+        "kelly_pct": 8.4,
+        "expected_contribution": 21.24
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 6,
+        "loss_trades": 6,
+        "win_rate": 0.5,
+        "avg_win_pct": 15.06,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.53,
+        "profit_factor": 1.51,
+        "max_consecutive_loss": 3,
+        "mae_50th": 8.81,
+        "mae_75th": 10.36,
+        "kelly_pct": 8.4,
+        "expected_contribution": 21.24
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 6,
+        "loss_trades": 6,
+        "win_rate": 0.5,
+        "avg_win_pct": 15.06,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.53,
+        "profit_factor": 1.51,
+        "max_consecutive_loss": 3,
+        "mae_50th": 8.81,
+        "mae_75th": 10.36,
+        "kelly_pct": 8.4,
+        "expected_contribution": 21.24
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 37,
+        "win_trades": 11,
+        "loss_trades": 26,
+        "win_rate": 0.297,
+        "avg_win_pct": 27.8,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 3.35,
+        "profit_factor": 3.97,
+        "max_consecutive_loss": 9,
+        "mae_50th": 6.41,
+        "mae_75th": 8.03,
+        "kelly_pct": 6.0,
+        "expected_contribution": 20.149
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 36,
+        "win_trades": 10,
+        "loss_trades": 26,
+        "win_rate": 0.278,
+        "avg_win_pct": 30.28,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 3.36,
+        "profit_factor": 4.33,
+        "max_consecutive_loss": 9,
+        "mae_50th": 6.42,
+        "mae_75th": 8.04,
+        "kelly_pct": 5.5,
+        "expected_contribution": 18.598
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 41,
+        "win_trades": 10,
+        "loss_trades": 31,
+        "win_rate": 0.244,
+        "avg_win_pct": 27.82,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 3.0,
+        "profit_factor": 5.56,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.38,
+        "mae_75th": 6.74,
+        "kelly_pct": 5.4,
+        "expected_contribution": 16.228
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 10,
+        "loss_trades": 20,
+        "win_rate": 0.333,
+        "avg_win_pct": 21.9,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 2.63,
+        "profit_factor": 3.13,
+        "max_consecutive_loss": 8,
+        "mae_50th": 6.24,
+        "mae_75th": 8.16,
+        "kelly_pct": 6.0,
+        "expected_contribution": 15.845
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 10,
+        "loss_trades": 20,
+        "win_rate": 0.333,
+        "avg_win_pct": 21.9,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 2.63,
+        "profit_factor": 3.13,
+        "max_consecutive_loss": 8,
+        "mae_50th": 6.24,
+        "mae_75th": 8.16,
+        "kelly_pct": 6.0,
+        "expected_contribution": 15.845
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 10,
+        "loss_trades": 20,
+        "win_rate": 0.333,
+        "avg_win_pct": 21.9,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 2.63,
+        "profit_factor": 3.13,
+        "max_consecutive_loss": 8,
+        "mae_50th": 6.24,
+        "mae_75th": 8.16,
+        "kelly_pct": 6.0,
+        "expected_contribution": 15.845
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 34,
+        "win_trades": 13,
+        "loss_trades": 21,
+        "win_rate": 0.382,
+        "avg_win_pct": 23.19,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.69,
+        "profit_factor": 2.32,
+        "max_consecutive_loss": 7,
+        "mae_50th": 8.84,
+        "mae_75th": 10.45,
+        "kelly_pct": 5.8,
+        "expected_contribution": 15.594
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 40,
+        "win_trades": 9,
+        "loss_trades": 31,
+        "win_rate": 0.225,
+        "avg_win_pct": 30.57,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 3.0,
+        "profit_factor": 6.11,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.38,
+        "mae_75th": 6.74,
+        "kelly_pct": 4.9,
+        "expected_contribution": 14.76
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 31,
+        "win_trades": 12,
+        "loss_trades": 19,
+        "win_rate": 0.387,
+        "avg_win_pct": 16.68,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 2.17,
+        "profit_factor": 2.38,
+        "max_consecutive_loss": 8,
+        "mae_50th": 5.91,
+        "mae_75th": 8.07,
+        "kelly_pct": 6.5,
+        "expected_contribution": 14.08
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 31,
+        "win_trades": 12,
+        "loss_trades": 19,
+        "win_rate": 0.387,
+        "avg_win_pct": 16.68,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 2.17,
+        "profit_factor": 2.38,
+        "max_consecutive_loss": 8,
+        "mae_50th": 5.91,
+        "mae_75th": 8.07,
+        "kelly_pct": 6.5,
+        "expected_contribution": 14.08
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 31,
+        "win_trades": 12,
+        "loss_trades": 19,
+        "win_rate": 0.387,
+        "avg_win_pct": 16.68,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 2.17,
+        "profit_factor": 2.38,
+        "max_consecutive_loss": 8,
+        "mae_50th": 5.91,
+        "mae_75th": 8.07,
+        "kelly_pct": 6.5,
+        "expected_contribution": 14.08
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 33,
+        "win_trades": 12,
+        "loss_trades": 21,
+        "win_rate": 0.364,
+        "avg_win_pct": 24.7,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.62,
+        "profit_factor": 2.47,
+        "max_consecutive_loss": 7,
+        "mae_50th": 8.91,
+        "mae_75th": 10.49,
+        "kelly_pct": 5.3,
+        "expected_contribution": 13.89
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 36,
+        "win_trades": 10,
+        "loss_trades": 26,
+        "win_rate": 0.278,
+        "avg_win_pct": 28.12,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 2.75,
+        "profit_factor": 4.02,
+        "max_consecutive_loss": 9,
+        "mae_50th": 6.42,
+        "mae_75th": 8.04,
+        "kelly_pct": 4.9,
+        "expected_contribution": 13.49
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 9,
+        "loss_trades": 21,
+        "win_rate": 0.3,
+        "avg_win_pct": 24.38,
+        "avg_loss_pct": -6.87,
+        "ev_pct": 2.51,
+        "profit_factor": 3.55,
+        "max_consecutive_loss": 14,
+        "mae_50th": 6.24,
+        "mae_75th": 8.16,
+        "kelly_pct": 5.1,
+        "expected_contribution": 12.882
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 26,
+        "win_trades": 9,
+        "loss_trades": 17,
+        "win_rate": 0.346,
+        "avg_win_pct": 26.18,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.52,
+        "profit_factor": 2.62,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.57,
+        "mae_75th": 10.1,
+        "kelly_pct": 4.8,
+        "expected_contribution": 12.156
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 26,
+        "win_trades": 9,
+        "loss_trades": 17,
+        "win_rate": 0.346,
+        "avg_win_pct": 26.18,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.52,
+        "profit_factor": 2.62,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.57,
+        "mae_75th": 10.1,
+        "kelly_pct": 4.8,
+        "expected_contribution": 12.156
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 18.9,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.04,
+        "profit_factor": 1.89,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 5.4,
+        "expected_contribution": 11.028
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 18.9,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.04,
+        "profit_factor": 1.89,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 5.4,
+        "expected_contribution": 11.028
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 18.9,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.04,
+        "profit_factor": 1.89,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 5.4,
+        "expected_contribution": 11.028
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 12,
+        "win_trades": 5,
+        "loss_trades": 7,
+        "win_rate": 0.417,
+        "avg_win_pct": 18.9,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.04,
+        "profit_factor": 1.89,
+        "max_consecutive_loss": 3,
+        "mae_50th": 9.0,
+        "mae_75th": 10.36,
+        "kelly_pct": 5.4,
+        "expected_contribution": 11.028
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 40,
+        "win_trades": 9,
+        "loss_trades": 31,
+        "win_rate": 0.225,
+        "avg_win_pct": 28.17,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 2.46,
+        "profit_factor": 5.63,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.38,
+        "mae_75th": 6.74,
+        "kelly_pct": 4.4,
+        "expected_contribution": 10.764
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 7,
+        "loss_trades": 6,
+        "win_rate": 0.538,
+        "avg_win_pct": 11.48,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 1.57,
+        "profit_factor": 1.15,
+        "max_consecutive_loss": 2,
+        "mae_50th": 8.71,
+        "mae_75th": 10.91,
+        "kelly_pct": 6.8,
+        "expected_contribution": 10.674
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 7,
+        "loss_trades": 6,
+        "win_rate": 0.538,
+        "avg_win_pct": 11.48,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 1.57,
+        "profit_factor": 1.15,
+        "max_consecutive_loss": 2,
+        "mae_50th": 8.71,
+        "mae_75th": 10.91,
+        "kelly_pct": 6.8,
+        "expected_contribution": 10.674
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 7,
+        "loss_trades": 6,
+        "win_rate": 0.538,
+        "avg_win_pct": 11.48,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 1.57,
+        "profit_factor": 1.15,
+        "max_consecutive_loss": 2,
+        "mae_50th": 8.71,
+        "mae_75th": 10.91,
+        "kelly_pct": 6.8,
+        "expected_contribution": 10.674
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 7,
+        "loss_trades": 6,
+        "win_rate": 0.538,
+        "avg_win_pct": 11.48,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 1.57,
+        "profit_factor": 1.15,
+        "max_consecutive_loss": 2,
+        "mae_50th": 8.71,
+        "mae_75th": 10.91,
+        "kelly_pct": 6.8,
+        "expected_contribution": 10.674
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 26,
+        "win_trades": 9,
+        "loss_trades": 17,
+        "win_rate": 0.346,
+        "avg_win_pct": 25.55,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.31,
+        "profit_factor": 2.56,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.57,
+        "mae_75th": 10.1,
+        "kelly_pct": 4.5,
+        "expected_contribution": 10.413
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 11,
+        "loss_trades": 21,
+        "win_rate": 0.344,
+        "avg_win_pct": 25.81,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.31,
+        "profit_factor": 2.58,
+        "max_consecutive_loss": 7,
+        "mae_50th": 8.97,
+        "mae_75th": 10.54,
+        "kelly_pct": 4.5,
+        "expected_contribution": 10.337
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 8,
+        "loss_trades": 11,
+        "win_rate": 0.421,
+        "avg_win_pct": 10.34,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.46,
+        "profit_factor": 2.07,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.83,
+        "mae_75th": 7.44,
+        "kelly_pct": 7.1,
+        "expected_contribution": 10.287
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 8,
+        "loss_trades": 11,
+        "win_rate": 0.421,
+        "avg_win_pct": 10.34,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.46,
+        "profit_factor": 2.07,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.83,
+        "mae_75th": 7.44,
+        "kelly_pct": 7.1,
+        "expected_contribution": 10.287
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 8,
+        "loss_trades": 11,
+        "win_rate": 0.421,
+        "avg_win_pct": 10.34,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.46,
+        "profit_factor": 2.07,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.83,
+        "mae_75th": 7.44,
+        "kelly_pct": 7.1,
+        "expected_contribution": 10.287
+      }
+    },
+    {
+      "strategy": "EMA_cross",
+      "params": {
+        "strategy": "EMA_cross",
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 19,
+        "win_trades": 8,
+        "loss_trades": 11,
+        "win_rate": 0.421,
+        "avg_win_pct": 10.34,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.46,
+        "profit_factor": 2.07,
+        "max_consecutive_loss": 5,
+        "mae_50th": 3.83,
+        "mae_75th": 7.44,
+        "kelly_pct": 7.1,
+        "expected_contribution": 10.287
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 33,
+        "win_trades": 12,
+        "loss_trades": 21,
+        "win_rate": 0.364,
+        "avg_win_pct": 23.51,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.19,
+        "profit_factor": 2.35,
+        "max_consecutive_loss": 7,
+        "mae_50th": 8.91,
+        "mae_75th": 10.49,
+        "kelly_pct": 4.6,
+        "expected_contribution": 10.155
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 29.53,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 2.4,
+        "profit_factor": 5.91,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 4.1,
+        "expected_contribution": 9.752
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 29.53,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 2.4,
+        "profit_factor": 5.91,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 4.1,
+        "expected_contribution": 9.752
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 29.53,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 2.4,
+        "profit_factor": 5.91,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 4.1,
+        "expected_contribution": 9.752
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 31,
+        "win_trades": 10,
+        "loss_trades": 21,
+        "win_rate": 0.323,
+        "avg_win_pct": 28.09,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 2.29,
+        "profit_factor": 2.81,
+        "max_consecutive_loss": 7,
+        "mae_50th": 9.04,
+        "mae_75th": 10.59,
+        "kelly_pct": 4.1,
+        "expected_contribution": 9.309
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 6,
+        "loss_trades": 24,
+        "win_rate": 0.2,
+        "avg_win_pct": 31.71,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 2.34,
+        "profit_factor": 6.34,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.73,
+        "mae_75th": 6.34,
+        "kelly_pct": 3.7,
+        "expected_contribution": 8.651
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 6,
+        "loss_trades": 24,
+        "win_rate": 0.2,
+        "avg_win_pct": 31.71,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 2.34,
+        "profit_factor": 6.34,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.73,
+        "mae_75th": 6.34,
+        "kelly_pct": 3.7,
+        "expected_contribution": 8.651
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 6,
+        "loss_trades": 24,
+        "win_rate": 0.2,
+        "avg_win_pct": 31.71,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 2.34,
+        "profit_factor": 6.34,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.73,
+        "mae_75th": 6.34,
+        "kelly_pct": 3.7,
+        "expected_contribution": 8.651
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 29,
+        "win_trades": 8,
+        "loss_trades": 21,
+        "win_rate": 0.276,
+        "avg_win_pct": 25.2,
+        "avg_loss_pct": -6.87,
+        "ev_pct": 1.98,
+        "profit_factor": 3.67,
+        "max_consecutive_loss": 14,
+        "mae_50th": 6.32,
+        "mae_75th": 8.16,
+        "kelly_pct": 3.9,
+        "expected_contribution": 7.755
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 27.91,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 2.05,
+        "profit_factor": 5.58,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 3.7,
+        "expected_contribution": 7.544
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 31,
+        "win_trades": 11,
+        "loss_trades": 20,
+        "win_rate": 0.355,
+        "avg_win_pct": 16.85,
+        "avg_loss_pct": -6.86,
+        "ev_pct": 1.55,
+        "profit_factor": 2.46,
+        "max_consecutive_loss": 12,
+        "mae_50th": 5.91,
+        "mae_75th": 8.07,
+        "kelly_pct": 4.6,
+        "expected_contribution": 7.139
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 43,
+        "win_trades": 10,
+        "loss_trades": 33,
+        "win_rate": 0.233,
+        "avg_win_pct": 24.02,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.75,
+        "profit_factor": 4.8,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.38,
+        "mae_75th": 6.73,
+        "kelly_pct": 3.6,
+        "expected_contribution": 6.366
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 39,
+        "win_trades": 11,
+        "loss_trades": 28,
+        "win_rate": 0.282,
+        "avg_win_pct": 23.99,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 1.74,
+        "profit_factor": 3.43,
+        "max_consecutive_loss": 9,
+        "mae_50th": 6.4,
+        "mae_75th": 7.57,
+        "kelly_pct": 3.6,
+        "expected_contribution": 6.308
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 30,
+        "win_trades": 9,
+        "loss_trades": 21,
+        "win_rate": 0.3,
+        "avg_win_pct": 21.48,
+        "avg_loss_pct": -6.87,
+        "ev_pct": 1.63,
+        "profit_factor": 3.13,
+        "max_consecutive_loss": 14,
+        "mae_50th": 6.24,
+        "mae_75th": 8.16,
+        "kelly_pct": 3.8,
+        "expected_contribution": 6.224
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 34,
+        "win_trades": 13,
+        "loss_trades": 21,
+        "win_rate": 0.382,
+        "avg_win_pct": 20.27,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 1.57,
+        "profit_factor": 2.03,
+        "max_consecutive_loss": 7,
+        "mae_50th": 8.84,
+        "mae_75th": 10.45,
+        "kelly_pct": 3.9,
+        "expected_contribution": 6.098
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 34,
+        "win_trades": 13,
+        "loss_trades": 21,
+        "win_rate": 0.382,
+        "avg_win_pct": 20.27,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 1.57,
+        "profit_factor": 2.03,
+        "max_consecutive_loss": 7,
+        "mae_50th": 8.84,
+        "mae_75th": 10.45,
+        "kelly_pct": 3.9,
+        "expected_contribution": 6.098
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 43,
+        "win_trades": 10,
+        "loss_trades": 33,
+        "win_rate": 0.233,
+        "avg_win_pct": 23.91,
+        "avg_loss_pct": -5.04,
+        "ev_pct": 1.7,
+        "profit_factor": 4.75,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.22,
+        "mae_75th": 6.73,
+        "kelly_pct": 3.5,
+        "expected_contribution": 6.015
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 31,
+        "win_trades": 7,
+        "loss_trades": 24,
+        "win_rate": 0.226,
+        "avg_win_pct": 24.43,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.65,
+        "profit_factor": 4.89,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.72,
+        "mae_75th": 6.33,
+        "kelly_pct": 3.4,
+        "expected_contribution": 5.545
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 42,
+        "win_trades": 9,
+        "loss_trades": 33,
+        "win_rate": 0.214,
+        "avg_win_pct": 26.14,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.67,
+        "profit_factor": 5.23,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.38,
+        "mae_75th": 6.74,
+        "kelly_pct": 3.2,
+        "expected_contribution": 5.348
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 34,
+        "win_trades": 13,
+        "loss_trades": 21,
+        "win_rate": 0.382,
+        "avg_win_pct": 19.97,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 1.46,
+        "profit_factor": 2.0,
+        "max_consecutive_loss": 7,
+        "mae_50th": 8.84,
+        "mae_75th": 10.45,
+        "kelly_pct": 3.7,
+        "expected_contribution": 5.329
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 26.09,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.66,
+        "profit_factor": 5.22,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 3.2,
+        "expected_contribution": 5.298
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 26.09,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.66,
+        "profit_factor": 5.22,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 3.2,
+        "expected_contribution": 5.298
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 26.09,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.66,
+        "profit_factor": 5.22,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 3.2,
+        "expected_contribution": 5.298
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 26.09,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.66,
+        "profit_factor": 5.22,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 3.2,
+        "expected_contribution": 5.298
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 38,
+        "win_trades": 10,
+        "loss_trades": 28,
+        "win_rate": 0.263,
+        "avg_win_pct": 25.89,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 1.65,
+        "profit_factor": 3.7,
+        "max_consecutive_loss": 9,
+        "mae_50th": 6.41,
+        "mae_75th": 7.8,
+        "kelly_pct": 3.2,
+        "expected_contribution": 5.286
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 44,
+        "win_trades": 10,
+        "loss_trades": 34,
+        "win_rate": 0.227,
+        "avg_win_pct": 23.95,
+        "avg_loss_pct": -5.03,
+        "ev_pct": 1.55,
+        "profit_factor": 4.76,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.27,
+        "mae_75th": 6.72,
+        "kelly_pct": 3.2,
+        "expected_contribution": 5.03
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 31,
+        "win_trades": 10,
+        "loss_trades": 21,
+        "win_rate": 0.323,
+        "avg_win_pct": 25.92,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 1.59,
+        "profit_factor": 2.59,
+        "max_consecutive_loss": 7,
+        "mae_50th": 9.04,
+        "mae_75th": 10.59,
+        "kelly_pct": 3.1,
+        "expected_contribution": 4.863
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 38,
+        "win_trades": 11,
+        "loss_trades": 27,
+        "win_rate": 0.289,
+        "avg_win_pct": 21.75,
+        "avg_loss_pct": -6.84,
+        "ev_pct": 1.44,
+        "profit_factor": 3.18,
+        "max_consecutive_loss": 10,
+        "mae_50th": 6.33,
+        "mae_75th": 7.8,
+        "kelly_pct": 3.3,
+        "expected_contribution": 4.765
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 34,
+        "win_trades": 12,
+        "loss_trades": 22,
+        "win_rate": 0.353,
+        "avg_win_pct": 21.1,
+        "avg_loss_pct": -9.52,
+        "ev_pct": 1.28,
+        "profit_factor": 2.22,
+        "max_consecutive_loss": 8,
+        "mae_50th": 8.81,
+        "mae_75th": 10.21,
+        "kelly_pct": 3.0,
+        "expected_contribution": 3.907
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 42,
+        "win_trades": 9,
+        "loss_trades": 33,
+        "win_rate": 0.214,
+        "avg_win_pct": 24.54,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.33,
+        "profit_factor": 4.91,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.38,
+        "mae_75th": 6.74,
+        "kelly_pct": 2.7,
+        "expected_contribution": 3.606
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 3,
+        "loss_trades": 10,
+        "win_rate": 0.231,
+        "avg_win_pct": 29.53,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 1.43,
+        "profit_factor": 4.22,
+        "max_consecutive_loss": 4,
+        "mae_50th": 7.07,
+        "mae_75th": 8.44,
+        "kelly_pct": 2.4,
+        "expected_contribution": 3.466
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 3,
+        "loss_trades": 10,
+        "win_rate": 0.231,
+        "avg_win_pct": 29.53,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 1.43,
+        "profit_factor": 4.22,
+        "max_consecutive_loss": 4,
+        "mae_50th": 7.07,
+        "mae_75th": 8.44,
+        "kelly_pct": 2.4,
+        "expected_contribution": 3.466
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 3,
+        "loss_trades": 10,
+        "win_rate": 0.231,
+        "avg_win_pct": 29.53,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 1.43,
+        "profit_factor": 4.22,
+        "max_consecutive_loss": 4,
+        "mae_50th": 7.07,
+        "mae_75th": 8.44,
+        "kelly_pct": 2.4,
+        "expected_contribution": 3.466
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 38,
+        "win_trades": 10,
+        "loss_trades": 28,
+        "win_rate": 0.263,
+        "avg_win_pct": 24.45,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 1.28,
+        "profit_factor": 3.49,
+        "max_consecutive_loss": 9,
+        "mae_50th": 6.41,
+        "mae_75th": 7.8,
+        "kelly_pct": 2.6,
+        "expected_contribution": 3.334
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 24,
+        "win_trades": 7,
+        "loss_trades": 17,
+        "win_rate": 0.292,
+        "avg_win_pct": 28.59,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 1.25,
+        "profit_factor": 2.86,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.59,
+        "mae_75th": 10.13,
+        "kelly_pct": 2.2,
+        "expected_contribution": 2.753
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 24,
+        "win_trades": 7,
+        "loss_trades": 17,
+        "win_rate": 0.292,
+        "avg_win_pct": 28.59,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 1.25,
+        "profit_factor": 2.86,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.59,
+        "mae_75th": 10.13,
+        "kelly_pct": 2.2,
+        "expected_contribution": 2.753
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 6,
+        "loss_trades": 26,
+        "win_rate": 0.188,
+        "avg_win_pct": 27.94,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.18,
+        "profit_factor": 5.59,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.71,
+        "mae_75th": 6.33,
+        "kelly_pct": 2.1,
+        "expected_contribution": 2.472
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 6,
+        "loss_trades": 26,
+        "win_rate": 0.188,
+        "avg_win_pct": 27.94,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.18,
+        "profit_factor": 5.59,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.71,
+        "mae_75th": 6.33,
+        "kelly_pct": 2.1,
+        "expected_contribution": 2.472
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 6,
+        "loss_trades": 26,
+        "win_rate": 0.188,
+        "avg_win_pct": 27.94,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 1.18,
+        "profit_factor": 5.59,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.71,
+        "mae_75th": 6.33,
+        "kelly_pct": 2.1,
+        "expected_contribution": 2.472
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 39,
+        "win_trades": 11,
+        "loss_trades": 28,
+        "win_rate": 0.282,
+        "avg_win_pct": 21.17,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.95,
+        "profit_factor": 3.02,
+        "max_consecutive_loss": 9,
+        "mae_50th": 6.4,
+        "mae_75th": 7.57,
+        "kelly_pct": 2.2,
+        "expected_contribution": 2.111
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 39,
+        "win_trades": 11,
+        "loss_trades": 28,
+        "win_rate": 0.282,
+        "avg_win_pct": 21.17,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.95,
+        "profit_factor": 3.02,
+        "max_consecutive_loss": 9,
+        "mae_50th": 6.4,
+        "mae_75th": 7.57,
+        "kelly_pct": 2.2,
+        "expected_contribution": 2.111
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 3,
+        "loss_trades": 10,
+        "win_rate": 0.231,
+        "avg_win_pct": 27.91,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 1.06,
+        "profit_factor": 3.99,
+        "max_consecutive_loss": 4,
+        "mae_50th": 7.07,
+        "mae_75th": 8.44,
+        "kelly_pct": 1.9,
+        "expected_contribution": 1.998
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 39,
+        "win_trades": 11,
+        "loss_trades": 28,
+        "win_rate": 0.282,
+        "avg_win_pct": 20.82,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.85,
+        "profit_factor": 2.97,
+        "max_consecutive_loss": 9,
+        "mae_50th": 6.4,
+        "mae_75th": 7.57,
+        "kelly_pct": 2.0,
+        "expected_contribution": 1.722
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 44,
+        "win_trades": 10,
+        "loss_trades": 34,
+        "win_rate": 0.227,
+        "avg_win_pct": 20.68,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.84,
+        "profit_factor": 4.14,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.35,
+        "mae_75th": 6.72,
+        "kelly_pct": 2.0,
+        "expected_contribution": 1.695
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 44,
+        "win_trades": 10,
+        "loss_trades": 34,
+        "win_rate": 0.227,
+        "avg_win_pct": 20.68,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.84,
+        "profit_factor": 4.14,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.35,
+        "mae_75th": 6.72,
+        "kelly_pct": 2.0,
+        "expected_contribution": 1.695
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 44,
+        "win_trades": 10,
+        "loss_trades": 34,
+        "win_rate": 0.227,
+        "avg_win_pct": 20.68,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.84,
+        "profit_factor": 4.14,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.35,
+        "mae_75th": 6.72,
+        "kelly_pct": 2.0,
+        "expected_contribution": 1.695
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 35,
+        "win_trades": 12,
+        "loss_trades": 23,
+        "win_rate": 0.343,
+        "avg_win_pct": 11.12,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.53,
+        "profit_factor": 2.22,
+        "max_consecutive_loss": 8,
+        "mae_50th": 4.59,
+        "mae_75th": 5.61,
+        "kelly_pct": 2.4,
+        "expected_contribution": 1.256
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 35,
+        "win_trades": 12,
+        "loss_trades": 23,
+        "win_rate": 0.343,
+        "avg_win_pct": 11.12,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.53,
+        "profit_factor": 2.22,
+        "max_consecutive_loss": 8,
+        "mae_50th": 4.59,
+        "mae_75th": 5.61,
+        "kelly_pct": 2.4,
+        "expected_contribution": 1.256
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 35,
+        "win_trades": 12,
+        "loss_trades": 23,
+        "win_rate": 0.343,
+        "avg_win_pct": 11.12,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.53,
+        "profit_factor": 2.22,
+        "max_consecutive_loss": 8,
+        "mae_50th": 4.59,
+        "mae_75th": 5.61,
+        "kelly_pct": 2.4,
+        "expected_contribution": 1.256
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 35,
+        "win_trades": 12,
+        "loss_trades": 23,
+        "win_rate": 0.343,
+        "avg_win_pct": 11.12,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.53,
+        "profit_factor": 2.22,
+        "max_consecutive_loss": 8,
+        "mae_50th": 4.59,
+        "mae_75th": 5.61,
+        "kelly_pct": 2.4,
+        "expected_contribution": 1.256
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 24,
+        "win_trades": 7,
+        "loss_trades": 17,
+        "win_rate": 0.292,
+        "avg_win_pct": 27.01,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 0.79,
+        "profit_factor": 2.7,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.59,
+        "mae_75th": 10.13,
+        "kelly_pct": 1.5,
+        "expected_contribution": 1.166
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 44,
+        "win_trades": 10,
+        "loss_trades": 34,
+        "win_rate": 0.227,
+        "avg_win_pct": 19.93,
+        "avg_loss_pct": -5.03,
+        "ev_pct": 0.64,
+        "profit_factor": 3.96,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.27,
+        "mae_75th": 6.72,
+        "kelly_pct": 1.6,
+        "expected_contribution": 1.025
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 26,
+        "win_trades": 9,
+        "loss_trades": 17,
+        "win_rate": 0.346,
+        "avg_win_pct": 20.71,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 0.63,
+        "profit_factor": 2.07,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.57,
+        "mae_75th": 10.1,
+        "kelly_pct": 1.5,
+        "expected_contribution": 0.962
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 26,
+        "win_trades": 9,
+        "loss_trades": 17,
+        "win_rate": 0.346,
+        "avg_win_pct": 20.71,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 0.63,
+        "profit_factor": 2.07,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.57,
+        "mae_75th": 10.1,
+        "kelly_pct": 1.5,
+        "expected_contribution": 0.962
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 26,
+        "win_trades": 9,
+        "loss_trades": 17,
+        "win_rate": 0.346,
+        "avg_win_pct": 20.71,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 0.63,
+        "profit_factor": 2.07,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.57,
+        "mae_75th": 10.1,
+        "kelly_pct": 1.5,
+        "expected_contribution": 0.962
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 3,
+        "loss_trades": 10,
+        "win_rate": 0.231,
+        "avg_win_pct": 26.09,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.64,
+        "profit_factor": 3.73,
+        "max_consecutive_loss": 4,
+        "mae_50th": 7.07,
+        "mae_75th": 8.44,
+        "kelly_pct": 1.2,
+        "expected_contribution": 0.777
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 3,
+        "loss_trades": 10,
+        "win_rate": 0.231,
+        "avg_win_pct": 26.09,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.64,
+        "profit_factor": 3.73,
+        "max_consecutive_loss": 4,
+        "mae_50th": 7.07,
+        "mae_75th": 8.44,
+        "kelly_pct": 1.2,
+        "expected_contribution": 0.777
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 3,
+        "loss_trades": 10,
+        "win_rate": 0.231,
+        "avg_win_pct": 26.09,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.64,
+        "profit_factor": 3.73,
+        "max_consecutive_loss": 4,
+        "mae_50th": 7.07,
+        "mae_75th": 8.44,
+        "kelly_pct": 1.2,
+        "expected_contribution": 0.777
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 25,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 13,
+        "win_trades": 3,
+        "loss_trades": 10,
+        "win_rate": 0.231,
+        "avg_win_pct": 26.09,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.64,
+        "profit_factor": 3.73,
+        "max_consecutive_loss": 4,
+        "mae_50th": 7.07,
+        "mae_75th": 8.44,
+        "kelly_pct": 1.2,
+        "expected_contribution": 0.777
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 39,
+        "win_trades": 10,
+        "loss_trades": 29,
+        "win_rate": 0.256,
+        "avg_win_pct": 22.04,
+        "avg_loss_pct": -6.85,
+        "ev_pct": 0.56,
+        "profit_factor": 3.22,
+        "max_consecutive_loss": 10,
+        "mae_50th": 6.33,
+        "mae_75th": 7.57,
+        "kelly_pct": 1.3,
+        "expected_contribution": 0.71
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 6,
+        "loss_trades": 26,
+        "win_rate": 0.188,
+        "avg_win_pct": 24.78,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.58,
+        "profit_factor": 4.96,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.71,
+        "mae_75th": 6.33,
+        "kelly_pct": 1.2,
+        "expected_contribution": 0.688
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 34,
+        "win_trades": 12,
+        "loss_trades": 22,
+        "win_rate": 0.353,
+        "avg_win_pct": 18.85,
+        "avg_loss_pct": -9.52,
+        "ev_pct": 0.49,
+        "profit_factor": 1.98,
+        "max_consecutive_loss": 8,
+        "mae_50th": 8.81,
+        "mae_75th": 10.21,
+        "kelly_pct": 1.3,
+        "expected_contribution": 0.64
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 25,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 26,
+        "win_trades": 8,
+        "loss_trades": 18,
+        "win_rate": 0.308,
+        "avg_win_pct": 23.23,
+        "avg_loss_pct": -9.68,
+        "ev_pct": 0.45,
+        "profit_factor": 2.4,
+        "max_consecutive_loss": 13,
+        "mae_50th": 9.57,
+        "mae_75th": 10.1,
+        "kelly_pct": 1.0,
+        "expected_contribution": 0.428
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 45,
+        "win_trades": 16,
+        "loss_trades": 29,
+        "win_rate": 0.356,
+        "avg_win_pct": 9.7,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.23,
+        "profit_factor": 1.94,
+        "max_consecutive_loss": 10,
+        "mae_50th": 4.95,
+        "mae_75th": 6.33,
+        "kelly_pct": 1.2,
+        "expected_contribution": 0.264
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 45,
+        "win_trades": 16,
+        "loss_trades": 29,
+        "win_rate": 0.356,
+        "avg_win_pct": 9.7,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.23,
+        "profit_factor": 1.94,
+        "max_consecutive_loss": 10,
+        "mae_50th": 4.95,
+        "mae_75th": 6.33,
+        "kelly_pct": 1.2,
+        "expected_contribution": 0.264
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 45,
+        "win_trades": 16,
+        "loss_trades": 29,
+        "win_rate": 0.356,
+        "avg_win_pct": 9.7,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.23,
+        "profit_factor": 1.94,
+        "max_consecutive_loss": 10,
+        "mae_50th": 4.95,
+        "mae_75th": 6.33,
+        "kelly_pct": 1.2,
+        "expected_contribution": 0.264
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 5,
+        "loss_trades": 9,
+        "win_rate": 0.357,
+        "avg_win_pct": 13.31,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.25,
+        "profit_factor": 1.9,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.12,
+        "mae_75th": 7.37,
+        "kelly_pct": 1.0,
+        "expected_contribution": 0.24
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 5,
+        "loss_trades": 9,
+        "win_rate": 0.357,
+        "avg_win_pct": 13.31,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.25,
+        "profit_factor": 1.9,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.12,
+        "mae_75th": 7.37,
+        "kelly_pct": 1.0,
+        "expected_contribution": 0.24
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 5,
+        "loss_trades": 9,
+        "win_rate": 0.357,
+        "avg_win_pct": 13.31,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.25,
+        "profit_factor": 1.9,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.12,
+        "mae_75th": 7.37,
+        "kelly_pct": 1.0,
+        "expected_contribution": 0.24
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 5,
+        "loss_trades": 9,
+        "win_rate": 0.357,
+        "avg_win_pct": 13.31,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.25,
+        "profit_factor": 1.9,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.12,
+        "mae_75th": 7.37,
+        "kelly_pct": 1.0,
+        "expected_contribution": 0.24
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 33,
+        "win_trades": 11,
+        "loss_trades": 22,
+        "win_rate": 0.333,
+        "avg_win_pct": 19.94,
+        "avg_loss_pct": -9.52,
+        "ev_pct": 0.3,
+        "profit_factor": 2.09,
+        "max_consecutive_loss": 8,
+        "mae_50th": 8.91,
+        "mae_75th": 10.3,
+        "kelly_pct": 0.7,
+        "expected_contribution": 0.222
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 45,
+        "win_trades": 16,
+        "loss_trades": 29,
+        "win_rate": 0.356,
+        "avg_win_pct": 9.7,
+        "avg_loss_pct": -5.04,
+        "ev_pct": 0.2,
+        "profit_factor": 1.92,
+        "max_consecutive_loss": 10,
+        "mae_50th": 4.75,
+        "mae_75th": 6.33,
+        "kelly_pct": 1.0,
+        "expected_contribution": 0.207
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 13,
+        "loss_trades": 19,
+        "win_rate": 0.406,
+        "avg_win_pct": 10.75,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.21,
+        "profit_factor": 1.54,
+        "max_consecutive_loss": 8,
+        "mae_50th": 5.85,
+        "mae_75th": 8.06,
+        "kelly_pct": 1.0,
+        "expected_contribution": 0.205
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 13,
+        "loss_trades": 19,
+        "win_rate": 0.406,
+        "avg_win_pct": 10.75,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.21,
+        "profit_factor": 1.54,
+        "max_consecutive_loss": 8,
+        "mae_50th": 5.85,
+        "mae_75th": 8.06,
+        "kelly_pct": 1.0,
+        "expected_contribution": 0.205
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 13,
+        "loss_trades": 19,
+        "win_rate": 0.406,
+        "avg_win_pct": 10.75,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.21,
+        "profit_factor": 1.54,
+        "max_consecutive_loss": 8,
+        "mae_50th": 5.85,
+        "mae_75th": 8.06,
+        "kelly_pct": 1.0,
+        "expected_contribution": 0.205
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 13,
+        "loss_trades": 19,
+        "win_rate": 0.406,
+        "avg_win_pct": 10.75,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.21,
+        "profit_factor": 1.54,
+        "max_consecutive_loss": 8,
+        "mae_50th": 5.85,
+        "mae_75th": 8.06,
+        "kelly_pct": 1.0,
+        "expected_contribution": 0.205
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 36,
+        "win_trades": 19,
+        "loss_trades": 17,
+        "win_rate": 0.528,
+        "avg_win_pct": 8.92,
+        "avg_loss_pct": -9.77,
+        "ev_pct": 0.09,
+        "profit_factor": 0.91,
+        "max_consecutive_loss": 7,
+        "mae_50th": 6.6,
+        "mae_75th": 9.73,
+        "kelly_pct": 0.5,
+        "expected_contribution": 0.048
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 6,
+        "loss_trades": 26,
+        "win_rate": 0.188,
+        "avg_win_pct": 22.25,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.11,
+        "profit_factor": 4.45,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.71,
+        "mae_75th": 6.33,
+        "kelly_pct": 0.2,
+        "expected_contribution": 0.027
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 6,
+        "loss_trades": 26,
+        "win_rate": 0.188,
+        "avg_win_pct": 22.25,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.11,
+        "profit_factor": 4.45,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.71,
+        "mae_75th": 6.33,
+        "kelly_pct": 0.2,
+        "expected_contribution": 0.027
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 6,
+        "loss_trades": 26,
+        "win_rate": 0.188,
+        "avg_win_pct": 22.25,
+        "avg_loss_pct": -5.0,
+        "ev_pct": 0.11,
+        "profit_factor": 4.45,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.71,
+        "mae_75th": 6.33,
+        "kelly_pct": 0.2,
+        "expected_contribution": 0.027
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 42,
+        "win_trades": 18,
+        "loss_trades": 24,
+        "win_rate": 0.429,
+        "avg_win_pct": 9.42,
+        "avg_loss_pct": -6.97,
+        "ev_pct": 0.06,
+        "profit_factor": 1.35,
+        "max_consecutive_loss": 5,
+        "mae_50th": 5.53,
+        "mae_75th": 6.74,
+        "kelly_pct": 0.3,
+        "expected_contribution": 0.016
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 34,
+        "win_trades": 13,
+        "loss_trades": 21,
+        "win_rate": 0.382,
+        "avg_win_pct": 16.29,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 0.05,
+        "profit_factor": 1.63,
+        "max_consecutive_loss": 7,
+        "mae_50th": 8.84,
+        "mae_75th": 10.45,
+        "kelly_pct": 0.2,
+        "expected_contribution": 0.009
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 34,
+        "win_trades": 13,
+        "loss_trades": 21,
+        "win_rate": 0.382,
+        "avg_win_pct": 16.29,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 0.05,
+        "profit_factor": 1.63,
+        "max_consecutive_loss": 7,
+        "mae_50th": 8.84,
+        "mae_75th": 10.45,
+        "kelly_pct": 0.2,
+        "expected_contribution": 0.009
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 34,
+        "win_trades": 13,
+        "loss_trades": 21,
+        "win_rate": 0.382,
+        "avg_win_pct": 16.29,
+        "avg_loss_pct": -10.0,
+        "ev_pct": 0.05,
+        "profit_factor": 1.63,
+        "max_consecutive_loss": 7,
+        "mae_50th": 8.84,
+        "mae_75th": 10.45,
+        "kelly_pct": 0.2,
+        "expected_contribution": 0.009
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 42,
+        "win_trades": 18,
+        "loss_trades": 24,
+        "win_rate": 0.429,
+        "avg_win_pct": 9.42,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.04,
+        "profit_factor": 1.35,
+        "max_consecutive_loss": 5,
+        "mae_50th": 5.58,
+        "mae_75th": 6.74,
+        "kelly_pct": 0.2,
+        "expected_contribution": 0.007
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 42,
+        "win_trades": 18,
+        "loss_trades": 24,
+        "win_rate": 0.429,
+        "avg_win_pct": 9.42,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.04,
+        "profit_factor": 1.35,
+        "max_consecutive_loss": 5,
+        "mae_50th": 5.58,
+        "mae_75th": 6.74,
+        "kelly_pct": 0.2,
+        "expected_contribution": 0.007
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 42,
+        "win_trades": 18,
+        "loss_trades": 24,
+        "win_rate": 0.429,
+        "avg_win_pct": 9.42,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.04,
+        "profit_factor": 1.35,
+        "max_consecutive_loss": 5,
+        "mae_50th": 5.58,
+        "mae_75th": 6.74,
+        "kelly_pct": 0.2,
+        "expected_contribution": 0.007
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 40,
+        "win_trades": 13,
+        "loss_trades": 27,
+        "win_rate": 0.325,
+        "avg_win_pct": 14.67,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.04,
+        "profit_factor": 2.1,
+        "max_consecutive_loss": 5,
+        "mae_50th": 6.32,
+        "mae_75th": 7.11,
+        "kelly_pct": 0.1,
+        "expected_contribution": 0.006
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 40,
+        "win_trades": 13,
+        "loss_trades": 27,
+        "win_rate": 0.325,
+        "avg_win_pct": 14.67,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.04,
+        "profit_factor": 2.1,
+        "max_consecutive_loss": 5,
+        "mae_50th": 6.32,
+        "mae_75th": 7.11,
+        "kelly_pct": 0.1,
+        "expected_contribution": 0.006
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 40,
+        "win_trades": 13,
+        "loss_trades": 27,
+        "win_rate": 0.325,
+        "avg_win_pct": 14.67,
+        "avg_loss_pct": -7.0,
+        "ev_pct": 0.04,
+        "profit_factor": 2.1,
+        "max_consecutive_loss": 5,
+        "mae_50th": 6.32,
+        "mae_75th": 7.11,
+        "kelly_pct": 0.1,
+        "expected_contribution": 0.006
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 13.06,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -1.13,
+        "profit_factor": 2.61,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 5,
+        "loss_trades": 9,
+        "win_rate": 0.357,
+        "avg_win_pct": 10.81,
+        "avg_loss_pct": -7.0,
+        "ev_pct": -0.64,
+        "profit_factor": 1.54,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.12,
+        "mae_75th": 7.37,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 13.06,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -1.13,
+        "profit_factor": 2.61,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 5,
+        "loss_trades": 9,
+        "win_rate": 0.357,
+        "avg_win_pct": 10.81,
+        "avg_loss_pct": -7.0,
+        "ev_pct": -0.64,
+        "profit_factor": 1.54,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.12,
+        "mae_75th": 7.37,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 13.06,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -1.13,
+        "profit_factor": 2.61,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 5,
+        "loss_trades": 9,
+        "win_rate": 0.357,
+        "avg_win_pct": 10.81,
+        "avg_loss_pct": -7.0,
+        "ev_pct": -0.64,
+        "profit_factor": 1.54,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.12,
+        "mae_75th": 7.37,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 13.06,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -1.13,
+        "profit_factor": 2.61,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 5,
+        "loss_trades": 9,
+        "win_rate": 0.357,
+        "avg_win_pct": 10.81,
+        "avg_loss_pct": -7.0,
+        "ev_pct": -0.64,
+        "profit_factor": 1.54,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.12,
+        "mae_75th": 7.37,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 15.56,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.59,
+        "profit_factor": 3.11,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 15.56,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.59,
+        "profit_factor": 3.11,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 15.56,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.59,
+        "profit_factor": 3.11,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 15.56,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.59,
+        "profit_factor": 3.11,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 18.27,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.01,
+        "profit_factor": 3.65,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 4,
+        "loss_trades": 10,
+        "win_rate": 0.286,
+        "avg_win_pct": 16.2,
+        "avg_loss_pct": -7.0,
+        "ev_pct": -0.37,
+        "profit_factor": 2.32,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.71,
+        "mae_75th": 8.2,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 18.27,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.01,
+        "profit_factor": 3.65,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 6,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 4,
+        "loss_trades": 10,
+        "win_rate": 0.286,
+        "avg_win_pct": 16.2,
+        "avg_loss_pct": -7.0,
+        "ev_pct": -0.37,
+        "profit_factor": 2.32,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.71,
+        "mae_75th": 8.2,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 18.27,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.01,
+        "profit_factor": 3.65,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 9,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 4,
+        "loss_trades": 10,
+        "win_rate": 0.286,
+        "avg_win_pct": 16.2,
+        "avg_loss_pct": -7.0,
+        "ev_pct": -0.37,
+        "profit_factor": 2.32,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.71,
+        "mae_75th": 8.2,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 3,
+        "loss_trades": 11,
+        "win_rate": 0.214,
+        "avg_win_pct": 18.27,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.01,
+        "profit_factor": 3.65,
+        "max_consecutive_loss": 5,
+        "mae_50th": 4.65,
+        "mae_75th": 7.01,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 30,
+        "target_pct": 20,
+        "hold_months": 12,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 14,
+        "win_trades": 4,
+        "loss_trades": 10,
+        "win_rate": 0.286,
+        "avg_win_pct": 16.2,
+        "avg_loss_pct": -7.0,
+        "ev_pct": -0.37,
+        "profit_factor": 2.32,
+        "max_consecutive_loss": 3,
+        "mae_50th": 6.71,
+        "mae_75th": 8.2,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 28,
+        "win_trades": 12,
+        "loss_trades": 16,
+        "win_rate": 0.429,
+        "avg_win_pct": 9.93,
+        "avg_loss_pct": -10.0,
+        "ev_pct": -1.46,
+        "profit_factor": 0.99,
+        "max_consecutive_loss": 6,
+        "mae_50th": 8.62,
+        "mae_75th": 10.08,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 28,
+        "win_trades": 12,
+        "loss_trades": 16,
+        "win_rate": 0.429,
+        "avg_win_pct": 9.93,
+        "avg_loss_pct": -10.0,
+        "ev_pct": -1.46,
+        "profit_factor": 0.99,
+        "max_consecutive_loss": 6,
+        "mae_50th": 8.62,
+        "mae_75th": 10.08,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 28,
+        "win_trades": 12,
+        "loss_trades": 16,
+        "win_rate": 0.429,
+        "avg_win_pct": 9.93,
+        "avg_loss_pct": -10.0,
+        "ev_pct": -1.46,
+        "profit_factor": 0.99,
+        "max_consecutive_loss": 6,
+        "mae_50th": 8.62,
+        "mae_75th": 10.08,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 28,
+        "win_trades": 12,
+        "loss_trades": 16,
+        "win_rate": 0.429,
+        "avg_win_pct": 9.93,
+        "avg_loss_pct": -10.0,
+        "ev_pct": -1.46,
+        "profit_factor": 0.99,
+        "max_consecutive_loss": 6,
+        "mae_50th": 8.62,
+        "mae_75th": 10.08,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 33,
+        "win_trades": 7,
+        "loss_trades": 26,
+        "win_rate": 0.212,
+        "avg_win_pct": 16.95,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.34,
+        "profit_factor": 3.39,
+        "max_consecutive_loss": 15,
+        "mae_50th": 4.71,
+        "mae_75th": 5.54,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 27,
+        "win_trades": 9,
+        "loss_trades": 18,
+        "win_rate": 0.333,
+        "avg_win_pct": 14.6,
+        "avg_loss_pct": -9.68,
+        "ev_pct": -1.59,
+        "profit_factor": 1.51,
+        "max_consecutive_loss": 13,
+        "mae_50th": 9.23,
+        "mae_75th": 10.09,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 33,
+        "win_trades": 7,
+        "loss_trades": 26,
+        "win_rate": 0.212,
+        "avg_win_pct": 16.95,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.34,
+        "profit_factor": 3.39,
+        "max_consecutive_loss": 15,
+        "mae_50th": 4.71,
+        "mae_75th": 5.54,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 27,
+        "win_trades": 10,
+        "loss_trades": 17,
+        "win_rate": 0.37,
+        "avg_win_pct": 14.63,
+        "avg_loss_pct": -10.0,
+        "ev_pct": -0.88,
+        "profit_factor": 1.46,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.23,
+        "mae_75th": 10.09,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 33,
+        "win_trades": 7,
+        "loss_trades": 26,
+        "win_rate": 0.212,
+        "avg_win_pct": 16.95,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.34,
+        "profit_factor": 3.39,
+        "max_consecutive_loss": 15,
+        "mae_50th": 4.71,
+        "mae_75th": 5.54,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 27,
+        "win_trades": 10,
+        "loss_trades": 17,
+        "win_rate": 0.37,
+        "avg_win_pct": 14.63,
+        "avg_loss_pct": -10.0,
+        "ev_pct": -0.88,
+        "profit_factor": 1.46,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.23,
+        "mae_75th": 10.09,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 33,
+        "win_trades": 7,
+        "loss_trades": 26,
+        "win_rate": 0.212,
+        "avg_win_pct": 16.95,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.34,
+        "profit_factor": 3.39,
+        "max_consecutive_loss": 15,
+        "mae_50th": 4.71,
+        "mae_75th": 5.54,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 27,
+        "win_trades": 10,
+        "loss_trades": 17,
+        "win_rate": 0.37,
+        "avg_win_pct": 14.63,
+        "avg_loss_pct": -10.0,
+        "ev_pct": -0.88,
+        "profit_factor": 1.46,
+        "max_consecutive_loss": 9,
+        "mae_50th": 9.23,
+        "mae_75th": 10.09,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 32,
+        "win_trades": 6,
+        "loss_trades": 26,
+        "win_rate": 0.188,
+        "avg_win_pct": 21.28,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.07,
+        "profit_factor": 4.26,
+        "max_consecutive_loss": 16,
+        "mae_50th": 4.71,
+        "mae_75th": 6.33,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 26,
+        "win_trades": 8,
+        "loss_trades": 18,
+        "win_rate": 0.308,
+        "avg_win_pct": 20.08,
+        "avg_loss_pct": -9.68,
+        "ev_pct": -0.52,
+        "profit_factor": 2.07,
+        "max_consecutive_loss": 13,
+        "mae_50th": 9.57,
+        "mae_75th": 10.1,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 35,
+        "target_pct": 30,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 25,
+        "win_trades": 7,
+        "loss_trades": 18,
+        "win_rate": 0.28,
+        "avg_win_pct": 21.48,
+        "avg_loss_pct": -9.68,
+        "ev_pct": -0.96,
+        "profit_factor": 2.22,
+        "max_consecutive_loss": 13,
+        "mae_50th": 9.58,
+        "mae_75th": 10.11,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 6,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 36,
+        "win_trades": 19,
+        "loss_trades": 17,
+        "win_rate": 0.528,
+        "avg_win_pct": 8.92,
+        "avg_loss_pct": -10.0,
+        "ev_pct": -0.01,
+        "profit_factor": 0.89,
+        "max_consecutive_loss": 7,
+        "mae_50th": 7.51,
+        "mae_75th": 10.23,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 9,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 36,
+        "win_trades": 19,
+        "loss_trades": 17,
+        "win_rate": 0.528,
+        "avg_win_pct": 8.92,
+        "avg_loss_pct": -10.0,
+        "ev_pct": -0.01,
+        "profit_factor": 0.89,
+        "max_consecutive_loss": 7,
+        "mae_50th": 7.51,
+        "mae_75th": 10.23,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 10,
+        "hold_months": 12,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 36,
+        "win_trades": 19,
+        "loss_trades": 17,
+        "win_rate": 0.528,
+        "avg_win_pct": 8.92,
+        "avg_loss_pct": -10.0,
+        "ev_pct": -0.01,
+        "profit_factor": 0.89,
+        "max_consecutive_loss": 7,
+        "mae_50th": 7.51,
+        "mae_75th": 10.23,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 44,
+        "win_trades": 11,
+        "loss_trades": 33,
+        "win_rate": 0.25,
+        "avg_win_pct": 14.85,
+        "avg_loss_pct": -5.04,
+        "ev_pct": -0.06,
+        "profit_factor": 2.95,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.13,
+        "mae_75th": 6.35,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 40,
+        "win_trades": 12,
+        "loss_trades": 28,
+        "win_rate": 0.3,
+        "avg_win_pct": 14.12,
+        "avg_loss_pct": -6.84,
+        "ev_pct": -0.55,
+        "profit_factor": 2.06,
+        "max_consecutive_loss": 6,
+        "mae_50th": 6.3,
+        "mae_75th": 7.11,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 3,
+        "stop_pct": 10
+      },
+      "stats": {
+        "total_trades": 34,
+        "win_trades": 12,
+        "loss_trades": 22,
+        "win_rate": 0.353,
+        "avg_win_pct": 15.88,
+        "avg_loss_pct": -9.52,
+        "ev_pct": -0.56,
+        "profit_factor": 1.67,
+        "max_consecutive_loss": 8,
+        "mae_50th": 8.81,
+        "mae_75th": 10.21,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 6,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 44,
+        "win_trades": 11,
+        "loss_trades": 33,
+        "win_rate": 0.25,
+        "avg_win_pct": 14.85,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.04,
+        "profit_factor": 2.97,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.26,
+        "mae_75th": 6.35,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 9,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 44,
+        "win_trades": 11,
+        "loss_trades": 33,
+        "win_rate": 0.25,
+        "avg_win_pct": 14.85,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.04,
+        "profit_factor": 2.97,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.26,
+        "mae_75th": 6.35,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 15,
+        "hold_months": 12,
+        "stop_pct": 5
+      },
+      "stats": {
+        "total_trades": 44,
+        "win_trades": 11,
+        "loss_trades": 33,
+        "win_rate": 0.25,
+        "avg_win_pct": 14.85,
+        "avg_loss_pct": -5.0,
+        "ev_pct": -0.04,
+        "profit_factor": 2.97,
+        "max_consecutive_loss": 10,
+        "mae_50th": 5.26,
+        "mae_75th": 6.35,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    },
+    {
+      "strategy": "RSI_oversold",
+      "params": {
+        "strategy": "RSI_oversold",
+        "rsi_entry": 40,
+        "target_pct": 20,
+        "hold_months": 3,
+        "stop_pct": 7
+      },
+      "stats": {
+        "total_trades": 39,
+        "win_trades": 10,
+        "loss_trades": 29,
+        "win_rate": 0.256,
+        "avg_win_pct": 19.4,
+        "avg_loss_pct": -6.85,
+        "ev_pct": -0.12,
+        "profit_factor": 2.83,
+        "max_consecutive_loss": 10,
+        "mae_50th": 6.33,
+        "mae_75th": 7.57,
+        "kelly_pct": 0,
+        "expected_contribution": -0.0
+      }
+    }
+  ],
+  "walk_forward": {
+    "status": "completed",
+    "best_params_from_train": {
+      "strategy": "RSI_oversold",
+      "rsi_entry": 40,
+      "target_pct": 25,
+      "hold_months": 6,
+      "stop_pct": 7
+    },
+    "train_ev_pct": 0.76,
+    "test_ev_pct": 1.83,
+    "test_win_rate": 0.273,
+    "test_trades": 11,
+    "ev_diff": 1.07,
+    "is_robust": true,
+    "conclusion": "参数稳健"
+  },
+  "stop_loss_recommendation": {
+    "mae_50th_pct": 3.83,
+    "mae_75th_pct": 7.44,
+    "suggested_stop_pct": 8.9,
+    "explanation": "历史盈利交易中，75%的交易最大回撤不超过 7.4%，建议止损设在 -8.9%（75th百分位+20%缓冲）"
+  }
+}

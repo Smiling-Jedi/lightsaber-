@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光剑 - 腾讯控股详情</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .profit { color: #e74c3c; }
+        .loss { color: #27ae60; }
+        .chart-placeholder {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        .news-item {
+            border-left: 3px solid #3498db;
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        .advice-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">⚔️ 光剑 Lightsaber</a>
+            <a class="btn btn-outline-light btn-sm" href="positions.html">← 返回持仓</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 头部信息 -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h2>腾讯控股 <small class="text-muted">00700.HK</small></h2>
+                <span class="badge bg-primary">港股</span>
+                <span class="badge bg-secondary">科技</span>
+            </div>
+            <div class="col-md-4 text-end">
+                <h2 class="mb-0">HK$400.00</h2>
+                <span class="profit">+HK$10.00 (+2.56%)</span>
+                <div class="text-muted small">今日成交 1.2亿股 | 成交额 480亿</div>
+            </div>
+        </div>
+
+        <!-- 走势图 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">分时</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">日K</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">周K</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">月K</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="chart-placeholder">
+                    📈 K线图占位（集成 ECharts 后显示）
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- 左侧：持仓信息 -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">我的持仓</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td>持仓股数</td>
+                                <td class="text-end"><strong>1500股</strong></td>
+                            </tr>
+                            <tr>
+                                <td>底仓</td>
+                                <td class="text-end">1000股 @ HK$360.00</td>
+                            </tr>
+                            <tr>
+                                <td>波段仓</td>
+                                <td class="text-end">500股 @ HK$380.00</td>
+                            </tr>
+                            <tr>
+                                <td>加权成本</td>
+                                <td class="text-end">HK$350.00</td>
+                            </tr>
+                            <tr>
+                                <td>当前市值</td>
+                                <td class="text-end"><strong>HK$600,000</strong></td>
+                            </tr>
+                            <tr>
+                                <td>盈亏金额</td>
+                                <td class="text-end profit"><strong>+HK$75,000</strong></td>
+                            </tr>
+                            <tr>
+                                <td>盈亏比例</td>
+                                <td class="text-end profit"><strong>+14.29%</strong></td>
+                            </tr>
+                            <tr>
+                                <td>港股仓位</td>
+                                <td class="text-end">38.5%</td>
+                            </tr>
+                            <tr>
+                                <td>总仓位</td>
+                                <td class="text-end">35.2%</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 交易建议 -->
+                <div class="advice-box">
+                    <h5>🎯 交易建议</h5>
+                    <div class="alert alert-warning">
+                        <strong>建议：持有观望</strong>
+                    </div>
+                    <p><strong>理由：</strong></p>
+                    <ul class="small">
+                        <li>技术面：股价突破400港元阻力位，短期趋势向上</li>
+                        <li>仓位：当前35.2%占比合理，不宜过度集中</li>
+                        <li>波段仓：第二批500股已达到目标价区间，可考虑分批卖出</li>
+                    </ul>
+                    <p><strong>操作建议：</strong></p>
+                    <ul class="small">
+                        <li>底仓1000股：继续持有，目标价HK$450</li>
+                        <li>波段仓500股：建议在HK$410-420区间分批卖出</li>
+                    </ul>
+                    <p class="text-muted small mt-3">更新时间：2026-03-19 15:30:25</p>
+                </div>
+            </div>
+
+            <!-- 右侧：新闻 -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">📰 相关动态</h5>
+                        <span class="badge bg-secondary">共 5 条</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- 新闻1 -->
+                        <div class="news-item">
+                            <h6>腾讯Q4财报超预期，游戏业务增长强劲</h6>
+                            <p class="text-muted small mb-1">
+                                腾讯发布2025年Q4财报，营收同比增长12%，净利润增长15%。游戏业务《王者荣耀》《和平精英》表现稳健，海外游戏收入创新高...
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">新浪财经 - 2小时前</small>
+                                <a href="#" class="btn btn-outline-primary btn-sm">阅读原文</a>
+                            </div>
+                        </div>
+
+                        <!-- 新闻2 -->
+                        <div class="news-item">
+                            <h6>腾讯AI大模型加速落地，多业务线接入</h6>
+                            <p class="text-muted small mb-1">
+                                腾讯混元大模型已在微信、QQ、腾讯会议等产品中测试，预计年内全面开放。分析师认为AI将成为腾讯新的增长引擎...
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">东方财富 - 5小时前</small>
+                                <a href="#" class="btn btn-outline-primary btn-sm">阅读原文</a>
+                            </div>
+                        </div>
+
+                        <!-- 新闻3 -->
+                        <div class="news-item">
+                            <h6>南向资金今日净买入腾讯10亿港元</h6>
+                            <p class="text-muted small mb-1">
+                                港交所数据显示，今日南向资金净买入腾讯控股10.2亿港元，连续5日净流入。机构看好腾讯长期价值...
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">财联社 - 6小时前</small>
+                                <a href="#" class="btn btn-outline-primary btn-sm">阅读原文</a>
+                            </div>
+                        </div>
+
+                        <!-- 新闻4 -->
+                        <div class="news-item">
+                            <h6>中金公司：维持腾讯"跑赢行业"评级，目标价HK$450</h6>
+                            <p class="text-muted small mb-1">
+                                中金发布研报，维持腾讯控股"跑赢行业"评级，目标价450港元。研报指出，腾讯游戏业务复苏，广告收入回暖...
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">中金公司 - 1天前</small>
+                                <a href="#" class="btn btn-outline-primary btn-sm">阅读原文</a>
+                            </div>
+                        </div>
+
+                        <!-- 新闻5 -->
+                        <div class="news-item">
+                            <h6>王者荣耀国际版上线东南亚，首周下载破千万</h6>
+                            <p class="text-muted small mb-1">
+                                腾讯王者荣耀国际版《Honor of Kings》正式在东南亚五国上线，首周下载量突破1000万。本地化运营策略初见成效...
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">36氪 - 1天前</small>
+                                <a href="#" class="btn btn-outline-primary btn-sm">阅读原文</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

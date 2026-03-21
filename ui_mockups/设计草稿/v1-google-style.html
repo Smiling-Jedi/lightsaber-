@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>光剑 · 持仓 — v1 Google Style</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "Google Sans", "Helvetica Neue", Arial, sans-serif;
+      background: #f8f9fa;
+      color: #202124;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      background: #fff;
+      border-bottom: 1px solid #e8eaed;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-brand {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1a73e8;
+      letter-spacing: -0.3px;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link {
+      padding: 6px 16px;
+      border-radius: 20px;
+      color: #5f6368;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .nav-link.active {
+      background: #e8f0fe;
+      color: #1a73e8;
+    }
+    .nav-link:hover { background: #f1f3f4; }
+
+    /* ── Page ── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 24px 24px 80px; }
+
+    /* ── Status bar ── */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .status-text { font-size: 12px; color: #80868b; }
+    .status-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #34a853;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    .btn-refresh {
+      padding: 7px 16px;
+      border-radius: 4px;
+      border: 1px solid #dadce0;
+      background: #fff;
+      color: #3c4043;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-refresh:hover { background: #f8f9fa; border-color: #c5c8cb; }
+
+    /* ── Summary row ── */
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      border: 1px solid #e8eaed;
+    }
+    .summary-label {
+      font-size: 12px;
+      color: #80868b;
+      margin-bottom: 6px;
+      font-weight: 500;
+      text-transform: none;
+    }
+    .summary-value {
+      font-size: 22px;
+      font-weight: 400;
+      color: #202124;
+      letter-spacing: -0.5px;
+    }
+    .summary-sub {
+      font-size: 12px;
+      color: #80868b;
+      margin-top: 2px;
+    }
+    .up { color: #ea4335; }
+    .down { color: #34a853; }
+
+    /* 仓位分布 bar */
+    .dist-bar {
+      display: flex;
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 10px;
+      gap: 2px;
+    }
+    .dist-hk { background: #1a73e8; border-radius: 3px 0 0 3px; width: 40%; }
+    .dist-us { background: #9334e6; width: 35%; }
+    .dist-a  { background: #e8710a; border-radius: 0 3px 3px 0; width: 25%; }
+    .dist-labels {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+      font-size: 11px;
+      color: #5f6368;
+    }
+    .dist-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 3px;
+      vertical-align: middle;
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #e8eaed;
+      padding-bottom: 0;
+    }
+    .tab {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #5f6368;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      border-radius: 0;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+    }
+    .tab.active {
+      color: #1a73e8;
+      border-bottom-color: #1a73e8;
+    }
+    .tab:hover { color: #202124; background: #f8f9fa; }
+    .tab-count {
+      font-size: 11px;
+      color: #80868b;
+      margin-left: 4px;
+    }
+
+    /* ── Stock cards ── */
+    .stock-card {
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #e8eaed;
+      margin-bottom: 10px;
+      padding: 16px 20px;
+      transition: box-shadow 0.15s;
+    }
+    .stock-card:hover {
+      box-shadow: 0 1px 6px rgba(32,33,36,0.12);
+      border-color: #c5c8cb;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: 160px 1fr 1fr auto;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* 左栏：名称 */
+    .stock-name { font-size: 15px; font-weight: 500; color: #202124; }
+    .stock-code { font-size: 12px; color: #80868b; margin-top: 2px; }
+    .market-chip {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-right: 4px;
+      letter-spacing: 0.3px;
+    }
+    .chip-hk { background: #e8f0fe; color: #1a73e8; }
+    .chip-us { background: #f3e8fd; color: #7b1ea2; }
+    .chip-a  { background: #fce8d5; color: #b85c00; }
+
+    .stock-meta {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px 12px;
+      font-size: 12px;
+      color: #5f6368;
+    }
+
+    /* 中栏：价格 + 建议 */
+    .price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .price-main { font-size: 20px; font-weight: 400; color: #202124; letter-spacing: -0.3px; }
+    .price-change {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 12px;
+    }
+    .price-change.up { background: #fce8e6; color: #c5221f; }
+    .price-change.down { background: #e6f4ea; color: #1e7e34; }
+    .price-sub { font-size: 12px; color: #80868b; margin-bottom: 10px; }
+
+    .advice-box {
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #3c4043;
+      line-height: 1.6;
+    }
+    .advice-label {
+      font-weight: 600;
+      color: #202124;
+      margin-bottom: 2px;
+    }
+
+    /* 右栏：监控 */
+    .monitor-title { font-size: 12px; font-weight: 600; color: #5f6368; margin-bottom: 8px; }
+    .monitor-list { display: flex; flex-direction: column; gap: 5px; }
+    .monitor-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #3c4043;
+    }
+    .monitor-indicator {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .ind-alert  { background: #f9ab00; }
+    .ind-ok     { background: #34a853; }
+    .ind-normal { background: #9aa0a6; }
+    .news-row {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #80868b;
+      padding-top: 8px;
+      border-top: 1px solid #f1f3f4;
+    }
+    .news-content { color: #3c4043; }
+
+    /* 操作按钮 */
+    .btn-detail {
+      padding: 6px 14px;
+      border-radius: 4px;
+      border: 1px solid #dadce0;
+      background: #fff;
+      color: #1a73e8;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      align-self: start;
+    }
+    .btn-detail:hover { background: #e8f0fe; border-color: #1a73e8; }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: #1a73e8;
+      color: #fff;
+      font-size: 22px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(26,115,232,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .fab:hover { background: #1765cc; box-shadow: 0 4px 12px rgba(26,115,232,0.5); }
+
+    /* ── Version note ── */
+    .version-note {
+      text-align: center;
+      font-size: 11px;
+      color: #bdc1c6;
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a class="nav-brand" href="#">Lightsaber</a>
+  <div class="nav-links">
+    <a class="nav-link active" href="#">持仓</a>
+    <a class="nav-link" href="#">走势</a>
+    <a class="nav-link" href="#">信号</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="status-text">
+      <span class="status-dot"></span>
+      上次更新 2026-03-21 15:30
+    </span>
+    <button class="btn-refresh">刷新数据</button>
+  </div>
+
+  <!-- Summary row -->
+  <div class="summary-row">
+    <div class="summary-card">
+      <div class="summary-label">总资产（人民币）</div>
+      <div class="summary-value">¥1,028,000</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">今日盈亏</div>
+      <div class="summary-value up">+¥12,500</div>
+      <div class="summary-sub up">+1.23%</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">持仓总盈亏</div>
+      <div class="summary-value up">+¥128,000</div>
+      <div class="summary-sub up">+14.2%</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">仓位分布</div>
+      <div class="dist-bar">
+        <div class="dist-hk"></div>
+        <div class="dist-us"></div>
+        <div class="dist-a"></div>
+      </div>
+      <div class="dist-labels">
+        <span><span class="dist-dot" style="background:#1a73e8"></span>港 40%</span>
+        <span><span class="dist-dot" style="background:#9334e6"></span>美 35%</span>
+        <span><span class="dist-dot" style="background:#e8710a"></span>A 25%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active">全部</button>
+    <button class="tab">港股 <span class="tab-count">3</span></button>
+    <button class="tab">美股 <span class="tab-count">2</span></button>
+    <button class="tab">A股 <span class="tab-count">2</span></button>
+  </div>
+
+  <!-- 腾讯 -->
+  <div class="stock-card">
+    <div class="card-grid">
+      <div>
+        <div class="stock-name">腾讯控股</div>
+        <div class="stock-code"><span class="market-chip chip-hk">港股</span>00700</div>
+        <div class="stock-meta">
+          <span>持仓 1500 股</span>
+          <span>成本 HK$350</span>
+          <span>仓位 38.5%</span>
+          <span class="up">盈亏 +14.3%</span>
+        </div>
+      </div>
+      <div>
+        <div class="price-row">
+          <span class="price-main">HK$400.00</span>
+          <span class="price-change up">+2.5%</span>
+        </div>
+        <div class="price-sub">市值 HK$600,000 · 盈亏 +HK$75,000</div>
+        <div class="advice-box">
+          <div class="advice-label">建议：持有观望</div>
+          股价突破 400 港元阻力，短期趋势向上。仓位 35.2% 合理，波段仓第二批已接近目标价。
+        </div>
+      </div>
+      <div>
+        <div class="monitor-title">重点监控</div>
+        <div class="monitor-list">
+          <div class="monitor-item">
+            <span class="monitor-indicator ind-alert"></span>
+            目标价 2：HK$420 已达，建议关注
+          </div>
+          <div class="monitor-item">
+            <span class="monitor-indicator ind-ok"></span>
+            目标价 1：HK$450 未达，继续持有
+          </div>
+          <div class="monitor-item">
+            <span class="monitor-indicator ind-normal"></span>
+            支撑位 HK$380 · 阻力位 HK$410（已突破）
+          </div>
+        </div>
+        <div class="news-row">
+          <span class="news-content">Q4 财报超预期，南向资金连续 5 日净流入</span>
+        </div>
+      </div>
+      <button class="btn-detail">详情</button>
+    </div>
+  </div>
+
+  <!-- 特斯拉 -->
+  <div class="stock-card">
+    <div class="card-grid">
+      <div>
+        <div class="stock-name">特斯拉</div>
+        <div class="stock-code"><span class="market-chip chip-us">美股</span>TSLA</div>
+        <div class="stock-meta">
+          <span>持仓 200 股</span>
+          <span>成本 $230</span>
+          <span>仓位 24.5%</span>
+          <span class="up">盈亏 +8.7%</span>
+        </div>
+      </div>
+      <div>
+        <div class="price-row">
+          <span class="price-main">$250.00</span>
+          <span class="price-change down">−1.2%</span>
+        </div>
+        <div class="price-sub">市值 $50,000 · 盈亏 +$4,000</div>
+        <div class="advice-box">
+          <div class="advice-label">建议：观望</div>
+          短期回调，等待企稳信号。若跌至 $240 可考虑加仓波段仓。
+        </div>
+      </div>
+      <div>
+        <div class="monitor-title">重点监控</div>
+        <div class="monitor-list">
+          <div class="monitor-item">
+            <span class="monitor-indicator ind-alert"></span>
+            止损位 $220 未触发，持续关注
+          </div>
+          <div class="monitor-item">
+            <span class="monitor-indicator ind-normal"></span>
+            目标价 $280 · 加仓观察点 $240
+          </div>
+          <div class="monitor-item">
+            <span class="monitor-indicator ind-ok"></span>
+            支撑位 $245 有效
+          </div>
+        </div>
+        <div class="news-row">
+          <span class="news-content">FSD 更新即将发布，Model Y 改款传闻</span>
+        </div>
+      </div>
+      <button class="btn-detail">详情</button>
+    </div>
+  </div>
+
+  <!-- 茅台 -->
+  <div class="stock-card">
+    <div class="card-grid">
+      <div>
+        <div class="stock-name">贵州茅台</div>
+        <div class="stock-code"><span class="market-chip chip-a">A股</span>600519</div>
+        <div class="stock-meta">
+          <span>持仓 100 股</span>
+          <span>成本 ¥1,650</span>
+          <span>仓位 17.0%</span>
+          <span class="up">盈亏 +6.1%</span>
+        </div>
+      </div>
+      <div>
+        <div class="price-row">
+          <span class="price-main">¥1,750.00</span>
+          <span class="price-change up">+0.8%</span>
+        </div>
+        <div class="price-sub">市值 ¥175,000 · 盈亏 +¥10,000</div>
+        <div class="advice-box">
+          <div class="advice-label">建议：长期持有</div>
+          纯底仓配置，无波段操作。基本面稳健，适合长期持有不动。
+        </div>
+      </div>
+      <div>
+        <div class="monitor-title">重点监控</div>
+        <div class="monitor-list">
+          <div class="monitor-item">
+            <span class="monitor-indicator ind-ok"></span>
+            底仓配置，无目标价
+          </div>
+          <div class="monitor-item">
+            <span class="monitor-indicator ind-normal"></span>
+            股息率 1.5% · 估值合理区间
+          </div>
+        </div>
+        <div class="news-row">
+          <span class="news-content">春节销售数据良好，经销商库存健康</span>
+        </div>
+      </div>
+      <button class="btn-detail">详情</button>
+    </div>
+  </div>
+
+  <div class="version-note">v1 · Google Style · 设计草稿 · 2026-03-21</div>
+</div>
+
+<!-- FAB -->
+<button class="fab">+</button>
+
+</body>
+</html>

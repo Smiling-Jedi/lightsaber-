@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光剑 - 新增持仓</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .trade-batch {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">⚔️ 光剑 Lightsaber</a>
+            <a class="btn btn-outline-light btn-sm" href="positions.html">← 返回持仓</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h3 class="mb-4">新增持仓</h3>
+
+        <form>
+            <!-- 股票基本信息 -->
+            <div class="form-section">
+                <h5 class="mb-3">股票信息</h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">市场</label>
+                        <select class="form-select" id="market">
+                            <option value="">选择市场</option>
+                            <option value="HK">港股</option>
+                            <option value="US">美股</option>
+                            <option value="A">A股</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">股票代码</label>
+                        <input type="text" class="form-control" id="symbol" placeholder="如: 00700">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">股票名称</label>
+                        <input type="text" class="form-control" id="name" placeholder="如: 腾讯控股">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">行业板块</label>
+                        <select class="form-select" id="sector">
+                            <option value="">选择板块</option>
+                            <option value="科技">科技</option>
+                            <option value="消费">消费</option>
+                            <option value="医药">医药</option>
+                            <option value="金融">金融</option>
+                            <option value="能源">能源</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底仓录入 -->
+            <div class="form-section">
+                <h5 class="mb-3">底仓（长期持有）</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">股数</label>
+                        <input type="number" class="form-control" id="baseShares" placeholder="如: 1000">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">买入成本（每股）</label>
+                        <input type="number" class="form-control" id="baseCost" placeholder="如: 360" step="0.01">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">买入日期</label>
+                        <input type="date" class="form-control" id="baseDate">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 波段仓录入 -->
+            <div class="form-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">波段仓（灵活操作）</h5>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addBatch()">+ 添加批次</button>
+                </div>
+
+                <div id="batchContainer">
+                    <!-- 默认一个波段批次 -->
+                    <div class="trade-batch" id="batch1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>批次 1</strong>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeBatch('batch1')">删除</button>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">股数</label>
+                                <input type="number" class="form-control" placeholder="如: 500">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">买入成本（每股）</label>
+                                <input type="number" class="form-control" placeholder="如: 380" step="0.01">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">目标卖出价</label>
+                                <input type="number" class="form-control" placeholder="如: 450" step="0.01">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">买入日期</label>
+                                <input type="date" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 汇总信息 -->
+            <div class="form-section">
+                <h5 class="mb-3">汇总</h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">总股数</label>
+                        <input type="number" class="form-control" readonly value="1500">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">加权成本</label>
+                        <input type="text" class="form-control" readonly value="366.67">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">总投入成本</label>
+                        <input type="text" class="form-control" readonly value="550,000">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">备注</label>
+                        <input type="text" class="form-control" placeholder="可选">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 按钮 -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="positions.html" class="btn btn-outline-secondary">取消</a>
+                <button type="submit" class="btn btn-primary">保存持仓</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let batchCount = 1;
+
+        function addBatch() {
+            batchCount++;
+            const container = document.getElementById('batchContainer');
+            const batchId = 'batch' + batchCount;
+
+            const html = `
+                <div class="trade-batch" id="${batchId}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>批次 ${batchCount}</strong>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeBatch('${batchId}')">删除</button>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">股数</label>
+                            <input type="number" class="form-control" placeholder="如: 500">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">买入成本（每股）</label>
+                            <input type="number" class="form-control" placeholder="如: 380" step="0.01">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">目标卖出价</label>
+                            <input type="number" class="form-control" placeholder="如: 450" step="0.01">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">买入日期</label>
+                            <input type="date" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function removeBatch(batchId) {
+            const batch = document.getElementById(batchId);
+            if (batch) {
+                batch.remove();
+            }
+        }
+    </script>
+</body>
+</html>
