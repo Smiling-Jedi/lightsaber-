@@ -22,9 +22,8 @@ def _build_prompt(sig: dict) -> str:
     confidence = sig.get("confidence", "MEDIUM")
     market_env = sig.get("market_env", "NEUTRAL")
     market_note = sig.get("market_env_note", "")
-    bt = sig.get("backtest_ref") or {}
-    stop = bt.get("stop_loss_pct") or sig.get("stop_loss_pct")
-    target = bt.get("target_pct_1") or sig.get("target_pct_1")
+    stop = sig.get("stop_loss_pct")
+    target = sig.get("target_pct_1")
 
     # 策略标签
     strategy_map = {

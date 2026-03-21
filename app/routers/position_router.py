@@ -6,12 +6,15 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 import logging
+from datetime import datetime
 
 from app.core.database import get_db
 from app.services.position_service import PositionService
 from app.services.price_service import PriceService
 from app.services.news_service import NewsService
 from app.services.futu_sync_service import FutuSyncService
+from app.services.demo_service import is_demo_mode
+from app.fixtures.demo_data import get_demo_portfolio
 from app.models.cash import CashBalance
 
 logger = logging.getLogger(__name__)
@@ -23,30 +26,32 @@ templates = Jinja2Templates(directory="app/templates")
 @router.get("/")
 def positions_list(request: Request, db: Session = Depends(get_db)):
     """持仓列表页"""
-    # 自动从富途同步最新持仓
-    try:
-        sync_result = FutuSyncService(db).sync()
-        logger.info(f"富途持仓自动同步: {sync_result}")
-    except Exception as e:
-        logger.warning(f"富途持仓同步失败（页面继续加载）: {e}")
+    demo = is_demo_mode(request)
 
-    position_service = PositionService(db)
-    price_service = PriceService(db)
+    if demo:
+        portfolio = get_demo_portfolio()
+        last_update = datetime(2026, 3, 21, 15, 54, 0)
+        cash_balances = {}
+    else:
+        # 自动从富途同步最新持仓
+        try:
+            sync_result = FutuSyncService(db).sync()
+            logger.info(f"富途持仓自动同步: {sync_result}")
+        except Exception as e:
+            logger.warning(f"富途持仓同步失败（页面继续加载）: {e}")
 
-    # 获取组合汇总
-    portfolio = position_service.get_portfolio_summary()
-
-    # 获取最后更新时间
-    last_update = price_service.get_last_update_time()
-
-    # 获取现金余额
-    cash_balances = {cb.market: cb for cb in db.query(CashBalance).all()}
+        position_service = PositionService(db)
+        price_service = PriceService(db)
+        portfolio = position_service.get_portfolio_summary()
+        last_update = price_service.get_last_update_time()
+        cash_balances = {cb.market: cb for cb in db.query(CashBalance).all()}
 
     return templates.TemplateResponse("positions.html", {
         "request": request,
         "portfolio": portfolio,
         "last_update": last_update,
         "cash_balances": cash_balances,
+        "is_demo": demo,
     })
 
 

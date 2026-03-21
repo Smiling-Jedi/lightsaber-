@@ -2,11 +2,13 @@
 API 接口路由
 用于 AJAX 请求和数据更新
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 from typing import Dict, Optional
 
 from app.core.database import get_db
+from app.services.demo_service import is_demo_mode, verify_password, COOKIE_NAME
+from app.fixtures.demo_data import get_demo_portfolio, get_demo_signals
 from app.services.position_service import PositionService
 from app.services.price_service import PriceService
 from app.services.news_service import NewsService
@@ -16,6 +18,26 @@ from app.services.signal_log_service import SignalLogService
 from app.services.futu_sync_service import FutuSyncService
 
 router = APIRouter()
+
+
+# ── 演示模式切换 ──────────────────────────────────────────────
+
+@router.post("/demo/switch")
+def demo_switch(request: Request, response: Response, body: dict) -> Dict:
+    """
+    切换演示/真实模式
+    body: {mode: "demo"|"real", password: "..."}
+    """
+    mode = body.get("mode", "")
+    if mode == "demo":
+        response.set_cookie(COOKIE_NAME, "demo", max_age=60 * 60 * 24 * 365, httponly=True, samesite="lax")
+        return {"ok": True, "mode": "demo"}
+    elif mode == "real":
+        if not verify_password(body.get("password", "")):
+            return {"ok": False, "error": "密码错误"}
+        response.delete_cookie(COOKIE_NAME)
+        return {"ok": True, "mode": "real"}
+    return {"ok": False, "error": "invalid mode"}
 
 
 @router.post("/futu/sync")
@@ -57,10 +79,12 @@ def update_news(db: Session = Depends(get_db)) -> Dict:
 
 
 @router.get("/portfolio/summary")
-def get_portfolio_summary(db: Session = Depends(get_db)) -> Dict:
+def get_portfolio_summary(request: Request, db: Session = Depends(get_db)) -> Dict:
     """
     获取投资组合汇总
     """
+    if is_demo_mode(request):
+        return get_demo_portfolio()
     position_service = PositionService(db)
     return position_service.get_portfolio_summary()
 
@@ -102,10 +126,12 @@ def check_position_risk(symbol: str, db: Session = Depends(get_db)) -> Dict:
 
 
 @router.get("/signals/portfolio")
-def get_portfolio_signals(db: Session = Depends(get_db)) -> Dict:
+def get_portfolio_signals(request: Request, db: Session = Depends(get_db)) -> Dict:
     """
     对所有持仓股生成趋势信号（分类指标体系）
     """
+    if is_demo_mode(request):
+        return get_demo_signals()
     signal_service = SignalService(db)
     results = signal_service.generate_portfolio_signals()
     return {
