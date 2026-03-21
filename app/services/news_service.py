@@ -121,15 +121,22 @@ class NewsService:
         )
         return news
 
-    def get_top_news(self, symbol: str, limit: int = 3) -> List[News]:
-        """返回重要度为 HIGH/MEDIUM 的 TOP N 条新闻，按发布时间倒序"""
+    def get_top_news(self, symbol: str, limit: int = 5) -> List[News]:
+        """返回3天内的新闻，按重要度+时间倒序，最多 limit 条"""
+        from sqlalchemy import case
+        cutoff = datetime.now() - timedelta(days=3)
+        importance_order = case(
+            {"HIGH": 0, "MEDIUM": 1, "LOW": 2},
+            value=News.importance,
+            else_=3,
+        )
         return (
             self.db.query(News)
             .filter(
                 News.stock_symbol == symbol,
-                News.importance.in_(["HIGH", "MEDIUM"]),
+                News.published_at >= cutoff,
             )
-            .order_by(News.published_at.desc())
+            .order_by(importance_order, News.published_at.desc())
             .limit(limit)
             .all()
         )

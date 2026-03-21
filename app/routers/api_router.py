@@ -245,7 +245,7 @@ def get_stock_news(symbol: str, request: Request, db: Session = Depends(get_db))
         return {"symbol": symbol, "news": []}
     symbol = symbol.replace("_", ":") if ":" not in symbol else symbol
     news_service = NewsService(db)
-    news = news_service.get_top_news(symbol, limit=3)
+    news = news_service.get_top_news(symbol, limit=5)
     return {"symbol": symbol, "news": [news_service.to_dict(n) for n in news]}
 
 
