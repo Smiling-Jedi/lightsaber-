@@ -4,6 +4,16 @@
 
 ---
 
+## v1.2.1 · 2026-03-22 · `b1c1c3f`
+
+**Bug 修复（深度检查）**
+- Bug#002 `news_service.py`: `case()` 改为 SQLAlchemy 2.0 tuple 形式，修复 `get_top_news` 运行时报错
+- Bug#003 `futu_sync_service.py`: 富途同步跳过负成本 `avg_cost` 覆盖，保护建滔/RKLB 手动写入的负值
+- Bug#004 `api_router.py`: compare 接口负成本持仓 `pnl_pct` 改用市值为分母，与 `calculate_profit_pct` 一致
+- Bug#005 `position_service.py`: 负成本持仓 `_generate_advice` 直接返回 HOLD，避免 profit_pct 虚高触发 SELL 建议
+
+---
+
 ## v1.2.0 · 2026-03-22 · `8d8784d`
 
 **模拟交易 vs 实盘对比模块**
