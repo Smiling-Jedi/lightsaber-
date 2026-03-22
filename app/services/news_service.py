@@ -115,7 +115,7 @@ class NewsService:
         news = (
             self.db.query(News)
             .filter(News.stock_symbol == symbol)
-            .order_by(News.published_at.desc())
+            .order_by(News.fetched_at.desc())
             .limit(limit)
             .all()
         )
@@ -126,8 +126,9 @@ class NewsService:
         from sqlalchemy import case
         cutoff = datetime.now() - timedelta(days=3)
         importance_order = case(
-            {"HIGH": 0, "MEDIUM": 1, "LOW": 2},
-            value=News.importance,
+            (News.importance == "HIGH", 0),
+            (News.importance == "MEDIUM", 1),
+            (News.importance == "LOW", 2),
             else_=3,
         )
         return (

@@ -206,6 +206,8 @@ def get_pending_signals(db: Session = Depends(get_db)) -> Dict:
 @router.post("/signal-logs/{log_id}/enter")
 def mark_entered(log_id: int, entered_price: float, db: Session = Depends(get_db)) -> Dict:
     """标记已按信号入场"""
+    if entered_price <= 0:
+        raise HTTPException(status_code=422, detail="入场价必须为正数")
     log_svc = SignalLogService(db)
     log = log_svc.mark_entered(log_id, entered_price)
     if not log:
@@ -220,7 +222,10 @@ def mark_exit(
 ) -> Dict:
     """记录出场结果（status: HIT_TARGET / HIT_STOP / EXPIRED / CANCELLED / SKIPPED）"""
     log_svc = SignalLogService(db)
-    log = log_svc.mark_exit(log_id, exit_price, status, note)
+    try:
+        log = log_svc.mark_exit(log_id, exit_price, status, note)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     if not log:
         raise HTTPException(status_code=404, detail="信号记录不存在")
     return log.to_dict()
@@ -368,7 +373,13 @@ def get_positions_compare(symbol: str, request: Request, db: Session = Depends(g
         invested = position.total_shares * float(position.avg_cost or 0)
         market_val = position.total_shares * current_price
         pnl_amount = market_val - invested
-        pnl_pct = (pnl_amount / invested * 100) if invested > 0 else 0
+        # 负成本（成本已回收）：以市值为基数计算超额收益率，与 calculate_profit_pct 保持一致
+        if invested > 0:
+            pnl_pct = pnl_amount / invested * 100
+        elif market_val > 0:
+            pnl_pct = pnl_amount / market_val * 100
+        else:
+            pnl_pct = 0
         real = {
             "shares":       position.total_shares,
             "avg_cost":     float(position.avg_cost) if position.avg_cost else None,

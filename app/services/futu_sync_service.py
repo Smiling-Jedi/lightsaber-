@@ -11,6 +11,7 @@
 需要 OpenD 运行在 127.0.0.1:11111
 """
 import logging
+import socket
 from datetime import datetime
 from decimal import Decimal
 from typing import Dict, List, Tuple
@@ -57,12 +58,6 @@ class FutuSyncService:
 
         synced, created, errors = 0, 0, []
 
-        # 从账户数据推导汇率并更新默认值
-        try:
-            self._derive_and_cache_rates(market_funds)
-        except Exception as e:
-            logger.warning(f"汇率推导失败: {e}")
-
         # 同步现金余额到 CashBalance 表
         try:
             self._sync_cash_balances(market_funds)
@@ -107,6 +102,13 @@ class FutuSyncService:
         返回 (positions, market_funds)
         market_funds: {"HK": {"total_assets": ..., "cash": ..., "currency": "HKD"}, "US": {...}}
         """
+        # 快速探测 OpenD 是否在线，避免 SDK 无限重连阻塞
+        try:
+            with socket.create_connection(('127.0.0.1', 11111), timeout=1):
+                pass
+        except OSError:
+            raise ConnectionError("富途 OpenD 未运行（127.0.0.1:11111 不可达）")
+
         from futu import OpenSecTradeContext, TrdEnv, TrdMarket, SecurityFirm, RET_OK
 
         positions = []
@@ -164,54 +166,10 @@ class FutuSyncService:
                                 }
                     finally:
                         ctx.close()
-                except Exception:
-                    pass  # 某个券商/市场不可用时跳过
+                except Exception as e:
+                    logger.warning(f"富途连接失败 {firm}/{market_key}: {e}")
 
         return positions, market_funds
-
-    def _derive_and_cache_rates(self, market_funds: Dict[str, Dict]):
-        """
-        从富途账户数据推导 USD/HKD 汇率，进而得到 HKD/CNY 和 USD/CNY。
-        富途 accinfo 中：cash (HKD总现金) ≈ us_cash (USD) × USDHKD
-        推导出的汇率注入到 ExchangeRateSource 的当日缓存，避免请求外部接口。
-        """
-        from app.data_sources.exchange_rate_source import ExchangeRateSource
-        from datetime import datetime
-
-        hk_funds = market_funds.get("HK", {})
-        us_cash_usd = hk_funds.get("us_cash", 0)
-        cash_hkd = hk_funds.get("cash", 0)  # cash = us_cash 的港元等价（含汇率换算）
-
-        if us_cash_usd and us_cash_usd > 0 and cash_hkd and cash_hkd > 0:
-            usdhkd = cash_hkd / us_cash_usd  # 富途实际使用的 USD/HKD 汇率
-            # 需要 USD/CNY 来得到 HKD/CNY，先从 Frankfurter 获取一次
-            try:
-                import requests
-                resp = requests.get(
-                    "https://api.frankfurter.app/latest",
-                    params={"from": "CNY", "to": "USD"},
-                    timeout=5,
-                )
-                resp.raise_for_status()
-                usd_per_cny = resp.json()["rates"]["USD"]
-                usdcny = Decimal(str(round(1 / usd_per_cny, 5)))
-                hkdcny = Decimal(str(round(float(usdcny) / usdhkd, 5)))
-
-                # 注入缓存
-                er = ExchangeRateSource()
-                er._cache = {"USD": usdcny, "HKD": hkdcny}
-                er._cache_date = datetime.now().date()
-                # 同时更新模块级默认值，让其他实例也受益
-                from app.data_sources import exchange_rate_source as er_module
-                er_module.DEFAULT_RATES["USD"] = usdcny
-                er_module.DEFAULT_RATES["HKD"] = hkdcny
-
-                logger.info(
-                    f"富途推导汇率: USD/HKD={usdhkd:.4f}, "
-                    f"USD/CNY={usdcny}, HKD/CNY={hkdcny}"
-                )
-            except Exception as e:
-                logger.warning(f"汇率推导（Frankfurter）失败: {e}")
 
     def _sync_cash_balances(self, market_funds: Dict[str, Dict]):
         """
@@ -322,7 +280,7 @@ class FutuSyncService:
         # ── Position ───────────────────────────────────────
         position = self.db.query(Position).filter_by(stock_symbol=symbol).first()
         total_shares = pos_data["qty"]
-        avg_cost     = Decimal(str(round(abs(pos_data["cost_price"]), 4)))
+        avg_cost     = Decimal(str(round(pos_data["cost_price"], 4)))
         is_new = False
 
         if not position:
@@ -338,7 +296,9 @@ class FutuSyncService:
             is_new = True
         else:
             position.total_shares      = total_shares
-            position.avg_cost          = avg_cost
+            # 负成本（历史卖出已回收成本）不被富途同步覆盖，保留手动设置值
+            if position.avg_cost is None or position.avg_cost >= 0:
+                position.avg_cost = avg_cost
             position.market_total_fund = Decimal(str(total_assets))
             # base_shares 不覆盖，保留用户手动设置的底仓数
 

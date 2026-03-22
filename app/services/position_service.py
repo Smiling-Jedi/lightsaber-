@@ -166,7 +166,6 @@ class PositionService:
         price: Decimal,
         trading_cost: Decimal = Decimal("0"),
         target_sell_price: Optional[Decimal] = None,
-        notes: str = "",
     ) -> Trade:
         """
         添加交易记录
@@ -184,7 +183,6 @@ class PositionService:
             target_sell_price=target_sell_price,
             remaining_shares=shares if trade_type == "BUY" else 0,
             is_swing=target_sell_price is not None,
-            notes=notes,
         )
         self.db.add(trade)
 
@@ -192,6 +190,8 @@ class PositionService:
         if trade_type == "BUY":
             position.total_shares += shares
         else:  # SELL
+            if shares > position.total_shares:
+                raise ValueError(f"卖出股数({shares})超过持仓({position.total_shares})")
             position.total_shares -= shares
 
         position.updated_at = datetime.now()
@@ -233,6 +233,8 @@ class PositionService:
             "latest_news_url": None,
             "latest_news_source": None,
             "today_profit_amount": 0.0,
+            "swing_plan": None,
+            "swing_alert": None,
         }
 
         if current_price:
@@ -248,6 +250,11 @@ class PositionService:
                 result["today_profit_amount"] = float(
                     (current_price - stock.open_price) * position.total_shares
                 )
+
+            # 波段退出计划 + 价格区间提醒
+            result["swing_plan"], result["swing_alert"] = self._parse_swing_plan(
+                position, float(current_price)
+            )
 
             # 生成交易建议
             result["advice"] = self._generate_advice(position, current_price, result["profit_pct"])
@@ -276,7 +283,11 @@ class PositionService:
         avg_cost = float(position.avg_cost) if position.avg_cost else 0
         weight = position.calculate_position_weight(current_price)
 
-        if profit_pct >= 15:
+        # 负成本持仓（历史卖出已回收全部成本），profit_pct 无参考意义，直接持有
+        if avg_cost < 0:
+            action = "HOLD"
+            reason = "负成本持仓（成本已完全回收），继续持有即可"
+        elif profit_pct >= 15:
             action = "SELL"
             reason = f"盈利可观({profit_pct:.1f}%)，考虑减仓锁定利润"
         elif profit_pct >= 8:
@@ -371,6 +382,9 @@ class PositionService:
 
             market_summary[market]["total_market_value"] += market_value
             market_summary[market]["total_cost"] += cost
+            if cost > 0:
+                market_summary[market].setdefault("positive_cost", Decimal("0"))
+                market_summary[market]["positive_cost"] += cost
             total_cost += cost
 
         # 注入现金余额
@@ -480,7 +494,12 @@ class PositionService:
             total_cost_rmb += cost * rate
 
         total_profit = total_profit_rmb
-        total_profit_pct = float(total_profit_rmb / total_cost_rmb * 100) if total_cost_rmb > 0 else 0
+        # 负成本仓位（成本已回收）不计入分母，避免总盈亏%虚高
+        total_positive_cost_rmb = Decimal("0")
+        for market, data in market_summary.items():
+            rate = exchange_rates.get(data["currency"], Decimal("1.0"))
+            total_positive_cost_rmb += data.get("positive_cost", Decimal("0")) * rate
+        total_profit_pct = float(total_profit_rmb / total_positive_cost_rmb * 100) if total_positive_cost_rmb > 0 else 0
 
         # 今日盈亏：(现价-开盘价)×股数，换算为人民币
         today_profit = Decimal("0")
@@ -530,3 +549,32 @@ class PositionService:
             self.db.commit()
             return True
         return False
+
+    def _parse_swing_plan(self, position: Position, current_price: float):
+        """
+        解析波段退出计划，返回 (plan, alert)。
+        alert: 若当前价格在某个目标区间内，返回该目标信息；否则 None。
+        """
+        import json
+        if not position.swing_plan_json:
+            return None, None
+
+        try:
+            plan = json.loads(position.swing_plan_json)
+        except Exception:
+            return None, None
+
+        alert = None
+        for exit_level in plan.get("exits", []):
+            low  = exit_level.get("price_low", 0)
+            high = exit_level.get("price_high", 0)
+            if low <= current_price <= high:
+                alert = {
+                    "price_low":  low,
+                    "price_high": high,
+                    "shares":     exit_level.get("shares"),
+                    "note":       exit_level.get("note", ""),
+                }
+                break
+
+        return plan, alert
