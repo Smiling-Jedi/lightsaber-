@@ -37,6 +37,9 @@ class Stock(Base):
     # 今日开盘价
     open_price = Column(Numeric(15, 4), nullable=True, comment="开盘价")
 
+    # 昨日收盘价（用于计算今日盈亏）
+    prev_close_price = Column(Numeric(15, 4), nullable=True, comment="昨日收盘价")
+
     # 今日最高价
     high_price = Column(Numeric(15, 4), nullable=True, comment="最高价")
 
@@ -63,9 +66,9 @@ class Stock(Base):
 
     @property
     def price_change_pct(self) -> float:
-        """计算涨跌幅百分比"""
-        if self.current_price and self.open_price and self.open_price > 0:
-            return float((self.current_price - self.open_price) / self.open_price * 100)
+        """计算涨跌幅百分比（基于昨日收盘价）"""
+        if self.current_price and self.prev_close_price and self.prev_close_price > 0:
+            return float((self.current_price - self.prev_close_price) / self.prev_close_price * 100)
         return 0.0
 
     @property

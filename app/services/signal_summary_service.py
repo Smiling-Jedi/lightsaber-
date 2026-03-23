@@ -1,7 +1,7 @@
 """
 信号今日小结服务
 
-调用 Claude API 为每只股票生成自然语言解读。
+调用 KimiCode (Moonshot) API 为每只股票生成自然语言解读。
 缓存策略：(symbol, date, action, market_env) 相同时复用，不重复生成。
 """
 import logging
@@ -112,17 +112,26 @@ def generate_summary(sig: dict) -> Optional[str]:
         return _cache[cache_key]
 
     try:
-        import anthropic
-        api_key = os.environ.get("ANTHROPIC_API_KEY") or ""
-        client = anthropic.Anthropic(api_key=api_key)
+        from openai import OpenAI
+
+        api_key = os.environ.get("KIMI_API_KEY") or os.environ.get("MOONSHOT_API_KEY") or ""
+        if not api_key:
+            logger.warning(f"未设置 KIMI_API_KEY 或 MOONSHOT_API_KEY，跳过小结生成")
+            return None
+
+        client = OpenAI(
+            api_key=api_key,
+            base_url="https://api.moonshot.cn/v1",
+        )
 
         prompt = _build_prompt(sig)
-        message = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=150,
+        completion = client.chat.completions.create(
+            model="moonshot-v1-8k",
             messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.3,
         )
-        text = message.content[0].text.strip()
+        text = completion.choices[0].message.content.strip()
         _cache[cache_key] = text
         return text
 

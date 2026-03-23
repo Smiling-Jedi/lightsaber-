@@ -369,10 +369,13 @@
           </div>
           <div class="ls-price-detail">
             市值 {{ pos.currency }} {{ "%.0f"|format(pos.market_value) }}
-            {% if pos.price_change_pct is defined and pos.price_change_pct is not none %}
-            &nbsp;|&nbsp; 今日 {{ "+%.1f"|format(pos.price_change_pct) if pos.price_change_pct >= 0 else "%.1f"|format(pos.price_change_pct) }}%
+            {% if pos.today_profit_amount is defined and pos.today_profit_amount is not none %}
+            &nbsp;|&nbsp; 今日盈亏 {{ "+%.0f"|format(pos.today_profit_amount) if pos.today_profit_amount >= 0 else "%.0f"|format(pos.today_profit_amount) }}
             {% endif %}
-            &nbsp;|&nbsp; 盈亏 {{ "+%.0f"|format(pos.profit) if pos.profit >= 0 else "%.0f"|format(pos.profit) }}
+            {% if pos.price_change_pct is defined and pos.price_change_pct is not none %}
+            <span style="color:#9aa0a6">({{ "+%.1f"|format(pos.price_change_pct) if pos.price_change_pct >= 0 else "%.1f"|format(pos.price_change_pct) }}%)</span>
+            {% endif %}
+            &nbsp;|&nbsp; 累积盈亏 {{ "+%.0f"|format(pos.profit) if pos.profit >= 0 else "%.0f"|format(pos.profit) }}
           </div>
           {% else %}
           <div class="ls-price-main" style="color:#9aa0a6;font-size:17px;margin-bottom:14px">暂无股价数据</div>
@@ -667,38 +670,49 @@ async function loadSignals() {
 async function loadSummary(symbol) {
     const key = symbol.replace(':', '_');
     const el     = document.getElementById('summary-'    + key);
-    const wrapEl = document.getElementById('daily-wrap-' + key);
     if (!el) return;
     try {
         const resp = await fetch(`/api/signals/${key}/summary`);
         if (!resp.ok) throw new Error(resp.status);
         const data = await resp.json();
         if (data.summary) {
+            // API 返回了 LLM 生成的总结，覆盖 signal summary
             el.className = '';
             el.textContent = data.summary;
-        } else {
-            if (wrapEl) wrapEl.style.display = 'none';
         }
+        // 如果 API 返回 null，保持 signal summary 不变（不隐藏）
     } catch (e) {
-        if (wrapEl) wrapEl.style.display = 'none';
+        // 请求失败也保持 signal summary 不变
     }
 }
 
 async function loadSignalsAndSummaries() {
     const signals = await loadSignals();
-    if (IS_DEMO) {
-        // demo模式：直接用 fixture 里的 summary，不调用 LLM
-        for (const sig of signals) {
-            if (!sig.summary) continue;
+
+    // 先用 signal 里的 summary 填充（Demo/Real 模式都适用，作为 fallback）
+    const signalMap = new Map();
+    for (const sig of signals) {
+        if (sig.summary) {
             const key = sig.symbol.replace(':', '_');
             const el = document.getElementById('summary-' + key);
-            if (el) { el.className = ''; el.textContent = sig.summary; }
+            if (el) {
+                el.className = '';
+                el.textContent = sig.summary;
+            }
+            signalMap.set(sig.symbol, sig.summary);
         }
+    }
+
+    if (IS_DEMO) {
+        // demo模式：只用 fixture 里的 summary，不调用 LLM API
         return;
     }
+
+    // Real模式：尝试从 API 获取更详细的总结（会覆盖 signal 里的 summary）
     const keys = Array.from(document.querySelectorAll('[id^="summary-"]'))
         .map(el => el.id.replace('summary-', '').replace('_', ':'));
     for (const symbol of keys) {
+        // 如果 API 返回 null 或失败，保持 signal 里的 summary 作为 fallback
         await loadSummary(symbol);
     }
 }

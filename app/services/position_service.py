@@ -245,10 +245,14 @@ class PositionService:
             result["profit_pct"] = position.calculate_profit_pct(current_price)
             result["position_weight"] = position.calculate_position_weight(current_price)
 
-            # 今日盈亏：(现价 - 开盘价) × 股数
-            if stock and stock.open_price and stock.open_price > 0:
+            # 今日盈亏：(现价 - 昨日收盘价) × 股数
+            if stock and stock.prev_close_price and stock.prev_close_price > 0:
                 result["today_profit_amount"] = float(
-                    (current_price - stock.open_price) * position.total_shares
+                    (current_price - stock.prev_close_price) * position.total_shares
+                )
+                # 今日涨跌幅（基于昨日收盘价）
+                result["price_change_pct"] = float(
+                    (current_price - stock.prev_close_price) / stock.prev_close_price * 100
                 )
 
             # 波段退出计划 + 价格区间提醒
@@ -501,7 +505,7 @@ class PositionService:
             total_positive_cost_rmb += data.get("positive_cost", Decimal("0")) * rate
         total_profit_pct = float(total_profit_rmb / total_positive_cost_rmb * 100) if total_positive_cost_rmb > 0 else 0
 
-        # 今日盈亏：(现价-开盘价)×股数，换算为人民币
+        # 今日盈亏：(现价 - 昨日收盘价) × 股数，换算为人民币
         today_profit = Decimal("0")
         for market, data in market_summary.items():
             rate = exchange_rates.get(data["currency"], Decimal("1.0"))
@@ -556,11 +560,13 @@ class PositionService:
         alert: 若当前价格在某个目标区间内，返回该目标信息；否则 None。
         """
         import json
-        if not position.swing_plan_json:
+        # 安全访问 swing_plan_json 字段（可能不存在于旧数据库）
+        swing_plan_json = getattr(position, 'swing_plan_json', None)
+        if not swing_plan_json:
             return None, None
 
         try:
-            plan = json.loads(position.swing_plan_json)
+            plan = json.loads(swing_plan_json)
         except Exception:
             return None, None
 

@@ -233,11 +233,12 @@ class FutuSyncService:
             if ret == RET_OK:
                 for _, row in data.iterrows():
                     result[row["code"]] = {
-                        "current_price": float(row.get("last_price", 0)),
-                        "open_price":    float(row.get("open_price", 0)),
-                        "high_price":    float(row.get("high_price", 0)),
-                        "low_price":     float(row.get("low_price", 0)),
-                        "volume":        int(row.get("volume", 0)),
+                        "current_price":    float(row.get("last_price", 0)),
+                        "open_price":       float(row.get("open_price", 0)),
+                        "prev_close_price": float(row.get("prev_close_price", 0)),
+                        "high_price":       float(row.get("high_price", 0)),
+                        "low_price":        float(row.get("low_price", 0)),
+                        "volume":           int(row.get("volume", 0)),
                     }
         except Exception as e:
             logger.warning(f"快照获取失败: {e}")
@@ -261,6 +262,12 @@ class FutuSyncService:
             pos_data["market_val"] / pos_data["qty"] if pos_data["qty"] > 0 else 0
         )
 
+        # 从快照获取价格数据（富途API已统一为港币/美元）
+        open_price = snap.get("open_price", 0) or 0
+        prev_close_price = snap.get("prev_close_price", 0) or 0
+        high_price = snap.get("high_price", 0) or 0
+        low_price = snap.get("low_price", 0) or 0
+
         # ── Stock ──────────────────────────────────────────
         stock = self.db.get(Stock, symbol)
         if not stock:
@@ -270,12 +277,13 @@ class FutuSyncService:
         else:
             stock.name = pos_data["name"]
 
-        stock.current_price    = Decimal(str(round(current_price, 4)))
-        stock.open_price       = Decimal(str(snap.get("open_price", 0)))
-        stock.high_price       = Decimal(str(snap.get("high_price", 0)))
-        stock.low_price        = Decimal(str(snap.get("low_price", 0)))
-        stock.volume           = snap.get("volume", 0)
-        stock.price_updated_at = datetime.now()
+        stock.current_price     = Decimal(str(round(current_price, 4)))
+        stock.open_price        = Decimal(str(open_price))
+        stock.prev_close_price  = Decimal(str(prev_close_price))
+        stock.high_price        = Decimal(str(high_price))
+        stock.low_price         = Decimal(str(low_price))
+        stock.volume            = snap.get("volume", 0)
+        stock.price_updated_at  = datetime.now()
 
         # ── Position ───────────────────────────────────────
         position = self.db.query(Position).filter_by(stock_symbol=symbol).first()

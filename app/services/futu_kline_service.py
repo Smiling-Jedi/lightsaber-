@@ -46,6 +46,12 @@ class FutuKlineService:
             rows = self._fetch_from_futu(symbol, count)
             if rows:
                 self._write_cache(cache_file, rows)
+            else:
+                # 富途拉取失败，尝试使用最近的有效缓存
+                latest_cache = self._find_latest_cache(symbol)
+                if latest_cache:
+                    logger.info(f"使用最近缓存: {latest_cache}")
+                    rows = self._read_cache(latest_cache)
 
         return self._attach_ma(rows)
 
@@ -96,6 +102,19 @@ class FutuKlineService:
         safe = symbol.replace(":", "_")
         today = date.today().strftime("%Y%m%d")
         return os.path.join(CACHE_DIR, f"{safe}_{today}.csv")
+
+    def _find_latest_cache(self, symbol: str) -> Optional[str]:
+        """查找该股票最近的缓存文件（不管日期）"""
+        safe = symbol.replace(":", "_")
+        candidates = []
+        for fname in os.listdir(CACHE_DIR):
+            if fname.startswith(f"{safe}_") and fname.endswith(".csv"):
+                path = os.path.join(CACHE_DIR, fname)
+                candidates.append((path, os.path.getmtime(path)))
+        if not candidates:
+            return None
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        return candidates[0][0]
 
     def _is_cache_valid(self, path: str) -> bool:
         return os.path.exists(path) and os.path.getsize(path) > 100

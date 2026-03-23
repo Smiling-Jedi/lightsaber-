@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>腾讯控股(00700) - 持仓详情</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body { background: #f4f6f9; }
+        .profit { color: #e74c3c; }
+        .loss   { color: #27ae60; }
+        .market-badge-hk { background-color: #3498db; }
+
+        #kline-chart { width: 100%; height: 560px; }
+
+        /* 持仓卡片 */
+        .pos-card { border-radius: 10px; padding: 18px 20px; background: #fff; }
+        .pos-card-real { border-top: 3px solid #3498db; }
+        .pos-card-sim  { border-top: 3px solid #9b59b6; }
+        .pos-title { font-size: 0.92rem; font-weight: 700; margin-bottom: 12px; display:flex; align-items:center; justify-content:space-between; }
+        .pos-since { font-size: 0.72rem; color: #aaa; font-weight: 400; }
+
+        /* 总资金 / 总盈亏 顶部条 */
+        .summary-bar { display:flex; gap: 16px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #f0f0f0; }
+        .summary-item { flex: 1; }
+        .summary-item .s-label { font-size: 0.7rem; color: #aaa; margin-bottom: 2px; }
+        .summary-item .s-val   { font-size: 1.15rem; font-weight: 700; }
+        .summary-item .s-sub   { font-size: 0.75rem; color: #aaa; }
+
+        /* 持仓明细表 */
+        .holding-table { width:100%; font-size:0.82rem; margin-bottom: 10px; }
+        .holding-table th { color:#bbb; font-weight:500; font-size:0.7rem; padding:3px 6px; border-bottom:1px solid #f0f0f0; }
+        .holding-table td { padding:5px 6px; vertical-align:middle; }
+        .holding-table tr:not(:last-child) td { border-bottom:1px solid #f9f9f9; }
+        .stock-name { font-weight:600; color:#333; }
+
+        /* 现金行 */
+        .cash-row { padding:7px 6px 0; font-size:0.8rem; color:#888; display:flex; justify-content:space-between; }
+
+        /* 统计 pill */
+        .stat-pill { background:#f8f9fa; border-radius:8px; padding:7px 10px; text-align:center; }
+        .stat-pill .sv { font-size:1rem; font-weight:700; }
+        .stat-pill .sl { font-size:0.68rem; color:#aaa; margin-top:1px; }
+
+        /* 时间轴表格 */
+        .timeline-table { font-size:0.82rem; }
+        .timeline-table thead th { font-size:0.73rem; color:#aaa; font-weight:500; padding:8px 10px; }
+        .timeline-table tbody td { vertical-align:middle; padding:8px 10px; }
+        .row-only-sim  { background:#f5f0ff; }
+        .row-only-real { background:#eef5ff; }
+        .badge-buy  { background:#d4edda; color:#155724; font-size:0.7rem; padding:2px 8px; border-radius:4px; font-weight:600; }
+        .badge-sell { background:#f8d7da; color:#721c24; font-size:0.7rem; padding:2px 8px; border-radius:4px; font-weight:600; }
+        .empty-cell { color:#ddd; }
+        .side-real  { color:#3498db; font-weight:700; }
+        .side-sim   { color:#9b59b6; font-weight:700; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-xl">
+        <a class="navbar-brand" href="/">⚔️ 光剑 Lightsaber</a>
+        <div class="navbar-nav flex-row">
+            <a class="nav-link active px-3" href="#">持仓</a>
+            <a class="nav-link px-3" href="#">分析</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-xl mt-4">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">持仓</a></li>
+            <li class="breadcrumb-item active">腾讯控股</li>
+        </ol>
+    </nav>
+
+    <!-- 股票基本信息 -->
+    <div class="card mb-3">
+        <div class="card-body py-3">
+            <div class="row align-items-center g-3">
+                <div class="col-auto">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="font-size:1.25rem;font-weight:700;">腾讯控股</span>
+                        <span class="badge market-badge-hk text-white">HK</span>
+                        <span class="text-muted" style="font-size:0.85rem;">00700 · large_tech</span>
+                    </div>
+                </div>
+                <div class="col text-center">
+                    <div class="text-muted" style="font-size:0.72rem;">当前价</div>
+                    <div class="profit fw-bold" style="font-size:1.5rem;">396.20</div>
+                    <div class="profit" style="font-size:0.75rem;">+2.3% 今日</div>
+                </div>
+                <div class="col text-center">
+                    <div class="text-muted" style="font-size:0.72rem;">MA20</div>
+                    <div class="fw-bold" style="font-size:1.1rem;">378.4</div>
+                    <div class="profit" style="font-size:0.74rem;">价格在均线上方</div>
+                </div>
+                <div class="col text-center">
+                    <div class="text-muted" style="font-size:0.72rem;">MA60</div>
+                    <div class="fw-bold" style="font-size:1.1rem;">352.1</div>
+                    <div class="profit" style="font-size:0.74rem;">多头排列</div>
+                </div>
+                <div class="col text-center">
+                    <div class="text-muted" style="font-size:0.72rem;">52周区间</div>
+                    <div style="font-size:0.85rem;">288 ~ 412</div>
+                    <div style="font-size:0.74rem;color:#aaa;">当前位于 62%</div>
+                </div>
+                <div class="col text-center">
+                    <div class="text-muted" style="font-size:0.72rem;">ADX</div>
+                    <div class="fw-bold" style="font-size:1.1rem;">28.4</div>
+                    <div style="font-size:0.74rem;color:#27ae60;">趋势有效</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- K线图 -->
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <h5 class="mb-0">📈 K线走势</h5>
+                <span class="text-muted" style="font-size:0.75rem;">2025-10-01 起 · 均线从2025年初预热</span>
+            </div>
+            <div class="d-flex gap-3 flex-wrap align-items-center" style="font-size:0.75rem;">
+                <span><span style="display:inline-block;width:18px;height:2px;background:#e67e22;vertical-align:middle;margin-right:3px;"></span>MA5</span>
+                <span><span style="display:inline-block;width:18px;height:2px;background:#f1c40f;vertical-align:middle;margin-right:3px;"></span>MA10</span>
+                <span><span style="display:inline-block;width:18px;height:2px;background:#3498db;vertical-align:middle;margin-right:3px;"></span>MA20</span>
+                <span><span style="display:inline-block;width:18px;height:2px;background:#9b59b6;vertical-align:middle;margin-right:3px;"></span>MA30</span>
+                <span><span style="display:inline-block;width:18px;height:2px;background:#27ae60;vertical-align:middle;margin-right:3px;"></span>MA60</span>
+                <span><span style="display:inline-block;width:18px;height:2px;background:#e74c3c;vertical-align:middle;margin-right:3px;border-top:2px dashed #e74c3c;height:0"></span>MA200</span>
+                <span style="margin-left:4px;">
+                    <span style="color:#3498db;font-weight:700;">↑↓</span> 实盘 &nbsp;
+                    <span style="color:#9b59b6;font-weight:700;">↑↓</span> 模拟
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-2">
+            <div id="kline-chart"></div>
+        </div>
+    </div>
+
+    <!-- 持仓对比 -->
+    <div class="row g-3 mb-3">
+        <!-- 实盘 -->
+        <div class="col-md-6">
+            <div class="pos-card pos-card-real h-100">
+                <div class="pos-title">
+                    <span>📌 实盘账户</span>
+                    <span class="pos-since">对比起点：2026-02-21</span>
+                </div>
+                <!-- 总资金 / 总盈亏 -->
+                <div class="summary-bar">
+                    <div class="summary-item">
+                        <div class="s-label">总资金</div>
+                        <div class="s-val">1,302,400</div>
+                        <div class="s-sub">HKD</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="s-label">总盈亏（含已实现）</div>
+                        <div class="s-val profit">+109,260</div>
+                        <div class="s-sub profit">+8.4%</div>
+                    </div>
+                </div>
+                <!-- 持股明细 -->
+                <table class="holding-table">
+                    <thead>
+                        <tr><th>股票</th><th style="text-align:right">股数</th><th style="text-align:right">均价</th><th style="text-align:right">盈亏</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="stock-name">腾讯控股</td><td style="text-align:right">2,000</td><td style="text-align:right">342.50</td><td style="text-align:right" class="profit">+107,400</td></tr>
+                        <tr><td class="stock-name">阿里巴巴</td><td style="text-align:right">500</td><td style="text-align:right">82.10</td><td style="text-align:right" class="loss">−12,300</td></tr>
+                        <tr><td class="stock-name">小米集团</td><td style="text-align:right">3,000</td><td style="text-align:right">18.40</td><td style="text-align:right" class="profit">+22,800</td></tr>
+                        <tr><td class="stock-name">美团</td><td style="text-align:right">800</td><td style="text-align:right">148.60</td><td style="text-align:right" class="loss">−8,640</td></tr>
+                    </tbody>
+                </table>
+                <div class="cash-row"><span>剩余现金</span><span>HKD <b>85,200</b> &nbsp;|&nbsp; USD <b>12,400</b></span></div>
+                <!-- 统计 -->
+                <div class="row g-2 mt-3">
+                    <div class="col-3"><div class="stat-pill"><div class="sv profit">67%</div><div class="sl">胜率</div></div></div>
+                    <div class="col-3"><div class="stat-pill"><div class="sv profit">+8.4%</div><div class="sl">EV</div></div></div>
+                    <div class="col-3"><div class="stat-pill"><div class="sv">2.1x</div><div class="sl">盈亏比</div></div></div>
+                    <div class="col-3"><div class="stat-pill"><div class="sv">3笔</div><div class="sl">交易</div></div></div>
+                </div>
+            </div>
+        </div>
+        <!-- 模拟 -->
+        <div class="col-md-6">
+            <div class="pos-card pos-card-sim h-100">
+                <div class="pos-title">
+                    <span>🔮 模拟账户</span>
+                    <span class="pos-since">对比起点：2026-02-21（同快照）</span>
+                </div>
+                <!-- 总资金 / 总盈亏 -->
+                <div class="summary-bar">
+                    <div class="summary-item">
+                        <div class="s-label">总资金</div>
+                        <div class="s-val">1,349,718</div>
+                        <div class="s-sub">HKD</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="s-label">总盈亏（含已实现）</div>
+                        <div class="s-val profit">+149,818</div>
+                        <div class="s-sub profit">+11.2%</div>
+                    </div>
+                </div>
+                <!-- 持股明细 -->
+                <table class="holding-table">
+                    <thead>
+                        <tr><th>股票</th><th style="text-align:right">股数</th><th style="text-align:right">均价</th><th style="text-align:right">盈亏</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="stock-name">腾讯控股</td><td style="text-align:right">2,380</td><td style="text-align:right">339.20</td><td style="text-align:right" class="profit">+135,816</td></tr>
+                        <tr><td class="stock-name">阿里巴巴</td><td style="text-align:right">500</td><td style="text-align:right">82.10</td><td style="text-align:right" class="loss">−12,300</td></tr>
+                        <tr><td class="stock-name">小米集团</td><td style="text-align:right">3,380</td><td style="text-align:right">17.80</td><td style="text-align:right" class="profit">+34,942</td></tr>
+                        <tr><td class="stock-name">美团</td><td style="text-align:right">800</td><td style="text-align:right">148.60</td><td style="text-align:right" class="loss">−8,640</td></tr>
+                    </tbody>
+                </table>
+                <div class="cash-row"><span>剩余现金</span><span>HKD <b>62,400</b> &nbsp;|&nbsp; USD <b>12,400</b></span></div>
+                <!-- 统计 -->
+                <div class="row g-2 mt-3">
+                    <div class="col-3"><div class="stat-pill"><div class="sv profit">75%</div><div class="sl">胜率</div></div></div>
+                    <div class="col-3"><div class="stat-pill"><div class="sv profit">+12.1%</div><div class="sl">EV</div></div></div>
+                    <div class="col-3"><div class="stat-pill"><div class="sv">2.8x</div><div class="sl">盈亏比</div></div></div>
+                    <div class="col-3"><div class="stat-pill"><div class="sv">4笔</div><div class="sl">交易</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统一时间轴 -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0">📅 统一时间轴交易记录</h5>
+            <div style="font-size:0.76rem;" class="d-flex gap-3">
+                <span><span style="display:inline-block;width:10px;height:10px;background:#eef5ff;border:1px solid #bdd9f7;border-radius:2px;margin-right:3px;vertical-align:middle;"></span>仅实盘</span>
+                <span><span style="display:inline-block;width:10px;height:10px;background:#f5f0ff;border:1px solid #c9b8f0;border-radius:2px;margin-right:3px;vertical-align:middle;"></span>仅模拟（信号未跟）</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm mb-0 timeline-table">
+                <thead>
+                    <tr style="background:#fafafa;">
+                        <th rowspan="2" style="padding-left:16px;vertical-align:middle;border-right:1px solid #dee2e6;">日期</th>
+                        <th colspan="4" class="side-real" style="border-right:2px solid #dee2e6;padding:8px 10px;">📌 实盘</th>
+                        <th colspan="4" class="side-sim" style="padding:8px 10px;">🔮 模拟</th>
+                    </tr>
+                    <tr style="background:#fafafa;">
+                        <th>方向</th><th>价格</th><th>股数</th><th style="border-right:2px solid #dee2e6;">收益</th>
+                        <th>方向</th><th>价格</th><th>股数</th><th>收益</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="row-both">
+                        <td style="padding-left:16px;font-weight:600;border-right:1px solid #f0f0f0;">03-12</td>
+                        <td><span class="badge-buy">买入</span></td><td>378.80</td><td>200</td>
+                        <td style="border-right:2px solid #dee2e6;" class="loss">−4.2%</td>
+                        <td><span class="badge-buy">买入</span></td><td>378.80</td><td>380</td>
+                        <td class="loss">−4.2%</td>
+                    </tr>
+                    <tr class="row-only-sim">
+                        <td style="padding-left:16px;font-weight:600;border-right:1px solid #f0f0f0;">03-08</td>
+                        <td class="empty-cell">—</td><td class="empty-cell">—</td><td class="empty-cell">—</td>
+                        <td style="border-right:2px solid #dee2e6;" class="empty-cell">—</td>
+                        <td><span class="badge-buy">买入</span></td><td>373.40</td><td>380</td>
+                        <td class="text-muted" style="font-size:0.78rem;">持有中</td>
+                    </tr>
+                    <tr class="row-both">
+                        <td style="padding-left:16px;font-weight:600;border-right:1px solid #f0f0f0;">03-05</td>
+                        <td><span class="badge-sell">卖出</span></td><td>375.20</td><td>200</td>
+                        <td style="border-right:2px solid #dee2e6;" class="empty-cell">—</td>
+                        <td><span class="badge-sell">卖出</span></td><td>375.20</td><td>380</td>
+                        <td class="empty-cell">—</td>
+                    </tr>
+                    <tr class="row-both">
+                        <td style="padding-left:16px;font-weight:600;border-right:1px solid #f0f0f0;">02-26</td>
+                        <td><span class="badge-buy">买入</span></td><td>361.20</td><td>400</td>
+                        <td style="border-right:2px solid #dee2e6;" class="profit">+9.7%</td>
+                        <td><span class="badge-buy">买入</span></td><td>361.20</td><td>380</td>
+                        <td class="profit">+9.7%</td>
+                    </tr>
+                    <tr class="row-only-sim">
+                        <td style="padding-left:16px;font-weight:600;border-right:1px solid #f0f0f0;">02-21</td>
+                        <td class="empty-cell">—</td><td class="empty-cell">—</td><td class="empty-cell">—</td>
+                        <td style="border-right:2px solid #dee2e6;" class="empty-cell">—</td>
+                        <td><span class="badge-buy">买入</span></td><td>355.60</td><td>380</td>
+                        <td class="profit">+11.4%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer" style="background:#fffdf0;border-top:1px solid #ffe58f;font-size:0.82rem;">
+            💡 <strong>02-21、03-08</strong> 信号出现但实盘未入场，模拟分别获利
+            <strong class="profit">+11.4%</strong>、持有中。
+            模拟 EV 领先 <strong>+3.7%</strong>，胜率领先 <strong>+8%</strong>。
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── 生成模拟K线数据（300根预热 + 120根展示）──
+function seedRand(seed) {
+    let s = seed;
+    return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+}
+const rng = seedRand(42);
+
+function generateKline(startPrice, n) {
+    const data = [];
+    let price = startPrice;
+    for (let i = 0; i < n; i++) {
+        const change = (rng() - 0.455) * 5.5;
+        const open  = +price.toFixed(2);
+        const close = +(price + change).toFixed(2);
+        const high  = +(Math.max(open, close) + rng() * 2.5).toFixed(2);
+        const low   = +(Math.min(open, close) - rng() * 2.5).toFixed(2);
+        data.push({ open, close, high, low });
+        price = close;
+    }
+    return data;
+}
+
+const TOTAL = 300, SHOW = 120;
+const allData = generateKline(290, TOTAL);
+const showData = allData.slice(TOTAL - SHOW);
+
+// 日期标签（从 2025-10-01 起的交易日）
+function genDates(n) {
+    const dates = [];
+    const d = new Date('2025-10-01');
+    while (dates.length < n) {
+        const day = d.getDay();
+        if (day !== 0 && day !== 6) {
+            dates.push(`${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+        }
+        d.setDate(d.getDate() + 1);
+    }
+    return dates;
+}
+const showDates = genDates(SHOW);
+
+const closes = allData.map(d => d.close);
+function calcMA(n) {
+    return allData.map((_, i) => {
+        if (i < n - 1) return null;
+        return +(closes.slice(i-n+1, i+1).reduce((a,b)=>a+b,0)/n).toFixed(2);
+    }).slice(TOTAL - SHOW);
+}
+
+const ohlc = showData.map(d => [d.open, d.close, d.low, d.high]);
+const volumes = showData.map(d => ({
+    value: Math.floor(50000 + rng() * 90000),
+    itemStyle: { color: d.close >= d.open ? '#e74c3c' : '#27ae60' }
+}));
+
+// ── 交易索引 ──
+const T = {
+    b2_1:  18,   // 仅模拟买入
+    both1: 25,   // 实盘+模拟同日买入
+    s_both:55,   // 实盘+模拟同日卖出
+    b2_2:  63,   // 仅模拟买入
+    both2: 72,   // 实盘+模拟同日买入
+};
+
+const safe    = i => Math.max(0, Math.min(SHOW-1, i));
+const getDate = i => showDates[safe(i)];
+const getLow  = i => showData[safe(i)].low;
+const getHigh = i => showData[safe(i)].high;
+const getClose= i => showData[safe(i)].close;
+
+// 价格区间，用于计算标注偏移量
+const priceMin   = Math.min(...showData.map(d => d.low));
+const priceMax   = Math.max(...showData.map(d => d.high));
+const priceRange = priceMax - priceMin;
+
+// ── 标注带 ──
+// 买入标注统一在图表下方两行（row0 紧贴，row1 再低一行）
+// 卖出标注统一在图表上方两行
+// 行高 = priceRange * 0.09，足够容纳一行文字不重叠
+const ROW_H     = priceRange * 0.09;
+const stripBuy0 = priceMin - priceRange * 0.14;        // 买入第0行
+const stripBuy1 = stripBuy0 - ROW_H;                   // 买入第1行（更低）
+const stripSell0= priceMax + priceRange * 0.10;        // 卖出第0行
+const stripSell1= stripSell0 + ROW_H;                  // 卖出第1行（更高）
+
+function makeArrowLine(idx, dir, type, labelText, rowOffset = 0) {
+    const isReal  = type === 'real';
+    const isUp    = dir === 'up';
+    const candleY = isUp ? getLow(idx) : getHigh(idx);
+
+    const labelY  = isUp
+        ? (rowOffset === 0 ? stripBuy0  : stripBuy1)
+        : (rowOffset === 0 ? stripSell0 : stripSell1);
+    const labelDate = getDate(idx);
+
+    // 颜色：实盘蓝/红，模拟紫/橙
+    const color = isReal
+        ? (isUp ? '#1a6fa8' : '#b03a2e')
+        : (isUp ? '#6c3483' : '#a04000');
+
+    // 背景：带色调，不透明
+    const bgColor = isReal
+        ? (isUp ? 'rgba(210,230,245,1)' : 'rgba(245,215,210,1)')
+        : (isUp ? 'rgba(225,210,240,1)' : 'rgba(245,225,200,1)');
+
+    const ltype = isReal ? 'solid' : 'dashed';
+
+    return [
+        {
+            coord: [labelDate, labelY],
+            symbol: 'none',
+            label: {
+                show: true,
+                formatter: labelText,
+                position: 'start',
+                rotate: 0,
+                fontSize: 10.5,
+                fontWeight: isReal ? '600' : '500',
+                color: color,
+                backgroundColor: bgColor,
+                borderColor: color,
+                borderWidth: 1,
+                borderRadius: 3,
+                padding: [3, 8],
+            },
+            lineStyle: { color, type: ltype, width: 1, opacity: 0.4 }
+        },
+        {
+            coord: [getDate(idx), candleY],
+            symbol: 'arrow',
+            symbolSize: 5,
+            lineStyle: { color, type: ltype, width: 1, opacity: 0.4 }
+        }
+    ];
+}
+
+// ── 构建所有连线标注 ──
+const allMarkLines = [
+    makeArrowLine(T.b2_1,  'up',   'sim',  '模 ' + getClose(T.b2_1).toFixed(1)  + ' · 380股', 0),
+    makeArrowLine(T.both1, 'up',   'real', '实 ' + getClose(T.both1).toFixed(1) + ' · 400股', 0),
+    makeArrowLine(T.both1, 'up',   'sim',  '模 ' + getClose(T.both1).toFixed(1) + ' · 380股', 1),
+    makeArrowLine(T.s_both,'down', 'real', '实 ' + getClose(T.s_both).toFixed(1)+ ' · 200股', 0),
+    makeArrowLine(T.s_both,'down', 'sim',  '模 ' + getClose(T.s_both).toFixed(1)+ ' · 380股', 1),
+    makeArrowLine(T.b2_2,  'up',   'sim',  '模 ' + getClose(T.b2_2).toFixed(1)  + ' · 380股', 0),
+    makeArrowLine(T.both2, 'up',   'real', '实 ' + getClose(T.both2).toFixed(1) + ' · 200股', 0),
+    makeArrowLine(T.both2, 'up',   'sim',  '模 ' + getClose(T.both2).toFixed(1) + ' · 380股', 1),
+];
+
+// ── ECharts ──
+const chart = echarts.init(document.getElementById('kline-chart'));
+
+chart.setOption({
+    backgroundColor: '#fff',
+    animation: false,
+    legend: {
+        top: 4, left: 4,
+        data: ['MA5','MA10','MA20','MA30','MA60','MA200'],
+        textStyle: { fontSize: 11 },
+        itemWidth: 16, itemHeight: 3, icon: 'rect'
+    },
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'cross' },
+        formatter(params) {
+            const k = params.find(p => p.seriesName === 'K线');
+            if (!k || !k.value) return '';
+            const [o, c, l, h] = k.value;
+            const col = c >= o ? '#e74c3c' : '#27ae60';
+            return `<div style="font-size:12px;line-height:2">
+                <b>${k.name}</b><br>
+                开 ${o} &nbsp; 收 <span style="color:${col};font-weight:600">${c}</span><br>
+                高 ${h} &nbsp; 低 ${l}
+            </div>`;
+        }
+    },
+    grid: [
+        { left: 62, right: 16, top: 36, bottom: 120, height: '60%' },
+        { left: 62, right: 16, bottom: 30, height: '15%' }
+    ],
+    xAxis: [
+        { type:'category', data: showDates, gridIndex:0,
+          axisLabel:{ fontSize:11, color:'#999', interval: Math.floor(SHOW/10) },
+          splitLine:{ show:true, lineStyle:{ color:'#f8f8f8' } } },
+        { type:'category', data: showDates, gridIndex:1,
+          axisLabel:{ show:false }, splitLine:{ show:false } }
+    ],
+    yAxis: [
+        { scale:true, gridIndex:0,
+          axisLabel:{ fontSize:11, color:'#999' },
+          splitLine:{ lineStyle:{ color:'#f5f5f5' } } },
+        { scale:true, gridIndex:1,
+          axisLabel:{ fontSize:10, color:'#ccc', formatter: v => (v/1000).toFixed(0)+'K' },
+          splitLine:{ show:false } }
+    ],
+    dataZoom: [
+        { type:'inside', xAxisIndex:[0,1], start:0, end:100 },
+        { type:'slider',  xAxisIndex:[0,1], start:0, end:100,
+          bottom:0, height:22, borderColor:'#eee',
+          fillerColor:'rgba(52,152,219,0.08)',
+          handleStyle:{ color:'#3498db' } }
+    ],
+    series: [
+        {
+            name:'K线', type:'candlestick', xAxisIndex:0, yAxisIndex:0,
+            data: ohlc,
+            itemStyle:{
+                color:'#e74c3c', color0:'#27ae60',
+                borderColor:'#e74c3c', borderColor0:'#27ae60'
+            },
+            markLine: {
+                silent: false,
+                animation: false,
+                symbol: ['none', 'arrow'],
+                symbolSize: [0, 6],
+                data: allMarkLines,
+                emphasis: { disabled: true }
+            }
+        },
+        { name:'MA5',   type:'line', xAxisIndex:0, yAxisIndex:0, data:calcMA(5),
+          smooth:true, symbol:'none', lineStyle:{ color:'#e67e22', width:1.5 }, z:2 },
+        { name:'MA10',  type:'line', xAxisIndex:0, yAxisIndex:0, data:calcMA(10),
+          smooth:true, symbol:'none', lineStyle:{ color:'#f1c40f', width:1.5 }, z:2 },
+        { name:'MA20',  type:'line', xAxisIndex:0, yAxisIndex:0, data:calcMA(20),
+          smooth:true, symbol:'none', lineStyle:{ color:'#3498db', width:2 }, z:2 },
+        { name:'MA30',  type:'line', xAxisIndex:0, yAxisIndex:0, data:calcMA(30),
+          smooth:true, symbol:'none', lineStyle:{ color:'#9b59b6', width:1.5 }, z:2 },
+        { name:'MA60',  type:'line', xAxisIndex:0, yAxisIndex:0, data:calcMA(60),
+          smooth:true, symbol:'none', lineStyle:{ color:'#27ae60', width:1.5 }, z:2 },
+        { name:'MA200', type:'line', xAxisIndex:0, yAxisIndex:0, data:calcMA(200),
+          smooth:true, symbol:'none', lineStyle:{ color:'#e74c3c', width:1.5, type:'dashed' }, z:2 },
+        { name:'成交量', type:'bar', xAxisIndex:1, yAxisIndex:1,
+          data:volumes, barMaxWidth:6 }
+    ]
+});
+
+window.addEventListener('resize', () => chart.resize());
+</script>
+</body>
+</html>
