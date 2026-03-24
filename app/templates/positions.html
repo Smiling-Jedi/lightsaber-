@@ -446,6 +446,8 @@
 
 {% block extra_js %}
 <script>
+// 版本标记: v20260324-3 用于强制刷新缓存
+console.log('[Version] JS v20260324-3 loaded, timestamp:', Date.now());
 // ── 原力信号异步加载 ────────────────────────────────────────
 const IS_DEMO = {{ is_demo | tojson }};
 const ACTION_LABEL = { BUY: '买入', SELL: '卖出', WATCH: '观察', HOLD: '持有' };
@@ -475,6 +477,18 @@ function indTip(name) {
         ? `<span class="ind-tip" data-tip="${tip}">${name}</span>`
         : `<span>${name}</span>`;
 }
+
+const SIZING_MODEL_LABEL = {
+    'KELLY_HALF': '标准风控',
+    'FIXED_RISK': '控单笔亏',
+    'VOLATILITY_ADJUSTED': '控波动率'
+};
+
+const SIZING_MODEL_TOOLTIP = {
+    'KELLY_HALF': '基于历史胜率/赔率计算最优仓位，再减半使用。例：胜率60%、盈亏比2:1时，f*=35%，实际仓位取17%。',
+    'FIXED_RISK': '每笔交易固定亏1万元。例：RKLB股价$20、ATR=$2，则止损宽$4，买2500股（亏$1万就割）。',
+    'VOLATILITY_ADJUSTED': '波动越大仓位越小。例：NVDA波动率7%（高于市场5%），仓位自动打7折，从10%降到7%。'
+};
 
 function statusIcon(status) {
     if (status === 'ok')   return '<span class="st-ok">✓</span>';
@@ -613,12 +627,44 @@ function renderSignalLeft(sig) {
 }
 
 function renderSignalRight(sig) {
+    // B+D方案：判断止损类型（对比配置值和实际值）
+    const params = sig.backtest_ref || {};
+    const configStop = params.stop_loss_pct;  // 配置的固定止损
+    const actualStop = sig.stop_loss_pct;      // 实际使用的止损（可能已按ATR调整）
+    // 如果实际止损比配置更保守（更负），说明ATR动态止损生效了
+    const isAtrStop = configStop && actualStop && actualStop < configStop * 0.9;
+    const stopType = isAtrStop ? 'ATR' : '固定';
+
     const stopStr = sig.stop_loss_pct != null
-        ? `<span class="t-tag t-stop"><span>止损</span><span>${sig.stop_loss_pct.toFixed(1)}%</span></span>`
+        ? `<span class="t-tag t-stop"><span>${stopType}止损</span><span>${sig.stop_loss_pct.toFixed(1)}%</span></span>`
         : '';
     const target1Str = sig.target_pct_1 != null
         ? `<span class="t-tag t-target"><span>目标一</span><span>+${sig.target_pct_1.toFixed(0)}%</span></span>`
         : '';
+
+    // B+D方案：显示仓位模型（带悬浮提示）
+    const instruction = sig.instruction || {};
+    const sizingModel = instruction.sizing_model || 'KELLY_HALF';
+    const modelLabel = SIZING_MODEL_LABEL[sizingModel] || sizingModel;
+    const modelTip = SIZING_MODEL_TOOLTIP[sizingModel] || '';
+    const modelStr = `<span class="t-tag ind-tip" data-tip="${modelTip}" style="background:#e0e7ff;color:#3730a3;border:1px solid #c7d2fe;"><span>建仓模型</span><span>${modelLabel}</span></span>`;
+
+    // B+D方案：显示综合评分（原优先级得分）
+    let scoreStr = '';
+    if (instruction.priority_score > 0) {
+        const bt = sig.backtest_ref || {};
+        const ev = bt.ev_pct || 0;
+        const kelly = bt.kelly_pct || 0;
+        const confMap = {HIGH: 1.0, MEDIUM: 0.6, LOW: 0.3};
+        const confScore = (confMap[sig.confidence] || 0.5) * 20 * 0.2;
+        const envMap = {BULL: 1.0, NEUTRAL: 0.7, BEAR: 0.4};
+        const envScore = (envMap[sig.market_env] || 0.7) * 10 * 0.1;
+        const evScore = ev * 0.4;
+        const kellyScore = kelly * 0.3;
+
+        const scoreTip = `综合评分构成：\\nEV×40% = ${evScore.toFixed(1)}分\\nKelly×30% = ${kellyScore.toFixed(1)}分\\n信心×20% = ${confScore.toFixed(1)}分\\n市场×10% = ${envScore.toFixed(1)}分\\n总分 = ${instruction.priority_score.toFixed(1)}分`;
+        scoreStr = `<span class="t-tag ind-tip" data-tip="${scoreTip}" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;"><span>综合评分</span><span>${instruction.priority_score.toFixed(1)}</span></span>`;
+    }
 
     const bt = sig.backtest_ref;
     let btHtml = '';
@@ -640,7 +686,7 @@ function renderSignalRight(sig) {
     return `
         <div>
             <div class="section-label">盈利目标</div>
-            <div class="target-tags">${stopStr}${target1Str}</div>
+            <div class="target-tags">${stopStr}${target1Str}${modelStr}${scoreStr}</div>
             ${btHtml}
         </div>
     `;
@@ -649,17 +695,26 @@ function renderSignalRight(sig) {
 async function loadSignals() {
     try {
         const resp = await fetch('/api/signals/portfolio');
-        if (!resp.ok) throw new Error(resp.status);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
+        console.log('[Signals] Loaded', data.signals.length, 'signals');
+        console.log('[Signals] Symbols:', data.signals.map(s => s.symbol).join(', '));
+
         for (const sig of data.signals) {
-            const key = sig.symbol.replace(':', '_');
-            const leftEl  = document.getElementById('signal-left-'  + key);
-            const rightEl = document.getElementById('signal-right-' + key);
-            if (leftEl)  leftEl.innerHTML  = renderSignalLeft(sig);
-            if (rightEl) rightEl.innerHTML = renderSignalRight(sig);
+            try {
+                const key = sig.symbol.replace(':', '_');
+                const leftEl  = document.getElementById('signal-left-'  + key);
+                const rightEl = document.getElementById('signal-right-' + key);
+                console.log('[Signals] Rendering', sig.symbol, '- leftEl:', !!leftEl, 'rightEl:', !!rightEl);
+                if (leftEl)  leftEl.innerHTML  = renderSignalLeft(sig);
+                if (rightEl) rightEl.innerHTML = renderSignalRight(sig);
+            } catch (renderErr) {
+                console.error('[Signals] Render error for', sig.symbol, renderErr);
+            }
         }
         return data.signals;
     } catch (e) {
+        console.error('[Signals] Load failed:', e);
         document.querySelectorAll('.ls-signal-loading').forEach(el => {
             el.innerHTML = '<span style="color:#adb5bd;font-size:0.75rem">信号暂不可用</span>';
         });
@@ -687,10 +742,25 @@ async function loadSummary(symbol) {
 }
 
 async function loadSignalsAndSummaries() {
+    // 1. 先给所有信号区显示占位提示（避免长时间空白）
+    document.querySelectorAll('[id^="signal-left-"]').forEach(el => {
+        const hasSpinner = el.querySelector('.spinner-border') ||
+                          el.querySelector('.ls-signal-loading');
+        if (hasSpinner) {
+            el.innerHTML = '<div style="color:#6b7280;font-size:0.8rem;padding:8px 0;">正在计算信号...</div>';
+        }
+    });
+    document.querySelectorAll('[id^="signal-right-"]').forEach(el => {
+        if (!el.innerHTML || el.innerHTML.trim() === '' ||
+            el.innerHTML.includes('data-swing')) {
+            el.innerHTML = '<div style="color:#6b7280;font-size:0.75rem;padding:4px 0;">正在计算...</div>';
+        }
+    });
+
+    // 2. 异步加载信号
     const signals = await loadSignals();
 
-    // 先用 signal 里的 summary 填充（Demo/Real 模式都适用，作为 fallback）
-    const signalMap = new Map();
+    // 3. 填充 summary
     for (const sig of signals) {
         if (sig.summary) {
             const key = sig.symbol.replace(':', '_');
@@ -699,21 +769,37 @@ async function loadSignalsAndSummaries() {
                 el.className = '';
                 el.textContent = sig.summary;
             }
-            signalMap.set(sig.symbol, sig.summary);
         }
     }
 
-    if (IS_DEMO) {
-        // demo模式：只用 fixture 里的 summary，不调用 LLM API
-        return;
-    }
+    // 4. 处理仍未渲染的（没有配置信号的股票，如A股）
+    setTimeout(() => {
+        console.log('[Placeholder] Checking for unrendered signals...');
+        let leftCount = 0, rightCount = 0;
+        document.querySelectorAll('[id^="signal-left-"]').forEach(el => {
+            const key = el.id.replace('signal-left-', '');
+            // 检查是否包含"正在计算"或"加载"字样
+            if (el.textContent.includes('正在计算') || el.textContent.includes('加载')) {
+                console.log('[Placeholder] Left placeholder for', key);
+                el.innerHTML = '<div style="color:#9aa0a6;font-size:0.8rem;padding:8px 0;opacity:0.7">🔧 信号配置中</div>';
+                leftCount++;
+            }
+        });
+        document.querySelectorAll('[id^="signal-right-"]').forEach(el => {
+            if (!el.innerHTML || el.innerHTML.trim() === '' ||
+                el.textContent.includes('正在计算')) {
+                el.innerHTML = '<div style="color:#9aa0a6;font-size:0.75rem;padding:4px 0;opacity:0.6">暂无可用的建仓模型</div>';
+                rightCount++;
+            }
+        });
+        console.log('[Placeholder] Applied', leftCount, 'left and', rightCount, 'right placeholders');
+    }, 100);
 
-    // Real模式：尝试从 API 获取更详细的总结（会覆盖 signal 里的 summary）
-    const keys = Array.from(document.querySelectorAll('[id^="summary-"]'))
-        .map(el => el.id.replace('summary-', '').replace('_', ':'));
-    for (const symbol of keys) {
-        // 如果 API 返回 null 或失败，保持 signal 里的 summary 作为 fallback
-        await loadSummary(symbol);
+    if (IS_DEMO) return;
+
+    // 5. Real模式：获取详细总结
+    for (const sig of signals) {
+        await loadSummary(sig.symbol);
     }
 }
 
@@ -745,11 +831,12 @@ async function loadNews(symbol) {
 
 async function loadAllNews() {
     const keys = Array.from(document.querySelectorAll('[id^="news-"]'))
-        .map(el => el.id.replace('news-', '').replace('_', ':'));
+        .map(el => el.id.replace('news-', '').replace(/_/g, ':'));
     await Promise.all(keys.map(sym => loadNews(sym)));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('[Init] DOMContentLoaded fired, IS_DEMO =', IS_DEMO);
     loadSignalsAndSummaries();
     loadAllNews();
 });
