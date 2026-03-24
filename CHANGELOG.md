@@ -4,6 +4,45 @@
 
 ---
 
+## v1.3.1 · 2026-03-24 · 持仓体检报告系统
+
+**分析服务增强**
+- 新增 `generate_health_check_report()` 8大模块分析：
+  - 组合概览（健康度评分/总资产/现金占比/集中度/预期收益）
+  - 持仓结构（市场分布/板块分布）
+  - 风险警告（集中度风险/波段被套检测）
+  - TOP5持仓明细（含波段状态）
+  - 行动计划（P0立即/P1条件触发/P2监控）
+  - 纪律检查（止损/加仓/集中度违规检测）
+- 健康度评分算法（0-100分）：基于现金占比、集中度、预期收益加权扣分
+
+**前端页面更新**
+- `dashboard.html` 完全重写为持仓体检报告页面
+- Chart.js 环形图展示健康度评分（按分数红/黄/绿自动变色）
+- 红绿灯状态指示系统（健康/关注/警告三级）
+- 响应式布局，支持移动端浏览
+
+---
+
+## v1.3.0 · 2026-03-24 · B+D方案（原力模块增强）
+
+**信号层增强**
+- ATR动态止损：2×ATR(14日)与固定止损取更保守者
+- 多模型仓位：KELLY_HALF（半Kelly）/ FIXED_RISK（固定风险10k/2ATR）/ VOLATILITY_ADJUSTED（波动率调整）
+- EV优先级排序：权重 EV×40% + Kelly×30% + 信心×20% + 市场×10%
+- TradeInstruction数据结构：预留条件表达式字段（entry_condition, stop_condition等）
+
+**分批建仓**
+- 第一批50%信号日执行，第二批50%触发条件：回调≥3% 或 3天后 或 价格≥第一批价格
+- SimPosition新增字段：batch_status / first_batch_shares / first_batch_price / first_batch_date / second_batch_pending
+- 数据库迁移脚本：`alembic/versions/20260324_add_batch_position_fields.py`
+
+**前端展示更新**
+- positions.html 信号卡：显示止损类型（ATR/固定）、仓位模型标签、优先级得分
+- detail.html 模拟持仓卡：显示分批建仓状态（第一批/已完成）及待建仓股数
+
+---
+
 ## v1.2.1 · 2026-03-22 · `b1c1c3f`
 
 **Bug 修复（深度检查）**

@@ -14,15 +14,15 @@ templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/")
 def dashboard(request: Request, db: Session = Depends(get_db)):
-    """仪表盘首页 - 显示分析建议"""
+    """仪表盘首页 - 显示持仓体检报告"""
     analysis_service = AnalysisService(db)
 
-    # 获取每日汇总
-    summary = analysis_service.get_daily_summary()
+    # 获取体检报告
+    health_report = analysis_service.generate_health_check_report()
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "summary": summary
+        "report": health_report
     })
 
 
