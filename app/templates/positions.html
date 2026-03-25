@@ -208,9 +208,9 @@
           <span class="spinner-border spinner-border-sm d-none" id="newsSpinner"></span>
           📰 更新资讯
         </button>
-        <button class="ls-btn" id="futuSyncBtn" onclick="futuSync()">
-          <span class="spinner-border spinner-border-sm d-none" id="futuSyncSpinner"></span>
-          📡 同步富途
+        <button class="ls-btn" id="signalBtn" onclick="refreshSignals()">
+          <span class="spinner-border spinner-border-sm d-none" id="signalSpinner"></span>
+          📊 刷新信号
         </button>
         {% endif %}
         {% if is_demo %}
@@ -221,84 +221,41 @@
       </div>
     </div>
 
-    <!-- 汇总行 1：总资产 / 今日盈亏 / 持仓总盈亏 -->
+    <!-- 市场摘要卡片：港/美/A股 -->
     <div class="ls-summary-row-1">
-      <div class="ls-summary-card">
-        <div class="ls-s-label">总资产 (RMB)</div>
-        <div class="ls-s-value">¥{{ "%.0f"|format(portfolio.total_market_value_rmb) if portfolio.total_market_value_rmb else "—" }}</div>
-      </div>
-      <div class="ls-summary-card">
-        <div class="ls-s-label">今日盈亏</div>
-        <div class="ls-s-value {% if portfolio.today_profit is not none and portfolio.today_profit >= 0 %}ls-up{% elif portfolio.today_profit is not none %}ls-down{% else %}ls-muted{% endif %}">
-          {% if portfolio.today_profit is not none %}
-            {{ "+¥%.0f"|format(portfolio.today_profit) if portfolio.today_profit >= 0 else "−¥%.0f"|format(portfolio.today_profit|abs) }}
-          {% else %}—{% endif %}
-        </div>
-        {% if portfolio.today_profit_pct %}
-        <div class="ls-s-sub {% if portfolio.today_profit_pct >= 0 %}ls-up{% else %}ls-down{% endif %}">
-          {{ "+%.2f"|format(portfolio.today_profit_pct) if portfolio.today_profit_pct >= 0 else "−%.2f"|format(portfolio.today_profit_pct|abs) }}%
-        </div>
-        {% endif %}
-      </div>
-      <div class="ls-summary-card">
-        <div class="ls-s-label">持仓总盈亏</div>
-        <div class="ls-s-value {% if portfolio.total_profit >= 0 %}ls-up{% else %}ls-down{% endif %}">
-          {{ "+¥%.0f"|format(portfolio.total_profit) if portfolio.total_profit >= 0 else "−¥%.0f"|format(portfolio.total_profit|abs) }}
-        </div>
-        <div class="ls-s-sub {% if portfolio.total_profit_pct >= 0 %}ls-up{% else %}ls-down{% endif %}">
-          {{ "+%.2f"|format(portfolio.total_profit_pct) if portfolio.total_profit_pct >= 0 else "−%.2f"|format(portfolio.total_profit_pct|abs) }}%
-        </div>
-      </div>
-    </div>
-
-    <!-- 汇总行 2：市场分布 -->
-    <div class="ls-summary-row-2">
       {% for mkt_key, d in portfolio.markets.items() %}
+      {% set market_name = "港股" if mkt_key == "HK" else ("美股" if mkt_key == "US" else "A股") %}
       <div class="ls-summary-card">
-        <div class="ls-s-label">
-          {{ "港股" if mkt_key == "HK" else ("美股" if mkt_key == "US" else "A股") }}仓位
-          <span style="color:#93c5fd;font-weight:700">{{ "%.0f"|format(d.weight_pct|default(0)) }}%</span>
-        </div>
-        <div class="ls-pos-card-inner">
-          <div style="flex:1">
+        <div class="ls-s-label">{{ market_name }} · {{ d.currency }}</div>
+        <div class="ls-s-value">{{ "{:,.0f}".format(d.total_with_cash) }}</div>
+        <div class="ls-pos-card-inner" style="margin-top:12px;gap:12px;">
+          <div style="flex:1;">
             <div class="ls-pos-lines">
               <div class="ls-pos-line">
-                <span class="ls-pos-line-label">股票持仓</span>
-                <span class="ls-pos-line-val">{{ d.currency }} {{ "{:,.0f}".format(d.total_market_value) }}</span>
+                <span class="ls-pos-line-label">股票仓位</span>
+                <span class="ls-pos-line-val" style="color:#93c5fd;font-weight:600;">{{ "%.0f"|format(d.stock_position_pct|default(0)) }}%</span>
               </div>
-              {% if mkt_key == "HK" and d.fund_hkd > 0 %}
               <div class="ls-pos-line">
-                <span class="ls-pos-line-label">港元基金</span>
-                <span class="ls-pos-line-val">HKD {{ "{:,.0f}".format(d.fund_hkd) }}</span>
-              </div>
-              {% endif %}
-              {% if mkt_key == "US" and d.fund_usd > 0 %}
-              <div class="ls-pos-line">
-                <span class="ls-pos-line-label">美元基金</span>
-                <span class="ls-pos-line-val">USD {{ "{:,.0f}".format(d.fund_usd) }}</span>
-              </div>
-              {% endif %}
-              {% if d.cash > 0 %}
-              <div class="ls-pos-line">
-                <span class="ls-pos-line-label">{{ "港元" if mkt_key == "HK" else "美元" }}现金</span>
-                <span class="ls-pos-line-val">{{ d.currency }} {{ "{:,.0f}".format(d.cash) }}</span>
-              </div>
-              {% endif %}
-              <div class="ls-pos-line">
-                <span class="ls-pos-line-label ls-pos-line-sub">非持仓占比</span>
-                <span class="ls-pos-line-val ls-pos-line-sub">
-                  {{ "%.1f"|format((d.fund_hkd + d.cash if mkt_key == "HK" else d.fund_usd + d.cash) / d.total_with_cash * 100 if d.total_with_cash > 0 else 0) }}%
-                </span>
+                <span class="ls-pos-line-label">现金仓位</span>
+                <span class="ls-pos-line-val">{{ "%.0f"|format(d.cash_position_pct|default(0)) }}%</span>
               </div>
             </div>
           </div>
           <div class="ls-pos-divider"></div>
-          <div style="flex:1">
+          <div style="flex:1;">
             <div class="ls-pos-lines">
               <div class="ls-pos-line">
-                <span class="ls-pos-line-label">持股数</span>
+                <span class="ls-pos-line-label">持股</span>
                 <span class="ls-pos-line-val">{{ d.positions|length }} 只</span>
               </div>
+              {% if d.profit_pct %}
+              <div class="ls-pos-line">
+                <span class="ls-pos-line-label">盈亏</span>
+                <span class="ls-pos-line-val {% if d.profit_pct >= 0 %}ls-up{% else %}ls-down{% endif %}">
+                  {{ "+%.1f"|format(d.profit_pct) if d.profit_pct >= 0 else "−%.1f"|format(d.profit_pct|abs) }}%
+                </span>
+              </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -325,7 +282,42 @@
 
   <!-- 持仓列表（每市场一个 pane） -->
   {% for market, data in portfolio.markets.items() %}
+  {% set market_name = "港股" if market == "HK" else ("美股" if market == "US" else "A股") %}
   <div class="ls-market-pane {% if loop.first %}active{% endif %}" id="market-{{ market|lower }}">
+
+    <!-- 市场详情汇总 -->
+    <div style="background:#fff;border-radius:12px;border:1px solid #dcdaf0;padding:20px 24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(56,52,106,0.05);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="font-size:16px;font-weight:600;color:#38346a;">{{ market_name }}持仓明细</div>
+        <div style="font-size:13px;color:#7c76a6;">总资金 {{ data.currency }} {{ "{:,.0f}".format(data.total_with_cash) }}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+        <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
+          <div style="font-size:11px;color:#7c76a6;margin-bottom:4px;">股票市值</div>
+          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ "{:,.0f}".format(data.total_market_value) }}</div>
+          <div style="font-size:12px;color:#a5b4fc;margin-top:2px;">{{ "%.0f"|format(data.stock_position_pct|default(0)) }}%</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
+          <div style="font-size:11px;color:#7c76a6;margin-bottom:4px;">现金余额</div>
+          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ "{:,.0f}".format(data.cash|default(0)) }}</div>
+          <div style="font-size:12px;color:#a5b4fc;margin-top:2px;">{{ "%.0f"|format(data.cash_position_pct|default(0)) }}%</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
+          <div style="font-size:11px;color:#7c76a6;margin-bottom:4px;">持股数量</div>
+          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ data.positions|length }} 只</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
+          <div style="font-size:11px;color:#7c76a6;margin-bottom:4px;">市场盈亏</div>
+          {% if data.profit_pct %}
+          <div style="font-size:18px;font-weight:600;{% if data.profit_pct >= 0 %}color:#d93025{% else %}color:#188038{% endif %};">
+            {{ "+%.1f"|format(data.profit_pct) if data.profit_pct >= 0 else "−%.1f"|format(data.profit_pct|abs) }}%
+          </div>
+          {% else %}
+          <div style="font-size:18px;font-weight:600;color:#9aa0a6;">—</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
 
     {% for pos in data.positions %}
     {% set key = pos.symbol.replace(':', '_') %}
@@ -681,20 +673,41 @@ function renderSignalRight(sig) {
         btHtml = `<div class="backtest-row"><span class="bt-label">回测参考：</span>${joined}</div>`;
     }
 
-    if (!stopStr && !target1Str) return '';
+    // B+D方案：显示交易建议（建议股数/参考价/预计资金）
+    let tradeSuggestionStr = '';
+    const recShares = instruction.recommended_shares || 0;
+    const recSharesSecond = instruction.recommended_shares_second || 0;
+    const entryPrice = instruction.entry_price_reference || 0;
+    const positionValue = instruction.position_value_estimated || 0;
+
+    if (sig.action === 'BUY' && recShares > 0) {
+        const totalShares = recShares + recSharesSecond;
+        const batchInfo = recSharesSecond > 0 ? `第一批${recShares}股` : `${recShares}股`;
+        const secondBatchInfo = recSharesSecond > 0 ? `+ 第二批${recSharesSecond}股` : '';
+        const tradeTip = `交易建议（B+D分批建仓方案）：\n${batchInfo}${secondBatchInfo}\n参考价: $${entryPrice.toFixed(2)}\n预计占用: $${positionValue.toLocaleString()}`;
+        tradeSuggestionStr = `<span class="t-tag ind-tip" data-tip="${tradeTip}" style="background:#d1fae5;color:#064e3b;border:1px solid #6ee7b7;"><span>建议买入</span><span>${totalShares}股</span></span>`;
+    }
+
+    if (!stopStr && !target1Str && !tradeSuggestionStr) return '';
 
     return `
         <div>
             <div class="section-label">盈利目标</div>
-            <div class="target-tags">${stopStr}${target1Str}${modelStr}${scoreStr}</div>
+            <div class="target-tags">${stopStr}${target1Str}${modelStr}${scoreStr}${tradeSuggestionStr}</div>
             ${btHtml}
         </div>
     `;
 }
 
-async function loadSignals() {
+async function loadSignals(forceRefresh = false) {
     try {
-        const resp = await fetch('/api/signals/portfolio');
+        // 根据是否强制刷新决定API参数
+        const url = forceRefresh ? '/api/signals/portfolio?refresh=true' : '/api/signals/portfolio';
+        if (forceRefresh) {
+            console.log('[Signals] 强制刷新模式，重新计算所有信号...');
+        }
+
+        const resp = await fetch(url);
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         console.log('[Signals] Loaded', data.signals.length, 'signals');
@@ -873,6 +886,36 @@ function updateData() {
             btn.innerHTML = '🔄 更新行情';
             alert('更新失败: ' + err.message);
         });
+}
+
+function refreshSignals() {
+    const btn = document.getElementById('signalBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 计算中...';
+
+    // 清空现有信号显示，显示加载中
+    document.querySelectorAll('[id^="signal-left-"]').forEach(el => {
+        el.innerHTML = '<div style="color:#6b7280;font-size:0.8rem;padding:8px 0;">正在重新计算信号...</div>';
+    });
+    document.querySelectorAll('[id^="signal-right-"]').forEach(el => {
+        el.innerHTML = '<div style="color:#6b7280;font-size:0.75rem;padding:4px 0;">等待计算结果...</div>';
+    });
+
+    // 强制刷新信号
+    loadSignals(true).then(signals => {
+        btn.disabled = false;
+        btn.innerHTML = '📊 刷新信号';
+        console.log('[Signals] 强制刷新完成，共', signals.length, '个信号');
+
+        // 重新加载总结
+        if (!IS_DEMO) {
+            signals.forEach(sig => loadSummary(sig.symbol));
+        }
+    }).catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '📊 刷新信号';
+        alert('信号刷新失败: ' + err.message);
+    });
 }
 
 function updateNews() {

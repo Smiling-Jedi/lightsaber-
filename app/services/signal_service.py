@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 from app.data_sources.history_source import HistorySource
 from app.services.indicator_service import IndicatorService
 from app.services.position_service import PositionService
+from app.services.signal_cache_service import get_signal_cache
 from config.settings import BACKTEST_DIR
 
 logger = logging.getLogger(__name__)
@@ -92,6 +93,44 @@ class PositionContext:
 
 
 @dataclass
+class TradeInstruction:
+    """
+    完整交易指令（B+D渐进方案扩展接口）
+    为后续表达式方案预留结构，当前阶段逐步启用部分字段
+    """
+    # 入场条件（当前阶段：硬编码分类规则；未来：表达式）
+    entry_condition: str = ""          # 如 "rsi14 < 40 AND close <= bb_lower"
+    entry_type: str = "MARKET"         # MARKET / LIMIT / CONDITIONAL
+
+    # 仓位模型（多模型支持）
+    sizing_model: str = "KELLY_HALF"   # KELLY_HALF / FIXED_RISK / VOLATILITY_ADJUSTED
+    sizing_params: dict = None         # 模型参数
+
+    # 出场条件
+    stop_condition: str = ""           # 如 "close < entry_price * 0.93" 或 ATR-based
+    profit_conditions: list = None     # [{"condition": "rsi14 > 70", "pct": 50}]
+
+    # 执行偏好
+    execution_style: str = "SINGLE"    # SINGLE / TWAP / BATCH（分批建仓）
+    time_limit_days: int = 3           # 指令有效期
+
+    # 优先级评分（多信号排序用）
+    priority_score: float = 0.0        # EV加权综合评分
+
+    # 具体交易建议（基于当前持仓和资产计算）
+    recommended_shares: int = 0        # 建议买入股数（第一批）
+    recommended_shares_second: int = 0 # 建议买入股数（第二批，分批建仓）
+    entry_price_reference: float = 0.0 # 参考入场价（最新收盘价）
+    position_value_estimated: float = 0.0  # 预计占用资金
+
+    def __post_init__(self):
+        if self.sizing_params is None:
+            self.sizing_params = {}
+        if self.profit_conditions is None:
+            self.profit_conditions = []
+
+
+@dataclass
 class SignalResult:
     """单只股票信号输出"""
     symbol: str
@@ -123,6 +162,9 @@ class SignalResult:
     target_pct_1: Optional[float]     # 第一阶段目标%（+15）
     backtest_ref: Optional[dict]      # 回测参考（胜率/EV/Kelly）
 
+    # B+D方案：完整交易指令（新增）
+    instruction: Optional[TradeInstruction] = None  # 交易执行指令
+
 
 # ─────────────────────────────────────────────────────────
 # 信号服务
@@ -141,8 +183,10 @@ class SignalService:
     # 公开接口
     # ─────────────────────────────────────────────────────
 
-    def generate_signal(self, symbol: str) -> SignalResult:
-        """对单只股票生成信号包裹"""
+    def _generate_signal_internal(self, symbol: str) -> SignalResult:
+        """
+        内部信号生成方法（不含缓存逻辑，供批量调用）
+        """
         category = STOCK_CATEGORY.get(symbol, "large_tech")
 
         # 拉历史数据 + 计算指标
@@ -183,6 +227,18 @@ class SignalService:
         stop_pct = params.get("stop_pct", -7)
         target_pct = params.get("target_pct", 25)
         wf_robust = params.get("wf_robust", True)
+
+        # B+D方案：ATR动态止损（2×ATR，14日周期）
+        atr14 = snap.get("atr14", 0)
+        close_price = snap.get("close", 0)
+        if atr14 > 0 and close_price > 0:
+            atr_stop_pct = -round(atr14 * 2 / close_price * 100, 1)  # 2×ATR作为止损
+            # 取ATR止损和固定止损中更保守（更负）的一个
+            stop_pct = min(stop_pct, atr_stop_pct)
+
+        # B+D方案：多模型仓位计算参数
+        sizing_model = params.get("sizing_model", "KELLY_HALF")
+        sizing_params = self._build_sizing_params(params, snap, kelly_limit)
 
         # WF过拟合股票：BUY信号附加警告
         if action == "BUY" and not wf_robust:
@@ -225,6 +281,18 @@ class SignalService:
 
         summary = self._build_summary(action, confidence, triggers, conflicts)
 
+        # B+D方案：构建TradeInstruction
+        instruction = self._build_trade_instruction(
+            symbol=symbol,
+            action=action,
+            sizing_model=sizing_model,
+            sizing_params=sizing_params,
+            stop_pct=stop_pct,
+            target_pct=target_pct,
+            snap=snap,
+            backtest_ref=backtest_ref,
+        )
+
         return SignalResult(
             symbol=symbol,
             name=name,
@@ -242,7 +310,34 @@ class SignalService:
             stop_loss_pct=float(stop_pct),
             target_pct_1=float(target_pct),
             backtest_ref=backtest_ref,
+            instruction=instruction,
         )
+
+    def generate_signal(self, symbol: str, use_cache: bool = True) -> SignalResult:
+        """
+        对单只股票生成信号包裹
+
+        Args:
+            symbol: 股票代码
+            use_cache: 是否使用缓存（默认True），设为False强制重新计算
+        """
+        # 检查缓存
+        if use_cache:
+            cache = get_signal_cache()
+            cached_result = cache.get(symbol)
+            if cached_result is not None:
+                logger.debug(f"信号缓存命中: {symbol}")
+                return cached_result
+
+        # 生成信号
+        result = self._generate_signal_internal(symbol)
+
+        # 保存到缓存
+        if use_cache:
+            cache = get_signal_cache()
+            cache.set(symbol, result)
+
+        return result
 
     def generate_all_signals(self) -> list[SignalResult]:
         """对所有已知股票生成信号"""
@@ -255,23 +350,89 @@ class SignalService:
                 logger.error(f"生成信号失败 {symbol}: {e}")
         return results
 
-    def generate_portfolio_signals(self) -> list[SignalResult]:
-        """只对持仓中的股票生成信号"""
+    def generate_portfolio_signals(self, use_cache: bool = True) -> list[SignalResult]:
+        """
+        只对持仓中的股票生成信号（B+D方案：按EV排序）
+
+        Args:
+            use_cache: 是否使用缓存（默认True），设为False强制重新计算
+        """
         positions = self.position_svc.get_all_positions()
         symbols_in_portfolio = {p.stock_symbol for p in positions}
         symbols = [s for s in STOCK_CATEGORY if s in symbols_in_portfolio]
+
+        if not symbols:
+            return []
 
         # 预热市场环境缓存（每个市场只拉一次指数数据）
         for market in {s.split(":")[0] for s in symbols}:
             self._check_market_env(market)
 
         results = []
-        for symbol in symbols:
+        symbols_to_generate = []
+
+        if use_cache:
+            # 批量检查缓存
+            cache = get_signal_cache()
+            cached_results = cache.get_portfolio_cache(symbols)
+
+            for symbol in symbols:
+                if symbol in cached_results:
+                    results.append(cached_results[symbol])
+                    logger.debug(f"批量缓存命中: {symbol}")
+                else:
+                    symbols_to_generate.append(symbol)
+        else:
+            symbols_to_generate = symbols
+
+        # 生成未缓存的信号
+        new_results = []
+        for symbol in symbols_to_generate:
             try:
-                results.append(self.generate_signal(symbol))
+                result = self._generate_signal_internal(symbol)
+                new_results.append(result)
+                results.append(result)
             except Exception as e:
                 logger.error(f"生成信号失败 {symbol}: {e}")
+
+        # 批量保存新结果到缓存
+        if use_cache and new_results:
+            cache = get_signal_cache()
+            cache.set_portfolio_cache(new_results)
+            logger.info(f"批量缓存已保存: {len(new_results)} 个信号")
+
+        # B+D方案：多信号按EV排序（高EV优先）
+        results = self._sort_by_ev_priority(results)
         return results
+
+    def _sort_by_ev_priority(self, results: list[SignalResult]) -> list[SignalResult]:
+        """
+        B+D方案：多信号排序
+        权重：EV(40%) + Kelly(30%) + 信心度(20%) + 市场环境(10%)
+        BUY信号优先于WATCH/HOLD
+        """
+        def priority_key(r: SignalResult) -> tuple:
+            # BUY信号优先
+            is_buy = 1 if r.action == "BUY" else 0
+
+            # 计算优先级得分
+            ev = r.backtest_ref.get("ev_pct", 0) if r.backtest_ref else 0
+            kelly = r.backtest_ref.get("kelly_pct", 0) if r.backtest_ref else 0
+
+            # 信心度映射
+            conf_map = {"HIGH": 1.0, "MEDIUM": 0.6, "LOW": 0.3}
+            conf_score = conf_map.get(r.confidence, 0.5)
+
+            # 市场环境映射
+            env_map = {"BULL": 1.0, "NEUTRAL": 0.7, "BEAR": 0.4}
+            env_score = env_map.get(r.market_env, 0.7)
+
+            # 加权得分
+            score = (ev * 0.4) + (kelly * 0.3) + (conf_score * 20 * 0.2) + (env_score * 10 * 0.1)
+
+            return (is_buy, score)
+
+        return sorted(results, key=priority_key, reverse=True)
 
     # ─────────────────────────────────────────────────────
     # 各类别信号逻辑
@@ -831,4 +992,187 @@ class SignalService:
             stop_loss_pct=None,
             target_pct_1=None,
             backtest_ref=None,
+            instruction=None,
         )
+
+    # ─────────────────────────────────────────────────────
+    # B+D方案：多模型仓位计算与TradeInstruction构建
+    # ─────────────────────────────────────────────────────
+
+    def _build_sizing_params(self, params: dict, snap: dict, kelly_limit: float) -> dict:
+        """
+        构建多模型仓位参数
+        支持：KELLY_HALF / FIXED_RISK / VOLATILITY_ADJUSTED
+        """
+        atr14 = snap.get("atr14", 0)
+        close_price = snap.get("close", 0)
+
+        sizing_params = {
+            "kelly_pct": kelly_limit,
+            "atr14": atr14,
+            "close": close_price,
+        }
+
+        # FIXED_RISK模型参数：固定风险金额 / ATR
+        if atr14 > 0:
+            # 假设账户100万，每笔风险1% = 1万，仓位 = 1万 / (2×ATR)
+            fixed_risk_amount = 10000  # 固定风险金额1万
+            risk_per_share = atr14 * 2  # 2×ATR作为每股风险
+            fixed_risk_shares = int(fixed_risk_amount / risk_per_share)
+            sizing_params["fixed_risk_shares"] = fixed_risk_shares
+            sizing_params["risk_per_share"] = risk_per_share
+
+        # VOLATILITY_ADJUSTED模型参数：波动率越高，仓位越低
+        if close_price > 0 and atr14 > 0:
+            atr_pct = atr14 / close_price
+            # 基准波动率5%，仓位与波动率成反比
+            vol_factor = max(0.3, min(1.0, 0.05 / atr_pct))
+            sizing_params["volatility_factor"] = round(vol_factor, 2)
+            sizing_params["vol_adjusted_pct"] = round(kelly_limit * vol_factor, 1)
+
+        return sizing_params
+
+    def _build_trade_instruction(
+        self,
+        symbol: str,
+        action: str,
+        sizing_model: str,
+        sizing_params: dict,
+        stop_pct: float,
+        target_pct: float,
+        snap: dict,
+        backtest_ref: dict,
+    ) -> Optional[TradeInstruction]:
+        """
+        构建完整交易指令（B+D方案核心扩展接口）
+        当前阶段实现：分批建仓 + ATR止损 + 多模型参数 + 具体股数计算
+        未来阶段扩展：条件表达式解析
+        """
+        if action not in ("BUY", "SELL"):
+            return None
+
+        # 计算优先级得分（用于多信号排序）
+        ev = backtest_ref.get("ev_pct", 0) if backtest_ref else 0
+        kelly = backtest_ref.get("kelly_pct", 0) if backtest_ref else 0
+        priority_score = ev * 0.4 + kelly * 0.3
+
+        # 入场条件（当前硬编码，未来扩展为表达式）
+        category = STOCK_CATEGORY.get(symbol, "large_tech")
+        entry_conditions = {
+            "large_tech": "ema_cross_up AND adx > 25",
+            "cyclical": "rsi14 < 40 AND close <= bb_lower",
+            "defensive": "close <= bb_lower * 1.015 AND rsi14 < 45",
+            "biotech": "rsi14 < 30",
+        }
+
+        # 止损条件：使用ATR动态止损
+        atr14 = snap.get("atr14", 0)
+        stop_condition = f"fixed_stop_{stop_pct}%"
+        if atr14 > 0:
+            stop_condition = f"atr_based_2x_atr14"
+
+        # 获取最新价格
+        close_price = snap.get("close", 0)
+
+        # 计算建议买入股数
+        recommended_shares = 0
+        recommended_shares_second = 0
+        position_value = 0.0
+
+        if action == "BUY" and close_price > 0:
+            recommended_shares, recommended_shares_second, position_value = self._calculate_shares(
+                symbol=symbol,
+                sizing_model=sizing_model,
+                sizing_params=sizing_params,
+                close_price=close_price,
+            )
+
+        instruction = TradeInstruction(
+            entry_condition=entry_conditions.get(category, ""),
+            entry_type="MARKET" if action == "BUY" else "MARKET",
+            sizing_model=sizing_model,
+            sizing_params=sizing_params,
+            stop_condition=stop_condition,
+            profit_conditions=[
+                {"condition": f"target_{target_pct}%", "pct": 100}
+            ],
+            execution_style="BATCH" if action == "BUY" else "SINGLE",  # 分批建仓
+            time_limit_days=3,
+            priority_score=round(priority_score, 2),
+            # 具体交易建议
+            recommended_shares=recommended_shares,
+            recommended_shares_second=recommended_shares_second,
+            entry_price_reference=round(close_price, 2) if close_price else 0.0,
+            position_value_estimated=round(position_value, 2),
+        )
+
+        return instruction
+
+    def _calculate_shares(
+        self,
+        symbol: str,
+        sizing_model: str,
+        sizing_params: dict,
+        close_price: float,
+    ) -> tuple[int, int, float]:
+        """
+        计算建议买入股数
+
+        返回: (第一批股数, 第二批股数, 预计占用资金)
+        """
+        try:
+            # 获取当前仓位上下文
+            pos_ctx = self._build_position_context(symbol)
+
+            # 可用波段空间（%）
+            if pos_ctx:
+                # 有持仓：按剩余可用空间计算
+                available_pct = pos_ctx.get("available_swing_pct", 0)
+            else:
+                # 无持仓：按完整 Kelly 上限计算
+                available_pct = sizing_params.get("kelly_pct", 0)
+
+            if available_pct <= 0:
+                return 0, 0, 0.0
+
+            # 获取总资产（本市场）
+            portfolio = self.position_svc.get_portfolio_summary()
+            market = symbol.split(":")[0]
+            market_data = portfolio.get("markets", {}).get(market, {})
+            total_assets = market_data.get("total_with_cash", 0)
+
+            if total_assets <= 0:
+                return 0, 0, 0.0
+
+            # 可用资金金额
+            available_amount = total_assets * available_pct / 100
+
+            # 根据仓位模型调整
+            if sizing_model == "FIXED_RISK":
+                # 固定风险模型：直接使用预计算股数
+                shares = sizing_params.get("fixed_risk_shares", 0)
+            elif sizing_model == "VOLATILITY_ADJUSTED":
+                # 波动率调整：Kelly * 波动率因子
+                vol_factor = sizing_params.get("volatility_factor", 0.7)
+                adjusted_amount = available_amount * vol_factor
+                shares = int(adjusted_amount / close_price)
+            else:
+                # 默认 KELLY_HALF：可用空间的一半作为第一批
+                # B+D方案：分两批，第一批用可用空间的50%
+                first_batch_amount = available_amount * 0.5
+                shares = int(first_batch_amount / close_price)
+
+            if shares <= 0:
+                return 0, 0, 0.0
+
+            # 第二批股数（B+D方案：与第一批相同，等待回调或确认后买入）
+            shares_second = shares
+
+            # 预计占用资金（两批合计）
+            total_value = (shares + shares_second) * close_price
+
+            return shares, shares_second, total_value
+
+        except Exception as e:
+            logger.warning(f"计算建议股数失败 {symbol}: {e}")
+            return 0, 0, 0.0

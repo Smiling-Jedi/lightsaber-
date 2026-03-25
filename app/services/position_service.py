@@ -391,16 +391,23 @@ class PositionService:
                 market_summary[market]["positive_cost"] += cost
             total_cost += cost
 
-        # 注入现金余额
-        # FUND = 活期基金港元合计，USD_FUND = 用户手动提供的美元基金金额
-        fund_assets_hkd = Decimal("0")
-        usd_fund_usd = Decimal("0")
+        # 注入现金余额和基金余额
+        # HKD_FUND = 港元基金（由港股交易自动更新）
+        # USD_FUND = 美元基金（由美股交易自动更新）
+        # FUND = 富途API返回的合计值，仅用于核对展示
+        hkd_fund = Decimal("0")
+        usd_fund = Decimal("0")
+        fund_assets_hkd = Decimal("0")  # 富途API合计，用于返回给前端展示
+
         for market, cb in cash_map.items():
-            if market == "FUND":
-                fund_assets_hkd = Decimal(str(cb.amount))
+            if market == "HKD_FUND":
+                hkd_fund = Decimal(str(cb.amount))
                 continue
             if market == "USD_FUND":
-                usd_fund_usd = Decimal(str(cb.amount))
+                usd_fund = Decimal(str(cb.amount))
+                continue
+            if market == "FUND":
+                fund_assets_hkd = Decimal(str(cb.amount))
                 continue
             if market not in market_summary:
                 currency_map = {"HK": "HKD", "US": "USD", "A": "CNY"}
@@ -415,13 +422,7 @@ class PositionService:
                 }
             market_summary[market]["cash"] = Decimal(str(cb.amount))
 
-        # 拆分基金：美元基金归 US，剩余归 HK
-        hkd_rate = exchange_rates.get("HKD", Decimal("1.0"))
-        usd_rate = exchange_rates.get("USD", Decimal("1.0"))
-        usdhkd = usd_rate / hkd_rate if hkd_rate > 0 else Decimal("7.83")
-        usd_fund_hkd = usd_fund_usd * usdhkd
-        hkd_fund = max(fund_assets_hkd - usd_fund_hkd, Decimal("0"))
-
+        # 确保HK和US市场都有初始化
         for mkt in ["HK", "US"]:
             if mkt not in market_summary:
                 market_summary[mkt] = {
@@ -430,8 +431,10 @@ class PositionService:
                     "fund_hkd": Decimal("0"), "fund_usd": Decimal("0"),
                     "currency": "HKD" if mkt == "HK" else "USD",
                 }
+
+        # 设置各市场的基金余额
         market_summary["HK"]["fund_hkd"] = hkd_fund
-        market_summary["US"]["fund_usd"] = usd_fund_usd
+        market_summary["US"]["fund_usd"] = usd_fund
 
         # 每个市场的 total_with_cash = 股票市值 + 现金 + 基金（各市场独立货币）
         for market, data in market_summary.items():
@@ -487,6 +490,23 @@ class PositionService:
             data["fund_usd"] = float(data.get("fund_usd", 0))
             data["total_with_cash"] = float(data["total_with_cash"])
 
+            # 计算该市场的股票仓位占比和现金仓位占比（现金包含基金）
+            total_with_cash = data["total_with_cash"]
+            stock_value = data["total_market_value"]
+            # 现金仓位 = 普通现金 + 基金
+            if market == "HK":
+                cash_value = data["cash"] + data.get("fund_hkd", 0)
+            elif market == "US":
+                cash_value = data["cash"] + data.get("fund_usd", 0)
+            else:
+                cash_value = data["cash"]
+            if total_with_cash > 0:
+                data["stock_position_pct"] = float(stock_value / total_with_cash * 100)
+                data["cash_position_pct"] = float(cash_value / total_with_cash * 100)
+            else:
+                data["stock_position_pct"] = 0.0
+                data["cash_position_pct"] = 0.0
+
         # 持仓盈亏（换算为人民币）
         total_profit_rmb = Decimal("0")
         total_cost_rmb = Decimal("0")
@@ -528,7 +548,7 @@ class PositionService:
                     "position_weight": cash_weight,
                 }
 
-        # 各市场内按仓位占比降序排列
+        # 各市场内按仓位占比降序排列（信号排序在路由层处理以避免循环导入）
         for market, data in market_summary.items():
             data["positions"].sort(key=lambda p: p.get("position_weight") or 0, reverse=True)
 

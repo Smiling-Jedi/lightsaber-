@@ -90,9 +90,35 @@ def get_portfolio_summary(request: Request, db: Session = Depends(get_db)) -> Di
     获取投资组合汇总
     """
     if is_demo_mode(request):
-        return get_demo_portfolio()
+        portfolio = get_demo_portfolio()
+        portfolio["cash_breakdown"] = {
+            "HK_FUND": 200000,
+            "HK_CASH": 50000,
+            "USD_FUND": 100000,
+            "USD_CASH": 20000,
+            "CNY": 100000
+        }
+        return portfolio
+
     position_service = PositionService(db)
-    return position_service.get_portfolio_summary()
+    portfolio = position_service.get_portfolio_summary()
+
+    # 添加现金明细
+    cash_breakdown = {}
+    for cb in db.query(CashBalance).all():
+        if cb.market == "FUND":
+            cash_breakdown["HK_FUND"] = cash_breakdown.get("HK_FUND", 0) + float(cb.amount)
+        elif cb.market == "USD_FUND":
+            cash_breakdown["USD_FUND"] = cash_breakdown.get("USD_FUND", 0) + float(cb.amount)
+        elif cb.currency == "HKD":
+            cash_breakdown["HK_CASH"] = cash_breakdown.get("HK_CASH", 0) + float(cb.amount)
+        elif cb.currency == "USD":
+            cash_breakdown["USD_CASH"] = cash_breakdown.get("USD_CASH", 0) + float(cb.amount)
+        elif cb.currency == "CNY":
+            cash_breakdown["CNY"] = cash_breakdown.get("CNY", 0) + float(cb.amount)
+
+    portfolio["cash_breakdown"] = cash_breakdown
+    return portfolio
 
 
 @router.get("/portfolio/advice")
@@ -132,14 +158,17 @@ def check_position_risk(symbol: str, db: Session = Depends(get_db)) -> Dict:
 
 
 @router.get("/signals/portfolio")
-def get_portfolio_signals(request: Request, db: Session = Depends(get_db)) -> Dict:
+def get_portfolio_signals(request: Request, refresh: bool = False, db: Session = Depends(get_db)) -> Dict:
     """
     对所有持仓股生成趋势信号（分类指标体系）
+
+    Args:
+        refresh: 是否强制刷新缓存（默认False），设为True强制重新计算
     """
     if is_demo_mode(request):
         return get_demo_signals()
     signal_service = SignalService(db)
-    results = signal_service.generate_portfolio_signals()
+    results = signal_service.generate_portfolio_signals(use_cache=not refresh)
     return {
         "count": len(results),
         "signals": [_format_signal(r) for r in results],
@@ -176,23 +205,34 @@ def get_signal(symbol: str, db: Session = Depends(get_db)) -> Dict:
 
 def _format_signal(r) -> dict:
     from dataclasses import asdict
-    return asdict(r)
+    result = asdict(r)
+    # 处理TradeInstruction中的嵌套dataclass
+    if r.instruction:
+        result['instruction'] = asdict(r.instruction)
+    return result
 
 
 # ── 信号日志 ──────────────────────────────────────────────
 
 @router.post("/signals/save")
 def save_portfolio_signals(db: Session = Depends(get_db)) -> Dict:
-    """生成信号并将 BUY/SELL 自动保存到日志"""
+    """生成信号并将 BUY/SELL 自动保存到日志（真实 + 模拟并行）"""
     signal_svc = SignalService(db)
     log_svc = SignalLogService(db)
     results = signal_svc.generate_portfolio_signals()
     saved = []
+    saved_sim = []
     for r in results:
+        # 真实信号
         log = log_svc.save_signal(r)
         if log:
             saved.append({"id": log.id, "symbol": log.symbol, "action": log.action})
-    return {"saved": len(saved), "records": saved}
+        # 模拟信号（并行触发，自动入场）
+        if r.action in ("BUY", "SELL"):
+            log_sim = log_svc.save_signal_simulated(r)
+            if log_sim:
+                saved_sim.append({"id": log_sim.id, "symbol": log_sim.symbol, "action": log_sim.action})
+    return {"saved": len(saved), "records": saved, "simulated": len(saved_sim), "sim_records": saved_sim}
 
 
 @router.get("/signal-logs/pending")
@@ -405,6 +445,12 @@ def get_positions_compare(symbol: str, request: Request, db: Session = Depends(g
             "pnl_pct":          round(pnl_pct_sim, 1),
             "initial_shares":   sim_pos.initial_shares,
             "initial_avg_cost": sim_pos.initial_avg_cost,
+            # B+D方案：分批建仓字段
+            "batch_status":     sim_pos.batch_status or "IDLE",
+            "first_batch_shares": sim_pos.first_batch_shares or 0,
+            "first_batch_price": sim_pos.first_batch_price,
+            "first_batch_date": sim_pos.first_batch_date.isoformat() if sim_pos.first_batch_date else None,
+            "second_batch_pending": sim_pos.second_batch_pending or 0,
         }
 
     # 现金
@@ -435,3 +481,32 @@ def get_exchange_rate(from_currency: str, db: Session = Depends(get_db)) -> Dict
         "to": "CNY",
         "rate": float(rate)
     }
+
+
+@router.post("/signals/clear-cache")
+def clear_signal_cache(symbol: str = None, db: Session = Depends(get_db)) -> Dict:
+    """
+    清除信号缓存
+
+    Args:
+        symbol: 指定股票代码，None表示清除所有缓存
+    """
+    from app.services.signal_cache_service import get_signal_cache
+    cache = get_signal_cache()
+    cache.clear(symbol)
+    return {"success": True, "message": f"缓存已清除: {symbol or '全部'}"}
+def refresh_report(db: Session = Depends(get_db)) -> Dict:
+    """
+    刷新持仓体检报告（重新计算所有指标）
+    """
+    try:
+        analysis_service = AnalysisService(db)
+        report = analysis_service.generate_health_check_report()
+        return {
+            "success": True,
+            "generated_at": report.get("generated_at"),
+            "health_score": report.get("summary", {}).get("health_score"),
+            "total_assets": report.get("summary", {}).get("total_assets")
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
