@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from app.core.database import SessionLocal, init_db
 from app.services.position_service import PositionService
 
-CSV_FILE = "/Users/jediyang/Claude Code/项目1-随便玩玩/港:美股持仓-20260319-231320.csv"
+CSV_FILE = "/Users/jediyang/ClaudeCode/Project-Makemoney/港:美股持仓-20260319-231320.csv"
 
 
 def main():

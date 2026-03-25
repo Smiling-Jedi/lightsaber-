@@ -4,6 +4,7 @@
 从富途 OpenD 实时拉取持仓 + 快照，自动同步到本地 DB。
 - 股票基本信息 (Stock)：自动创建/更新
 - 持仓数据 (Position)：自动创建/更新 qty、cost_price、当前价
+- 交易流水 (Trade)：从周一开始的成交明细
 - 现金余额 (CashBalance)：按市场同步富途账户现金
 - base_shares（底仓）：首次创建时默认=总股数；已有记录不覆盖，保留用户手动设置
 - 不在富途持仓里的本地记录：不删除（可能是已平仓记录，保留做历史）
@@ -12,7 +13,7 @@
 """
 import logging
 import socket
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from decimal import Decimal
 from typing import Dict, List, Tuple
 
@@ -21,6 +22,7 @@ from sqlalchemy.orm import Session
 from app.models.stock import Stock
 from app.models.position import Position
 from app.models.cash import CashBalance
+from app.models.trade import Trade
 
 logger = logging.getLogger(__name__)
 
@@ -85,11 +87,17 @@ class FutuSyncService:
 
         self.db.commit()
         logger.info(f"富途持仓同步完成: synced={synced}, created={created}, errors={len(errors)}")
+
+        # 同步交易流水（从周一开始）
+        trades_synced, trades_created = self._sync_trades()
+
         return {
             "synced": synced,
             "created": created,
             "errors": errors,
             "market_funds": {k: v.get("total_assets", 0) for k, v in market_funds.items()},
+            "trades_synced": trades_synced,
+            "trades_created": trades_created,
         }
 
     # ─────────────────────────────────────────────────────
@@ -312,3 +320,211 @@ class FutuSyncService:
 
         self.db.flush()
         return is_new
+
+    def _sync_trades(self) -> tuple:
+        """
+        从富途拉取交易流水（从周一开始），同步到 trades 表。
+        deal_list_query 支持不传 code 获取全部成交记录。
+        返回 (synced_count, created_count)
+        """
+        from futu import OpenSecTradeContext, TrdEnv, TrdMarket, SecurityFirm, RET_OK
+
+        # 从周一开始（本周一）
+        today = date.today()
+        monday = today - timedelta(days=today.weekday())
+
+        synced, created = 0, 0
+
+        # 先尝试 FUTUINC（数据更全），再尝试 FUTUSECURITIES
+        market_configs = [
+            (TrdMarket.HK, SecurityFirm.FUTUINC),
+            (TrdMarket.US, SecurityFirm.FUTUINC),
+            (TrdMarket.HK, SecurityFirm.FUTUSECURITIES),
+            (TrdMarket.US, SecurityFirm.FUTUSECURITIES),
+        ]
+
+        processed_deal_ids = set()  # 去重
+
+        for trd_market, firm in market_configs:
+            try:
+                ctx = OpenSecTradeContext(
+                    filter_trdmarket=trd_market,
+                    host='127.0.0.1', port=11111,
+                    security_firm=firm,
+                )
+                try:
+                    # 不传 code 参数，获取所有成交记录
+                    ret, data = ctx.deal_list_query(trd_env=TrdEnv.REAL)
+                    if data is not None and not data.empty:
+                        logger.info(f"交易流水查询 [{trd_market}/{firm}]: 返回 {len(data)} 条")
+                        for _, row in data.iterrows():
+                            # 使用 create_time 字段（trd_time 通常为 None）
+                            create_time = row.get("create_time", "")
+                            if not create_time:
+                                continue
+
+                            try:
+                                # 处理格式: 2026-03-23 12:54:16.811
+                                time_str = str(create_time).split('.')[0]  # 去掉毫秒
+                                trade_datetime = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
+                                if trade_datetime.date() < monday:
+                                    continue  # 跳过周一之前的记录
+                            except Exception as e:
+                                logger.debug(f"时间解析失败: {create_time}, {e}")
+                                continue
+
+                            # 去重检查
+                            deal_id = str(row.get("deal_id", ""))
+                            if deal_id in processed_deal_ids:
+                                continue
+                            processed_deal_ids.add(deal_id)
+
+                            if self._upsert_trade(row, trade_datetime.date()):
+                                created += 1
+                            else:
+                                synced += 1
+                finally:
+                    ctx.close()
+            except Exception as e:
+                logger.warning(f"交易流水查询失败 [{trd_market}/{firm}]: {e}")
+
+        self.db.commit()
+        logger.info(f"交易流水同步完成: synced={synced}, created={created}")
+        return synced, created
+
+    def _upsert_trade(self, row, trade_date: date) -> bool:
+        """
+        将单条成交记录写入 trades 表。
+        返回 True 表示新建，False 表示已存在跳过。
+        """
+        # 富途订单ID（幂等去重）
+        deal_id = str(row.get("deal_id", ""))
+        if not deal_id:
+            deal_id = f"{row.get('order_id')}_{row.get('create_time')}"
+
+        # 检查是否已存在
+        existing = self.db.query(Trade).filter_by(futu_order_id=deal_id).first()
+        if existing:
+            return False  # 已存在，跳过
+
+        # 解析交易方向
+        trd_side = row.get("trd_side", "")
+        # BUY / SELL / SELL_SHORT / BUY_BACK 等
+        if "BUY" in trd_side:
+            trade_type = "BUY"
+        elif "SELL" in trd_side:
+            trade_type = "SELL"
+        else:
+            trade_type = trd_side
+
+        # 从 code 获取 symbol (e.g., "HK.00700" -> "HK:00700")
+        futu_code = row.get("code", "")
+        symbol = futu_code.replace(".", ":", 1) if "." in futu_code else futu_code
+
+        # 查找对应的 position
+        position = self.db.query(Position).filter_by(stock_symbol=symbol).first()
+        position_id = position.id if position else None
+
+        # 交易费用字段可能不存在，需要安全获取
+        try:
+            commission = float(row.get("commission", 0) or 0)
+        except (TypeError, ValueError):
+            commission = 0
+        try:
+            stamp_duty = float(row.get("stamp_duty", 0) or 0)
+        except (TypeError, ValueError):
+            stamp_duty = 0
+        try:
+            platform_fee = float(row.get("platform_fee", 0) or 0)
+        except (TypeError, ValueError):
+            platform_fee = 0
+
+        trading_cost = Decimal(str(commission + stamp_duty + platform_fee))
+
+        trade = Trade(
+            position_id=position_id,
+            trade_type=trade_type,
+            shares=int(row.get("qty", 0)),
+            price=Decimal(str(round(float(row.get("price", 0)), 4))),
+            trading_cost=trading_cost,
+            futu_order_id=deal_id,
+            trade_date=trade_date,
+        )
+
+        self.db.add(trade)
+
+        # 根据交易自动更新对应的基金金额
+        self._update_fund_from_trade(row, trade_type)
+
+        return True
+
+    def _update_fund_from_trade(self, row, trade_type: str):
+        """
+        根据交易自动反推基金变动。
+
+        逻辑：
+        - 港股SELL：资金进入港元基金 → HKD_FUND增加
+        - 港股BUY：资金从港元基金流出 → HKD_FUND减少
+        - 美股SELL：资金进入美元基金 → USD_FUND增加
+        - 美股BUY：资金从美元基金流出 → USD_FUND减少
+        """
+        futu_code = str(row.get("code", ""))
+        market_prefix = futu_code.split(".")[0] if "." in futu_code else ""
+
+        if market_prefix not in ["HK", "US"]:
+            return  # 只处理港股和美股
+
+        try:
+            qty = float(row.get("qty", 0))
+            price = float(row.get("price", 0))
+            commission = float(row.get("commission", 0) or 0)
+            stamp_duty = float(row.get("stamp_duty", 0) or 0)
+            platform_fee = float(row.get("platform_fee", 0) or 0)
+
+            # 成交金额
+            trade_amount = qty * price
+            # 交易费用
+            fees = commission + stamp_duty + platform_fee
+
+            if "SELL" in trade_type:
+                # 卖出：资金进入基金（扣除费用后的净收入）
+                change = trade_amount - fees
+            elif "BUY" in trade_type:
+                # 买入：资金从基金流出（加上费用的总支出）
+                change = -(trade_amount + fees)
+            else:
+                return  # 其他类型不处理
+
+            if market_prefix == "HK":
+                # 更新港元基金
+                self._update_fund_balance("HKD_FUND", "HKD", change)
+            elif market_prefix == "US":
+                # 更新美元基金
+                self._update_fund_balance("USD_FUND", "USD", change)
+
+        except Exception as e:
+            logger.warning(f"基金更新失败 ({futu_code}): {e}")
+
+    def _update_fund_balance(self, market_key: str, currency: str, change: float):
+        """
+        更新指定币种的基金余额。
+
+        Args:
+            market_key: "HKD_FUND" 或 "USD_FUND"
+            currency: "HKD" 或 "USD"
+            change: 变动金额（正数为增加，负数为减少）
+        """
+        cb = self.db.get(CashBalance, market_key)
+        if cb:
+            current = Decimal(str(cb.amount))
+            new_amount = current + Decimal(str(change))
+            # 不允许为负
+            cb.amount = new_amount if new_amount > 0 else Decimal("0")
+            cb.updated_at = datetime.now()
+            logger.info(f"{market_key} 更新: {current:.2f} + ({change:.2f}) = {cb.amount:.2f} {currency}")
+        else:
+            # 首次创建（仅在卖出时，买入时设为0）
+            initial = Decimal(str(change)) if change > 0 else Decimal("0")
+            cb_new = CashBalance(market=market_key, currency=currency, amount=initial)
+            self.db.add(cb_new)
+            logger.info(f"{market_key} 初始化: {initial:.2f} {currency}")

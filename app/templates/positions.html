@@ -299,7 +299,7 @@
         </div>
         <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
           <div style="font-size:11px;color:#7c76a6;margin-bottom:4px;">现金余额</div>
-          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ "{:,.0f}".format(data.cash|default(0)) }}</div>
+          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ "{:,.0f}".format(data.cash + data.fund_hkd|default(0)) }}</div>
           <div style="font-size:12px;color:#a5b4fc;margin-top:2px;">{{ "%.0f"|format(data.cash_position_pct|default(0)) }}%</div>
         </div>
         <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
@@ -341,9 +341,9 @@
                   style="{% if pos.profit_pct >= 0 %}color:#d93025{% else %}color:#188038{% endif %}">
               {{ "+%.1f"|format(pos.profit_pct) if pos.profit_pct >= 0 else "−%.1f"|format(pos.profit_pct|abs) }}%
             </span>
-            {% if pos.profit is not none %}
+            {% if pos.profit_rmb is not none %}
             <span class="ls-pos-pnl-sub">
-              {% if pos.profit >= 0 %}+{% else %}−{% endif %}{{ pos.currency }} {{ "%.0f"|format(pos.profit|abs) }}
+              {% if pos.profit_rmb >= 0 %}+{% else %}−{% endif %}CNY {{ "%.0f"|format(pos.profit_rmb|abs) }}
             </span>
             {% endif %}
             {% endif %}
@@ -356,18 +356,17 @@
         <!-- Col 2: 价格 + 原力信号 -->
         <div class="ls-col-signal">
           {% if pos.current_price %}
-          <div class="ls-price-main {% if pos.profit_pct is not none and pos.profit_pct >= 0 %}ls-profit-color{% else %}ls-loss-color{% endif %}">
+          <div class="ls-price-main {% if pos.price_change_pct is defined and pos.price_change_pct is not none and pos.price_change_pct >= 0 %}ls-profit-color{% else %}ls-loss-color{% endif %}">
             {{ pos.currency }} {{ "%.2f"|format(pos.current_price) }}
           </div>
           <div class="ls-price-detail">
-            市值 {{ pos.currency }} {{ "%.0f"|format(pos.market_value) }}
-            {% if pos.today_profit_amount is defined and pos.today_profit_amount is not none %}
-            &nbsp;|&nbsp; 今日盈亏 {{ "+%.0f"|format(pos.today_profit_amount) if pos.today_profit_amount >= 0 else "%.0f"|format(pos.today_profit_amount) }}
+            市值 CNY {{ "%.0f"|format(pos.market_value_rmb|default(0)) }}
+            {% if pos.today_profit_rmb is defined and pos.today_profit_rmb is not none %}
+            &nbsp;|&nbsp; 今日盈亏 {{ "+%.0f"|format(pos.today_profit_rmb) if pos.today_profit_rmb >= 0 else "%.0f"|format(pos.today_profit_rmb) }}
             {% endif %}
             {% if pos.price_change_pct is defined and pos.price_change_pct is not none %}
             <span style="color:#9aa0a6">({{ "+%.1f"|format(pos.price_change_pct) if pos.price_change_pct >= 0 else "%.1f"|format(pos.price_change_pct) }}%)</span>
             {% endif %}
-            &nbsp;|&nbsp; 累积盈亏 {{ "+%.0f"|format(pos.profit) if pos.profit >= 0 else "%.0f"|format(pos.profit) }}
           </div>
           {% else %}
           <div class="ls-price-main" style="color:#9aa0a6;font-size:17px;margin-bottom:14px">暂无股价数据</div>

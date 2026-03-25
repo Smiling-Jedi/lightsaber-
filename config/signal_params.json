@@ -1,5 +1,6 @@
 {
   "_comment": "原力模块信号参数配置，基于2026-03-20回测结论。kelly_pct为半Kelly再打折后的实用仓位上限。credibility: HIGH=⭐⭐⭐/MEDIUM=⭐⭐/LOW=⭐",
+  "_comment_sizing": "B+D方案：新增仓位模型配置。sizing_model支持KELLY_HALF/FIXED_RISK/VOLATILITY_ADJUSTED",
   "stocks": {
     "HK:00700": {
       "kelly_pct": 10,
@@ -8,6 +9,7 @@
       "hold_months": 12,
       "wf_robust": true,
       "credibility": "HIGH",
+      "sizing_model": "KELLY_HALF",
       "note": "腾讯，EMA金叉"
     },
     "HK:09988": {
@@ -125,7 +127,8 @@
       "hold_months": 3,
       "wf_robust": true,
       "credibility": "HIGH",
-      "note": "英伟达，EMA金叉"
+      "sizing_model": "VOLATILITY_ADJUSTED",
+      "note": "英伟达，EMA金叉（高波动用波动率调整仓位）"
     },
     "US:TSLA": {
       "kelly_pct": 6,
@@ -161,7 +164,8 @@
       "hold_months": 3,
       "wf_robust": true,
       "credibility": "MEDIUM",
-      "note": "Rocket Lab，EMA金叉"
+      "sizing_model": "FIXED_RISK",
+      "note": "Rocket Lab，EMA金叉（高波动用固定风险模型）"
     },
     "US:CRCL": {
       "kelly_pct": 0,

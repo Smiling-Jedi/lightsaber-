@@ -165,6 +165,35 @@ body { background: #eceaf8 !important; }
   </div>
 </div>
 
+<!-- 最新信号（B+D方案：完整交易指令展示） -->
+<div class="ls-card mb-4" id="signalCard" style="display:none;">
+  <div class="ls-card-header">⚡ 最新信号 <span class="small" style="color:#9aa0a6;font-weight:400;">(<span id="signalDate">—</span>)</span></div>
+  <div class="p-3">
+    <div class="row g-3">
+      <!-- 信号结论 -->
+      <div class="col-md-3">
+        <div id="signalAction" class="text-center py-2 rounded" style="font-size:1.5rem;font-weight:700;">—</div>
+        <div id="signalConfidence" class="text-center mt-1 small text-muted">—</div>
+      </div>
+      <!-- 交易建议 -->
+      <div class="col-md-5">
+        <div class="section-title">交易建议</div>
+        <div id="signalInstruction" class="small">加载中...</div>
+      </div>
+      <!-- 回测参考 -->
+      <div class="col-md-4">
+        <div class="section-title">回测参考</div>
+        <div id="signalBacktest" class="small text-muted">加载中...</div>
+      </div>
+    </div>
+    <!-- 触发原因 -->
+    <div class="mt-3 pt-3 border-top" style="border-color:#eeedf8;">
+      <div class="section-title">触发原因</div>
+      <div id="signalTriggers" class="small"></div>
+    </div>
+  </div>
+</div>
+
 <!-- 持仓对比 -->
 <div class="row g-3 mb-4" id="posCompare">
   <div class="col-md-6">
@@ -256,14 +285,12 @@ async function loadKline() {
 
   const chart = echarts.init(el);
 
-  // 过滤展示区间：最近 6 个月（动态计算，不硬编码日期）
-  const showFrom = (() => {
-    const d = new Date(); d.setMonth(d.getMonth() - 6);
-    return d.toISOString().slice(0, 10);
-  })();
-  const ohlcv = data.ohlcv || [];
-  const showIdx = ohlcv.findIndex(r => r.date >= showFrom);
-  const showData = showIdx >= 0 ? ohlcv.slice(showIdx) : ohlcv;
+  // 全量数据（不过滤，支持横向拖拽查看历史）
+  const showData = data.ohlcv || [];
+  if (!showData.length) {
+    document.getElementById("klineLoading").innerHTML = '<div class="text-center text-muted"><div style="font-size:2rem">📊</div><div>暂无K线数据</div></div>';
+    return;
+  }
 
   const dates    = showData.map(r => r.date);
   const candles  = showData.map(r => [r.open, r.close, r.low, r.high]);
@@ -338,14 +365,14 @@ async function loadKline() {
       // Candle Y （买入→蜡烛低点，卖出→蜡烛高点）
       const candleY = isBuy ? showData[idx].low : showData[idx].high;
 
-      // Colors
+      // Colors - 提高对比度
       let bgColor, borderColor;
       if (isReal) {
-        bgColor     = isBuy ? "rgba(196,220,245,1)" : "rgba(245,196,196,1)";
-        borderColor = isBuy ? "#2980b9" : "#c0392b";
+        bgColor     = isBuy ? "#dbeafe" : "#fee2e2";
+        borderColor = isBuy ? "#2563eb" : "#dc2626";
       } else {
-        bgColor     = isBuy ? "rgba(220,196,245,1)" : "rgba(245,220,196,1)";
-        borderColor = isBuy ? "#8e44ad" : "#d35400";
+        bgColor     = isBuy ? "#f3e8ff" : "#fef3c7";
+        borderColor = isBuy ? "#9333ea" : "#d97706";
       }
 
       const prefix = isReal ? "实" : "模";
@@ -362,22 +389,23 @@ async function loadKline() {
             formatter: labelText,
             position: "insideStart",
             rotate: 0,
-            fontSize: 9,
-            padding: [2, 5],
+            fontSize: 11,
+            fontWeight: "bold",
+            padding: [3, 6],
             backgroundColor: bgColor,
             borderColor: borderColor,
-            borderWidth: 0.8,
-            borderRadius: 3,
-            color: "#333",
+            borderWidth: 1.5,
+            borderRadius: 4,
+            color: "#222",
           },
-          lineStyle: { color: borderColor, width: 0.8, opacity: 0.5, type: "solid" },
+          lineStyle: { color: borderColor, width: 1.5, opacity: 0.8, type: "solid" },
         },
         {
           coord: [t.date, candleY],
           symbol: isBuy ? "arrow" : "arrow",
-          symbolSize: 5,
+          symbolSize: 8,
           symbolRotate: isBuy ? 0 : 180,
-          lineStyle: { color: borderColor, width: 0.8, opacity: 0.5 },
+          lineStyle: { color: borderColor, width: 1.5, opacity: 0.8 },
         }
       ]);
     });
@@ -449,11 +477,33 @@ async function loadKline() {
     },
     axisPointer: { link: [{ xAxisIndex: "all" }] },
     dataZoom: (() => {
-      // 默认展示最近 ~180 根K线，让蜡烛图可读
-      const initStart = Math.max(0, Math.round((1 - 180 / Math.max(dates.length, 1)) * 100));
+      // 默认显示最近 120 根K线（右侧最新），可横向拖拽查看历史
+      const total = dates.length;
+      const showCount = Math.min(120, total);
+      const startPercent = Math.max(0, ((total - showCount) / total) * 100);
       return [
-        { type: "inside", xAxisIndex: [0, 1], start: initStart, end: 100 },
-        { type: "slider", xAxisIndex: [0, 1], start: initStart, end: 100, bottom: 4, height: 18 },
+        {
+          type: "inside",
+          xAxisIndex: [0, 1],
+          start: startPercent,
+          end: 100,
+          zoomLock: false,  // 允许缩放
+          moveOnMouseWheel: true,  // 鼠标滚轮横向移动
+          moveOnMouseMove: true,   // 鼠标拖拽移动
+        },
+        {
+          type: "slider",
+          xAxisIndex: [0, 1],
+          start: startPercent,
+          end: 100,
+          bottom: 4,
+          height: 20,
+          show: true,
+          borderColor: "#d8d4f0",
+          fillerColor: "rgba(165,180,252,0.2)",
+          handleStyle: { color: "#4b46a0" },
+          textStyle: { color: "#7c76a6", fontSize: 10 },
+        },
       ];
     })(),
     grid: [
@@ -503,6 +553,49 @@ async function loadPositions() {
     }
     const sign = data.pnl_amount >= 0 ? "+" : "";
     const pnlCls = data.pnl_amount >= 0 ? "pnl-red" : "pnl-green";
+
+    // B+D方案：分批建仓状态标签
+    let batchHtml = "";
+    if (!isReal && data.batch_status) {
+      const statusLabels = {
+        "IDLE": "未建仓",
+        "FIRST_FILLED": "第一批",
+        "COMPLETED": "已完成"
+      };
+      const statusColors = {
+        "IDLE": "#9aa0a6",
+        "FIRST_FILLED": "#f59e0b",
+        "COMPLETED": "#22c55e"
+      };
+      const statusText = statusLabels[data.batch_status] || data.batch_status;
+      const statusColor = statusColors[data.batch_status] || "#9aa0a6";
+
+      if (data.batch_status === "FIRST_FILLED") {
+        batchHtml = `
+          <div style="margin:8px 0;padding:8px 10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:6px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};"></span>
+              <span style="font-size:12px;font-weight:600;color:${statusColor};">${statusText}</span>
+            </div>
+            <div style="font-size:11px;color:#6c757d;">
+              第一批: ${fmt(data.first_batch_shares, 0)}股 @ ${fmt(data.first_batch_price || 0)}
+              ${data.second_batch_pending > 0 ? `<br/>待建仓: ${fmt(data.second_batch_pending, 0)}股` : ""}
+            </div>
+          </div>
+        `;
+      } else if (data.batch_status === "COMPLETED") {
+        batchHtml = `
+          <div style="margin:8px 0;padding:6px 10px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};"></span>
+              <span style="font-size:12px;font-weight:600;color:${statusColor};">${statusText}</span>
+              <span style="font-size:11px;color:#6c757d;">(${fmt(data.shares, 0)}股)</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
     el.innerHTML = `
       <div class="d-flex align-items-end gap-2 mb-2">
         <div class="pnl-big ${pnlCls}">${sign}${fmt(data.pnl_amount, 0)}</div>
@@ -512,6 +605,7 @@ async function loadPositions() {
         <div class="total-fund">市值 ${fmt(data.market_value, 0)}</div>
         ${data.snapshot_date ? `<span style="font-size:11px;color:#9aa0a6;border:1px solid #dcdaf0;border-radius:4px;padding:1px 7px;">起点 ${data.snapshot_date}</span>` : ""}
       </div>
+      ${batchHtml}
       <table class="holdings-table w-100">
         <tr>
           <td>${SYMBOL.split(":")[1] || SYMBOL}</td>
@@ -618,9 +712,110 @@ async function loadTrades() {
   container.innerHTML = header + bodyRows + `</tbody></table>`;
 }
 
+// ── 4. 最新信号（B+D方案：完整交易指令展示）───────────────────────────────
+async function loadLatestSignal() {
+  try {
+    const resp = await fetch(`/api/signals/${SYMBOL_URL}`);
+    if (!resp.ok) return;
+    const sig = await resp.json();
+
+    // 显示卡片
+    document.getElementById('signalCard').style.display = 'block';
+
+    // 日期
+    document.getElementById('signalDate').textContent = sig.generated_at || '—';
+
+    // 信号结论
+    const actionEl = document.getElementById('signalAction');
+    const actionMap = { BUY: '买入', SELL: '卖出', WATCH: '观察', HOLD: '持有' };
+    const actionText = actionMap[sig.action] || sig.action;
+    const actionCls = {
+      BUY: { bg: '#d1fae5', color: '#064e3b', border: '#6ee7b7' },
+      SELL: { bg: '#fee2e2', color: '#991b1b', border: '#fca5a5' },
+      WATCH: { bg: '#f3f4f6', color: '#374151', border: '#d1d5db' },
+      HOLD: { bg: '#fef3c7', color: '#78350f', border: '#fcd34d' }
+    }[sig.action] || { bg: '#f3f4f6', color: '#374151', border: '#d1d5db' };
+
+    actionEl.textContent = actionText;
+    actionEl.style.background = actionCls.bg;
+    actionEl.style.color = actionCls.color;
+    actionEl.style.border = `2px solid ${actionCls.border}`;
+
+    // 信心度
+    const confMap = { HIGH: '高信心', MEDIUM: '中等信心', LOW: '低信心' };
+    document.getElementById('signalConfidence').textContent = confMap[sig.confidence] || sig.confidence;
+
+    // 交易建议
+    const instruction = sig.instruction || {};
+    const recShares = instruction.recommended_shares || 0;
+    const recSharesSecond = instruction.recommended_shares_second || 0;
+    const entryPrice = instruction.entry_price_reference || 0;
+    const positionValue = instruction.position_value_estimated || 0;
+
+    let instructionHtml = '';
+    if (sig.action === 'BUY' && recShares > 0) {
+      const totalShares = recShares + recSharesSecond;
+      instructionHtml = `
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <span class="badge" style="background:#e0e7ff;color:#3730a3;font-size:0.85rem;">第一批 ${recShares} 股</span>
+          ${recSharesSecond > 0 ? `<span class="badge" style="background:#f3e8ff;color:#6b21a8;font-size:0.85rem;">第二批 ${recSharesSecond} 股</span>` : ''}
+          <span class="badge" style="background:#f0fdf4;color:#15803d;font-size:0.85rem;">合计 ${totalShares} 股</span>
+        </div>
+        <div class="small text-muted">
+          <div>参考入场价: <strong>$${entryPrice.toFixed(2)}</strong></div>
+          <div>预计占用资金: <strong>$${positionValue.toLocaleString()}</strong></div>
+          ${instruction.sizing_model ? `<div class="mt-1" style="font-size:0.75rem;color:#9aa0a6;">仓位模型: ${instruction.sizing_model}</div>` : ''}
+        </div>
+      `;
+    } else if (sig.action === 'SELL') {
+      instructionHtml = '<div class="small text-muted">卖出信号，建议减仓或清仓</div>';
+    } else {
+      instructionHtml = '<div class="small text-muted">暂无可执行的交易建议</div>';
+    }
+    document.getElementById('signalInstruction').innerHTML = instructionHtml;
+
+    // 回测参考
+    const bt = sig.backtest_ref || {};
+    let backtestHtml = '';
+    if (bt.win_rate != null) {
+      const parts = [];
+      parts.push(`胜率: ${(bt.win_rate * 100).toFixed(0)}%`);
+      if (bt.ev_pct != null) parts.push(`EV: ${bt.ev_pct > 0 ? '+' : ''}${bt.ev_pct.toFixed(1)}%`);
+      if (bt.kelly_pct) parts.push(`Kelly: ${bt.kelly_pct}%`);
+      backtestHtml = `<div>${parts.join(' | ')}</div>`;
+
+      if (sig.stop_loss_pct != null || sig.target_pct_1 != null) {
+        backtestHtml += `<div class="mt-1">`;
+        if (sig.stop_loss_pct != null) backtestHtml += `<span class="badge me-1" style="background:#fee2e2;color:#991b1b;">止损 ${sig.stop_loss_pct.toFixed(1)}%</span>`;
+        if (sig.target_pct_1 != null) backtestHtml += `<span class="badge" style="background:#dcfce7;color:#15803d;">目标 +${sig.target_pct_1.toFixed(0)}%</span>`;
+        backtestHtml += `</div>`;
+      }
+    } else {
+      backtestHtml = '<span class="text-muted">暂无回测数据</span>';
+    }
+    document.getElementById('signalBacktest').innerHTML = backtestHtml;
+
+    // 触发原因
+    const triggers = sig.triggers || [];
+    const conflicts = sig.conflicts || [];
+    let triggersHtml = '';
+    if (triggers.length > 0) {
+      triggersHtml += `<ul class="mb-1" style="padding-left:1.2rem;">${triggers.map(t => `<li>${t}</li>`).join('')}</ul>`;
+    }
+    if (conflicts.length > 0) {
+      triggersHtml += `<div style="color:#991b1b;font-size:0.75rem;">⚠️ 冲突: ${conflicts.join(' | ')}</div>`;
+    }
+    document.getElementById('signalTriggers').innerHTML = triggersHtml || '<span class="text-muted">—</span>';
+
+  } catch (e) {
+    console.error('[Signal] Load failed:', e);
+  }
+}
+
 // ── 启动 ─────────────────────────────────────────────────────────────
 loadKline().catch(console.error);
 loadPositions().catch(console.error);
 loadTrades().catch(console.error);
+loadLatestSignal().catch(console.error);
 </script>
 {% endblock %}

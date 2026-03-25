@@ -60,6 +60,19 @@ class SignalLogService:
             return exists
 
         params = result.backtest_ref or {}
+
+        # 从 TradeInstruction 提取建议股数等信息
+        instruction = result.instruction
+        recommended_shares = 0
+        recommended_shares_second = 0
+        entry_price_ref = 0.0
+        position_value = 0.0
+        if instruction:
+            recommended_shares = getattr(instruction, 'recommended_shares', 0) or 0
+            recommended_shares_second = getattr(instruction, 'recommended_shares_second', 0) or 0
+            entry_price_ref = getattr(instruction, 'entry_price_reference', 0.0) or 0.0
+            position_value = getattr(instruction, 'position_value_estimated', 0.0) or 0.0
+
         log = SignalLog(
             symbol        = result.symbol,
             name          = result.name,
@@ -76,6 +89,11 @@ class SignalLogService:
             triggers_json = json.dumps(result.triggers, ensure_ascii=False),
             conflicts_json= json.dumps(result.conflicts, ensure_ascii=False),
             status        = "PENDING",
+            # 交易建议
+            recommended_shares       = recommended_shares if recommended_shares > 0 else None,
+            recommended_shares_second= recommended_shares_second if recommended_shares_second > 0 else None,
+            entry_price_reference    = entry_price_ref if entry_price_ref > 0 else None,
+            position_value_estimated = position_value if position_value > 0 else None,
         )
         self.db.add(log)
         self.db.commit()
@@ -146,6 +164,18 @@ class SignalLogService:
         entry_price = result.indicators.get("close")
         params = result.backtest_ref or {}
 
+        # 从 TradeInstruction 提取建议股数等信息
+        instruction = result.instruction
+        recommended_shares = 0
+        recommended_shares_second = 0
+        entry_price_ref = 0.0
+        position_value = 0.0
+        if instruction:
+            recommended_shares = getattr(instruction, 'recommended_shares', 0) or 0
+            recommended_shares_second = getattr(instruction, 'recommended_shares_second', 0) or 0
+            entry_price_ref = getattr(instruction, 'entry_price_reference', 0.0) or 0.0
+            position_value = getattr(instruction, 'position_value_estimated', 0.0) or 0.0
+
         log = SignalLog(
             symbol         = result.symbol,
             name           = result.name,
@@ -166,12 +196,17 @@ class SignalLogService:
             entered_at     = datetime.now(),
             entered_price  = entry_price,
             status         = "PENDING",
+            # 交易建议
+            recommended_shares       = recommended_shares if recommended_shares > 0 else None,
+            recommended_shares_second= recommended_shares_second if recommended_shares_second > 0 else None,
+            entry_price_reference    = entry_price_ref if entry_price_ref > 0 else None,
+            position_value_estimated = position_value if position_value > 0 else None,
         )
         self.db.add(log)
 
         # 同步更新模拟持仓
         if result.action == "BUY" and entry_price:
-            self._sim_buy(result.symbol, result.name, result.category, entry_price, params)
+            self._sim_buy(result.symbol, result.name, result.category, entry_price, params, result.instruction)
         elif result.action == "SELL":
             self._sim_sell(result.symbol, log)
 
@@ -181,44 +216,180 @@ class SignalLogService:
         return log
 
     def _sim_buy(self, symbol: str, name: str, category: str,
-                 entry_price: float, params: dict):
-        """更新模拟持仓（买入）：根据 kelly_pct 计算模拟股数"""
+                 entry_price: float, params: dict, instruction=None):
+        """
+        B+D方案：分批建仓买入
+
+        【分批逻辑】
+        - 第一批：信号日买入50%（根据sizing_model计算总仓位）
+        - 第二批：等待回调3%或3天后买入剩余50%
+
+        【股数计算优先级】
+        1. 优先使用 instruction 中已计算的建议股数（recommended_shares）
+           - 这是 SignalService._calculate_shares() 根据真实持仓和Kelly上限算出的
+           - 第一批 = recommended_shares
+           - 第二批 = recommended_shares_second（如为空，默认=第一批）
+
+        2. 如 instruction 缺失，回退到旧逻辑（不推荐）
+           - 基于$100k基数 + Kelly% 估算
+
+        【示例】
+        UNH案例：
+        - Kelly上限 = 16.6%
+        - 当前无持仓，可用空间 = 16.6%
+        - 第一批50% = 8.3%仓位 → 46股 @ $272.28 ≈ $12,524
+        - 第二批待建仓 = 46股（等待回调3%或3天后）
+        """
+        from datetime import date
         sim_pos = self.db.query(SimPosition).filter_by(symbol=symbol).first()
 
-        # 计算买入股数：用 kelly_pct 占模拟总资产（简化：固定1万HKD起始资金比例）
-        kelly_pct = float(params.get("kelly_pct", 0.1))
-        # 粗略用当前市值反推总资产（没有快照现金则用固定基数10万）
-        base_fund = 100_000.0
-        if sim_pos:
-            base_fund = max(sim_pos.shares * entry_price, base_fund)
-        buy_amount = base_fund * kelly_pct
-        new_shares = max(int(buy_amount / entry_price), 1)
+        # 优先使用 instruction 中已计算的建议股数
+        if instruction and getattr(instruction, 'recommended_shares', 0) > 0:
+            total_shares = getattr(instruction, 'recommended_shares', 0) + getattr(instruction, 'recommended_shares_second', 0)
+            # 如果没有第二批数据，默认总股数是第一批的2倍（B+D方案）
+            if getattr(instruction, 'recommended_shares_second', 0) == 0:
+                total_shares = getattr(instruction, 'recommended_shares', 0) * 2
+        else:
+            # 回退到旧逻辑（使用$100k基数计算，不推荐）
+            total_shares = self._calc_shares_by_model(symbol, entry_price, params, instruction, sim_pos)
+
+        # 第一批：50%
+        first_batch_shares = max(int(total_shares * 0.5), 1)
+        second_batch_shares = total_shares - first_batch_shares
 
         if sim_pos:
-            # 加权平均成本
-            total_cost = (sim_pos.shares * (sim_pos.avg_cost or entry_price)
-                          + new_shares * entry_price)
-            sim_pos.shares   += new_shares
-            sim_pos.avg_cost  = total_cost / sim_pos.shares
-            sim_pos.last_price = entry_price
-            sim_pos.market_value = sim_pos.shares * entry_price
-            sim_pos.updated_at = datetime.now()
+            # 检查是否有待完成的第二批建仓
+            if sim_pos.batch_status == "FIRST_FILLED" and sim_pos.second_batch_pending > 0:
+                # 触发第二批建仓（回调3%或已过3天）
+                self._execute_second_batch(sim_pos, entry_price, symbol, name)
+            else:
+                # 新信号：执行第一批建仓
+                self._execute_first_batch(sim_pos, first_batch_shares, second_batch_shares,
+                                          entry_price, symbol, name, category)
         else:
-            from datetime import date
+            # 新建持仓，执行第一批建仓
             sim_pos = SimPosition(
-                symbol        = symbol,
-                name          = name,
-                category      = category,
-                snapshot_date = date.today(),
-                shares        = new_shares,
-                avg_cost      = entry_price,
-                last_price    = entry_price,
-                market_value  = new_shares * entry_price,
-                initial_shares   = 0,
-                initial_avg_cost = None,
+                symbol=symbol,
+                name=name,
+                category=category,
+                snapshot_date=date.today(),
+                shares=first_batch_shares,
+                avg_cost=entry_price,
+                last_price=entry_price,
+                market_value=first_batch_shares * entry_price,
+                initial_shares=0,
+                initial_avg_cost=None,
+                batch_status="FIRST_FILLED",
+                first_batch_shares=first_batch_shares,
+                first_batch_price=entry_price,
+                first_batch_date=date.today(),
+                second_batch_pending=second_batch_shares,
             )
             self.db.add(sim_pos)
+            logger.info(f"分批建仓第一批: {symbol} {first_batch_shares}股 @ {entry_price}, "
+                       f"待第二批: {second_batch_shares}股")
         self.db.flush()
+
+    def _calc_shares_by_model(self, symbol: str, entry_price: float, params: dict,
+                              instruction, sim_pos) -> int:
+        """
+        根据仓位模型计算目标股数
+        支持：KELLY_HALF / FIXED_RISK / VOLATILITY_ADJUSTED
+        """
+        sizing_model = "KELLY_HALF"
+        sizing_params = {}
+
+        # 从instruction获取模型参数
+        if instruction:
+            sizing_model = instruction.sizing_model
+            sizing_params = instruction.sizing_params or {}
+
+        kelly_pct = float(params.get("kelly_pct", 10)) / 100  # 转为小数
+
+        # 基础总资产估算
+        base_fund = 100_000.0
+        if sim_pos and sim_pos.shares > 0:
+            base_fund = max(sim_pos.shares * entry_price, base_fund)
+
+        if sizing_model == "KELLY_HALF":
+            # 默认Kelly半仓模型
+            target_value = base_fund * kelly_pct
+        elif sizing_model == "FIXED_RISK":
+            # 固定风险模型：1万风险金额 / (2×ATR)
+            fixed_shares = sizing_params.get("fixed_risk_shares", 0)
+            if fixed_shares > 0:
+                return fixed_shares
+            target_value = base_fund * kelly_pct
+        elif sizing_model == "VOLATILITY_ADJUSTED":
+            # 波动率调整：根据ATR调整仓位
+            vol_factor = sizing_params.get("volatility_factor", 1.0)
+            target_value = base_fund * kelly_pct * vol_factor
+        else:
+            target_value = base_fund * kelly_pct
+
+        return max(int(target_value / entry_price), 1)
+
+    def _execute_first_batch(self, sim_pos, first_shares: int, second_shares: int,
+                             entry_price: float, symbol: str, name: str, category: str):
+        """执行第一批建仓"""
+        from datetime import date
+
+        # 加权平均成本
+        total_cost = (sim_pos.shares * (sim_pos.avg_cost or entry_price)
+                      + first_shares * entry_price)
+        new_total_shares = sim_pos.shares + first_shares
+
+        sim_pos.shares = new_total_shares
+        sim_pos.avg_cost = total_cost / new_total_shares
+        sim_pos.last_price = entry_price
+        sim_pos.market_value = new_total_shares * entry_price
+        sim_pos.updated_at = datetime.now()
+
+        # 更新分批状态
+        sim_pos.batch_status = "FIRST_FILLED"
+        sim_pos.first_batch_shares = first_shares
+        sim_pos.first_batch_price = entry_price
+        sim_pos.first_batch_date = date.today()
+        sim_pos.second_batch_pending = second_shares
+
+        logger.info(f"分批建仓第一批: {symbol} 新增{first_shares}股 @ {entry_price}, "
+                   f"累计{new_total_shares}股, 待第二批: {second_shares}股")
+
+    def _execute_second_batch(self, sim_pos, entry_price: float, symbol: str, name: str):
+        """执行第二批建仓（回调3%或已过3天）"""
+        from datetime import date
+
+        second_shares = sim_pos.second_batch_pending
+        if second_shares <= 0:
+            return
+
+        # 检查触发条件：回调3% 或 已过3天
+        first_price = sim_pos.first_batch_price or entry_price
+        first_date = sim_pos.first_batch_date
+        pullback_pct = (first_price - entry_price) / first_price * 100 if first_price > 0 else 0
+        days_elapsed = (date.today() - first_date).days if first_date else 0
+
+        # 触发条件：回调>=3% 或 已过3天 或 当前价格>=第一批价格（不回调直接涨）
+        should_fill = (pullback_pct >= 3) or (days_elapsed >= 3) or (entry_price >= first_price)
+
+        if not should_fill:
+            logger.debug(f"第二批建仓未触发: {symbol} 回调{pullback_pct:.1f}%, 已{days_elapsed}天")
+            return
+
+        # 执行第二批建仓
+        total_cost = (sim_pos.shares * sim_pos.avg_cost) + (second_shares * entry_price)
+        new_total_shares = sim_pos.shares + second_shares
+
+        sim_pos.shares = new_total_shares
+        sim_pos.avg_cost = total_cost / new_total_shares
+        sim_pos.last_price = entry_price
+        sim_pos.market_value = new_total_shares * entry_price
+        sim_pos.updated_at = datetime.now()
+        sim_pos.batch_status = "COMPLETED"
+        sim_pos.second_batch_pending = 0
+
+        logger.info(f"分批建仓第二批完成: {symbol} 新增{second_shares}股 @ {entry_price}, "
+                   f"累计{new_total_shares}股, 成本{sim_pos.avg_cost:.2f}")
 
     def _sim_sell(self, symbol: str, log: SignalLog):
         """模拟持仓平仓（有持仓则平，没有则 log 状态改为 CANCELLED）"""

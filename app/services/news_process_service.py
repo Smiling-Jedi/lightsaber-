@@ -1,6 +1,6 @@
 """
 新闻 LLM 处理服务
-一次 haiku 调用，批量完成英文标题翻译 + 重要度打分
+一次 Kimi 调用，批量完成英文标题翻译 + 重要度打分
 """
 import json
 import logging
@@ -25,7 +25,21 @@ def process_news(items: list[dict]) -> list[dict]:
 
     try:
         import anthropic
-        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+
+        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        base_url = os.environ.get("ANTHROPIC_BASE_URL")
+        if not api_key:
+            logger.warning("未设置 ANTHROPIC_API_KEY，跳过翻译")
+            for it in items:
+                it["title_zh"] = it.get("title", "")
+                it["importance"] = "MEDIUM"
+            return items
+
+        # 初始化 Anthropic 客户端，支持 Kimi Code 中转
+        client_kwargs = {"api_key": api_key}
+        if base_url:
+            client_kwargs["base_url"] = base_url
+        client = anthropic.Anthropic(**client_kwargs)
 
         lines = []
         for i, it in enumerate(items):

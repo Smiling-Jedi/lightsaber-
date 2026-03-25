@@ -38,6 +38,13 @@ class SimPosition(Base):
     last_price  = Column(Float, nullable=True)
     market_value = Column(Float, nullable=True)
 
+    # B+D方案：分批建仓状态
+    batch_status = Column(String(20), nullable=False, default="IDLE")  # IDLE / FIRST_FILLED / COMPLETED
+    first_batch_shares = Column(Integer, nullable=False, default=0)    # 第一批股数
+    first_batch_price = Column(Float, nullable=True)                   # 第一批价格
+    first_batch_date = Column(Date, nullable=True)                     # 第一批日期
+    second_batch_pending = Column(Integer, nullable=False, default=0)  # 待买入第二批股数
+
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
 
@@ -57,4 +64,10 @@ class SimPosition(Base):
             "market_value":  self.market_value,
             "initial_shares":   self.initial_shares,
             "initial_avg_cost": self.initial_avg_cost,
+            # B+D方案：分批建仓状态
+            "batch_status": self.batch_status,
+            "first_batch_shares": self.first_batch_shares,
+            "first_batch_price": self.first_batch_price,
+            "first_batch_date": self.first_batch_date.isoformat() if self.first_batch_date else None,
+            "second_batch_pending": self.second_batch_pending,
         }

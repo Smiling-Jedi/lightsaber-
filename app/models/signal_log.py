@@ -56,6 +56,12 @@ class SignalLog(Base):
     actual_pct = Column(Float, nullable=True)   # 实际收益率%（出场价/入场价）
     note       = Column(Text, nullable=True)    # 人工备注
 
+    # 交易建议（来自 TradeInstruction）
+    recommended_shares       = Column(Integer, nullable=True)  # 第一批建议股数
+    recommended_shares_second = Column(Integer, nullable=True) # 第二批建议股数
+    entry_price_reference    = Column(Float, nullable=True)    # 参考入场价
+    position_value_estimated = Column(Float, nullable=True)    # 预计占用资金
+
     # ─────────────────────────────────────────────────────
     # 便捷方法
     # ─────────────────────────────────────────────────────
@@ -105,4 +111,9 @@ class SignalLog(Base):
             "exit_date": self.exit_date.isoformat() if self.exit_date else None,
             "actual_pct": self.actual_pct,
             "note": self.note,
+            # 交易建议
+            "recommended_shares": self.recommended_shares,
+            "recommended_shares_second": self.recommended_shares_second,
+            "entry_price_reference": self.entry_price_reference,
+            "position_value_estimated": self.position_value_estimated,
         }

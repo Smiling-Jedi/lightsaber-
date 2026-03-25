@@ -1,7 +1,7 @@
 """
 信号今日小结服务
 
-调用 KimiCode (Moonshot) API 为每只股票生成自然语言解读。
+调用 Anthropic API 为每只股票生成自然语言解读。
 缓存策略：(symbol, date, action, market_env) 相同时复用，不重复生成。
 """
 import logging
@@ -112,26 +112,27 @@ def generate_summary(sig: dict) -> Optional[str]:
         return _cache[cache_key]
 
     try:
-        from openai import OpenAI
+        import anthropic
 
-        api_key = os.environ.get("KIMI_API_KEY") or os.environ.get("MOONSHOT_API_KEY") or ""
+        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        base_url = os.environ.get("ANTHROPIC_BASE_URL")
         if not api_key:
-            logger.warning(f"未设置 KIMI_API_KEY 或 MOONSHOT_API_KEY，跳过小结生成")
+            logger.warning(f"未设置 ANTHROPIC_API_KEY，跳过小结生成")
             return None
 
-        client = OpenAI(
-            api_key=api_key,
-            base_url="https://api.moonshot.cn/v1",
-        )
+        # 初始化 Anthropic 客户端，支持 Kimi Code 中转
+        client_kwargs = {"api_key": api_key}
+        if base_url:
+            client_kwargs["base_url"] = base_url
+        client = anthropic.Anthropic(**client_kwargs)
 
         prompt = _build_prompt(sig)
-        completion = client.chat.completions.create(
-            model="moonshot-v1-8k",
-            messages=[{"role": "user", "content": prompt}],
+        message = client.messages.create(
+            model="claude-haiku-4-5-20251001",
             max_tokens=150,
-            temperature=0.3,
+            messages=[{"role": "user", "content": prompt}],
         )
-        text = completion.choices[0].message.content.strip()
+        text = message.content[0].text.strip()
         _cache[cache_key] = text
         return text
 

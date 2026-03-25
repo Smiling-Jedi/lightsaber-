@@ -245,6 +245,16 @@ class PositionService:
             result["profit_pct"] = position.calculate_profit_pct(current_price)
             result["position_weight"] = position.calculate_position_weight(current_price)
 
+            # 汇率转换：将盈亏和市值转换为RMB显示
+            from app.data_sources.exchange_rate_source import ExchangeRateSource
+            er = ExchangeRateSource(retry_count=1)
+            currency = position.currency or "CNY"
+            rate = float(er.get_rate_to_cny(currency)) if currency != "CNY" else 1.0
+
+            result["profit_rmb"] = result["profit"] * rate if result["profit"] is not None else None
+            result["market_value_rmb"] = result["market_value"] * rate if result["market_value"] is not None else None
+            result["currency_display"] = "CNY"
+
             # 今日盈亏：(现价 - 昨日收盘价) × 股数
             if stock and stock.prev_close_price and stock.prev_close_price > 0:
                 result["today_profit_amount"] = float(
@@ -254,6 +264,9 @@ class PositionService:
                 result["price_change_pct"] = float(
                     (current_price - stock.prev_close_price) / stock.prev_close_price * 100
                 )
+
+            # 今日盈亏RMB（在today_profit_amount计算后）
+            result["today_profit_rmb"] = result["today_profit_amount"] * rate if result["today_profit_amount"] else 0.0
 
             # 波段退出计划 + 价格区间提醒
             result["swing_plan"], result["swing_alert"] = self._parse_swing_plan(

@@ -135,7 +135,7 @@ class TradeTimelineService:
                 "date":      trade_date,
                 "direction": "买入" if log.action == "BUY" else "卖出",
                 "price":     price,
-                "shares":    None,
+                "shares":    log.recommended_shares,  # 使用建议买入股数（第一批）
                 "pct":       pct,
                 "pct_label": pct_label,
             })
