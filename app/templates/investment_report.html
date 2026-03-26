@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}投资中枢 · 体检报告{% endblock %}
+
+{% block extra_css %}
+<style>
+    .report-sidebar {
+        position: sticky;
+        top: 80px;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+    .report-nav a {
+        display: block;
+        padding: 4px 12px;
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-decoration: none;
+        border-left: 2px solid #dee2e6;
+    }
+    .report-nav a:hover { color: #000; border-left-color: #495057; }
+    .report-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+    }
+    .report-content th {
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border: 1px solid #dee2e6;
+        text-align: left;
+        font-weight: 600;
+    }
+    .report-content td {
+        padding: 7px 12px;
+        border: 1px solid #dee2e6;
+        vertical-align: top;
+    }
+    .report-content tr:nth-child(even) td { background: #fafafa; }
+    .report-content h2 {
+        margin-top: 2rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 1.25rem;
+    }
+    .report-content h3 { margin-top: 1.5rem; font-size: 1.05rem; color: #333; }
+    .report-content code {
+        background: #f4f4f4;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.88em;
+    }
+    .report-content pre {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 0.85rem;
+    }
+    .archive-link {
+        display: block;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        color: #495057;
+        text-decoration: none;
+    }
+    .archive-link:hover { background: #f0f0f0; }
+    .archive-link.active { background: #e9ecef; font-weight: 600; color: #000; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+
+    <!-- 左侧：报告历史 + 导航 -->
+    <div class="col-lg-2 d-none d-lg-block">
+        <div class="report-sidebar">
+            <div class="mb-3">
+                <div class="text-muted small mb-2 fw-bold">历史报告</div>
+                {% for r in reports %}
+                <a href="/investment/archive/{{ r.date_str }}"
+                   class="archive-link {% if latest and r.date_str == latest.date_str and not is_archive is defined %}{% elif latest and r.date_str == latest.date_str %}active{% endif %}">
+                    {{ r.date_display }}
+                </a>
+                {% endfor %}
+            </div>
+            <hr>
+            <div class="report-nav" id="toc"></div>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <h5 class="mb-0">
+                    📊 体检报告
+                    {% if latest %}
+                    <span class="text-muted fw-normal fs-6 ms-2">{{ latest.date_display }}</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div>
+                <a href="/investment/profile" class="btn btn-sm btn-outline-secondary me-1">投资档案</a>
+                <a href="/investment/archive" class="btn btn-sm btn-outline-secondary">全部报告</a>
+            </div>
+        </div>
+        <div class="report-content card p-4">
+            {{ html_content | safe }}
+        </div>
+    </div>
+
+    <!-- 右侧空白 -->
+    <div class="col-lg-2"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 自动生成目录
+    const headings = document.querySelectorAll('.report-content h2');
+    const toc = document.getElementById('toc');
+    if (headings.length > 0) {
+        const label = document.createElement('div');
+        label.className = 'text-muted small mb-2 fw-bold';
+        label.textContent = '本报告';
+        toc.appendChild(label);
+        headings.forEach((h, i) => {
+            h.id = 'section-' + i;
+            const a = document.createElement('a');
+            a.href = '#section-' + i;
+            a.textContent = h.textContent;
+            toc.appendChild(a);
+        });
+    }
+</script>
+{% endblock %}

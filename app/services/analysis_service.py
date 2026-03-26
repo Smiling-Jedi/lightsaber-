@@ -45,6 +45,10 @@ class AnalysisService:
     SINGLE_POSITION_WARNING = 30.0  # 单票仓位超过30%警告
     SINGLE_POSITION_CRITICAL = 50.0  # 单票仓位超过50%严重警告
 
+    # 五维雷达框架阈值定义
+    CHINESE_CONCEPT_CLUSTER_THRESHOLD = 55.0  # 中概风险集群警戒线（腾讯+阿里+美团+小米+PDD合计占比）
+    # 依据：五维雷达v1.0框架定义，超过55%时单一政策/监管风险对组合冲击过大
+
     def __init__(self, db: Session):
         self.db = db
         self.position_service = PositionService(db)
@@ -317,7 +321,7 @@ class AnalysisService:
         actions = self._generate_action_plan(all_positions, cash_total)
 
         return {
-            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "summary": {
                 "total_assets": float(total_with_cash),
                 "stock_value": float(total_assets),
@@ -450,6 +454,28 @@ class AnalysisService:
                 "message": f"前三大持仓占比{top3:.1f}%，分散度不足"
             })
 
+        # 检查中概集群风险（腾讯+阿里+美团+小米+PDD）
+        chinese_concept_symbols = ["00700", "09988", "03690", "01810", "PDD"]
+        chinese_concept_weight = 0
+        chinese_concept_names = []
+        for pos in positions:
+            symbol = pos.get("symbol", "")
+            name = pos.get("name", "")
+            weight = pos.get("position_weight", 0)
+            # 检查是否为中概股
+            is_chinese_concept = any(s in symbol for s in chinese_concept_symbols) or \
+                                any(kw in name for kw in ["腾讯", "阿里", "美团", "小米", "拼多多", "PDD"])
+            if is_chinese_concept:
+                chinese_concept_weight += weight
+                chinese_concept_names.append(name)
+
+        if chinese_concept_weight > self.CHINESE_CONCEPT_CLUSTER_THRESHOLD:
+            warnings.append({
+                "level": "high" if chinese_concept_weight > 65 else "medium",
+                "title": "中概集群风险",
+                "message": f"中概股集群（{', '.join(chinese_concept_names)}）合计占比{chinese_concept_weight:.1f}%，超过{self.CHINESE_CONCEPT_CLUSTER_THRESHOLD}%警戒线。依据：五维雷达v1.0框架，超过55%时单一政策/监管风险对组合冲击过大"
+            })
+
         # 检查波段被套
         for pos in positions:
             if pos.get("swing_cost"):
@@ -536,6 +562,28 @@ class AnalysisService:
                 "status": "warning",
                 "message": f"有{len(losing_positions)}只持仓亏损超15%，需检查是否设置止损",
                 "positions": [p.get("name") for p in losing_positions]
+            })
+
+        # 检查摊薄纪律（在亏损>10%情况下加仓）
+        averaged_down_positions = []
+        for pos in positions:
+            # 检查是否有波段仓且总体亏损>10%
+            # 这表示在被套状态下进行了加仓操作
+            profit_pct = pos.get("profit_pct", 0)
+            swing_shares = pos.get("swing_shares", 0)
+            if swing_shares > 0 and profit_pct < -10:
+                averaged_down_positions.append({
+                    "name": pos.get("name"),
+                    "profit_pct": profit_pct,
+                    "swing_shares": swing_shares
+                })
+
+        if averaged_down_positions:
+            checks.append({
+                "type": "摊薄纪律",
+                "status": "danger",
+                "message": "以下持仓在被套状态下加仓，可能违反摊薄纪律（买入前需确认有明确计划支撑）",
+                "positions": [f"{p['name']}(被套{p['profit_pct']:.0f}%，波段{p['swing_shares']}股)" for p in averaged_down_positions]
             })
 
         # 检查波段成本

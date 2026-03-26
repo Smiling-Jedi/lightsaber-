@@ -11,6 +11,10 @@ from typing import Optional, List, Dict
 def _today() -> str:
     return datetime.now().strftime("%Y-%m-%d")
 
+# 汇率常量
+HKD_RATE = 0.91
+USD_RATE = 7.26
+
 # ─── 港股持仓 ────────────────────────────────────────────────
 
 _HK_POSITIONS = [
@@ -27,6 +31,11 @@ _HK_POSITIONS = [
         "latest_news": "腾讯Q4财报超预期，广告收入同比+23%",
         "latest_news_url": "#", "latest_news_source": "Bloomberg",
         "today_profit_amount": 300.0,
+        # RMB 转换字段
+        "profit_rmb": 1500.0 * HKD_RATE,
+        "market_value_rmb": 25400.0 * HKD_RATE,
+        "today_profit_rmb": 300.0 * HKD_RATE,
+        "currency_display": "CNY",
     },
     {
         "symbol": "HK:09988", "name": "阿里巴巴-W", "market": "HK", "currency": "HKD",
@@ -41,6 +50,11 @@ _HK_POSITIONS = [
         "latest_news": "阿里云AI业务增速超预期，季度收入突破300亿",
         "latest_news_url": "#", "latest_news_source": "Reuters",
         "today_profit_amount": -160.0,
+        # RMB 转换字段
+        "profit_rmb": -2000.0 * HKD_RATE,
+        "market_value_rmb": 24600.0 * HKD_RATE,
+        "today_profit_rmb": -160.0 * HKD_RATE,
+        "currency_display": "CNY",
     },
     {
         "symbol": "HK:01810", "name": "小米集团-W", "market": "HK", "currency": "HKD",
@@ -55,6 +69,11 @@ _HK_POSITIONS = [
         "latest_news": "小米汽车SU7 Pro发布，预订量突破10万台",
         "latest_news_url": "#", "latest_news_source": "36氪",
         "today_profit_amount": 425.0,
+        # RMB 转换字段
+        "profit_rmb": 2250.0 * HKD_RATE,
+        "market_value_rmb": 21250.0 * HKD_RATE,
+        "today_profit_rmb": 425.0 * HKD_RATE,
+        "currency_display": "CNY",
     },
     {
         "symbol": "HK:03690", "name": "美团-W", "market": "HK", "currency": "HKD",
@@ -69,6 +88,11 @@ _HK_POSITIONS = [
         "latest_news": "美团闪购业务Q4 GMV同比增长55%",
         "latest_news_url": "#", "latest_news_source": "财联社",
         "today_profit_amount": -185.0,
+        # RMB 转换字段
+        "profit_rmb": -1300.0 * HKD_RATE,
+        "market_value_rmb": 18500.0 * HKD_RATE,
+        "today_profit_rmb": -185.0 * HKD_RATE,
+        "currency_display": "CNY",
     },
     {
         "symbol": "HK:06160", "name": "百济神州", "market": "HK", "currency": "HKD",
@@ -83,6 +107,11 @@ _HK_POSITIONS = [
         "latest_news": "百济神州BTK抑制剂获FDA突破性疗法认定",
         "latest_news_url": "#", "latest_news_source": "医药经济报",
         "today_profit_amount": -60.0,
+        # RMB 转换字段
+        "profit_rmb": -540.0 * HKD_RATE,
+        "market_value_rmb": 10140.0 * HKD_RATE,
+        "today_profit_rmb": -60.0 * HKD_RATE,
+        "currency_display": "CNY",
     },
 ]
 
@@ -102,6 +131,11 @@ _US_POSITIONS = [
         "latest_news": "Meta AI推出新一代Llama模型，开发者社区增长加速",
         "latest_news_url": "#", "latest_news_source": "WSJ",
         "today_profit_amount": 428.0,
+        # RMB 转换字段
+        "profit_rmb": 2160.0 * USD_RATE,
+        "market_value_rmb": 23840.0 * USD_RATE,
+        "today_profit_rmb": 428.0 * USD_RATE,
+        "currency_display": "CNY",
     },
     {
         "symbol": "US:MSFT", "name": "Microsoft", "market": "US", "currency": "USD",
@@ -116,6 +150,11 @@ _US_POSITIONS = [
         "latest_news": "微软Azure AI服务季度营收突破200亿美元",
         "latest_news_url": "#", "latest_news_source": "CNBC",
         "today_profit_amount": 147.0,
+        # RMB 转换字段
+        "profit_rmb": 1100.0 * USD_RATE,
+        "market_value_rmb": 21000.0 * USD_RATE,
+        "today_profit_rmb": 147.0 * USD_RATE,
+        "currency_display": "CNY",
     },
     {
         "symbol": "US:TSLA", "name": "Tesla", "market": "US", "currency": "USD",
@@ -130,6 +169,11 @@ _US_POSITIONS = [
         "latest_news": "特斯拉Model Y改款在华交付，首月订单超5万台",
         "latest_news_url": "#", "latest_news_source": "Reuters",
         "today_profit_amount": -318.0,
+        # RMB 转换字段
+        "profit_rmb": -1980.0 * USD_RATE,
+        "market_value_rmb": 15900.0 * USD_RATE,
+        "today_profit_rmb": -318.0 * USD_RATE,
+        "currency_display": "CNY",
     },
     {
         "symbol": "US:AMZN", "name": "Amazon", "market": "US", "currency": "USD",
@@ -144,6 +188,11 @@ _US_POSITIONS = [
         "latest_news": "亚马逊AWS季度营收同比增长17%，超市场预期",
         "latest_news_url": "#", "latest_news_source": "Bloomberg",
         "today_profit_amount": 115.0,
+        # RMB 转换字段
+        "profit_rmb": 750.0 * USD_RATE,
+        "market_value_rmb": 11650.0 * USD_RATE,
+        "today_profit_rmb": 115.0 * USD_RATE,
+        "currency_display": "CNY",
     },
     {
         "symbol": "US:NVDA", "name": "NVIDIA", "market": "US", "currency": "USD",
@@ -158,6 +207,11 @@ _US_POSITIONS = [
         "latest_news": "英伟达Blackwell GPU出货量超预期，数据中心需求强劲",
         "latest_news_url": "#", "latest_news_source": "Insider Monkey",
         "today_profit_amount": -248.0,
+        # RMB 转换字段
+        "profit_rmb": -1600.0 * USD_RATE,
+        "market_value_rmb": 8640.0 * USD_RATE,
+        "today_profit_rmb": -248.0 * USD_RATE,
+        "currency_display": "CNY",
     },
 ]
 
@@ -174,7 +228,7 @@ def get_demo_portfolio() -> dict:
     us_cash = 8970.0
     us_total = us_mv + us_cash
 
-    hkd_rate, usd_rate = 0.91, 7.26
+    hkd_rate, usd_rate = HKD_RATE, USD_RATE
 
     hk_rmb = hk_total * hkd_rate
     us_rmb = us_total * usd_rate

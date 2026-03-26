@@ -5,7 +5,7 @@
 import os
 from fastapi import Request
 
-DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "")
+DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "704101")
 COOKIE_NAME = "ls_mode"
 
 

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}投资中枢 · 历史报告{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h5 class="mb-0">📁 历史体检报告</h5>
+    <a href="/investment/" class="btn btn-sm btn-primary">查看最新报告</a>
+</div>
+
+{% if reports %}
+<div class="list-group">
+    {% for r in reports %}
+    <a href="/investment/archive/{{ r.date_str }}"
+       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+        <div>
+            <span class="fw-semibold">{{ r.date_display }}</span>
+            <span class="text-muted small ms-2">五维雷达体检报告</span>
+        </div>
+        <span class="text-muted small">→</span>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-muted">暂无历史报告。</div>
+{% endif %}
+{% endblock %}
