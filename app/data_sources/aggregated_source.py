@@ -64,11 +64,11 @@ class AggregatedPriceSource:
         self.eastmoney = EastMoneySource()
         self.alpha = AlphaVantageSource(api_key=alpha_api_key or ALPHA_VANTAGE_KEY)
 
-        # 数据源优先级配置（富途为港/美股最高优先，A股Tushare优先，富途次选）
+        # 数据源优先级配置（富途为港/美股最高优先；A股Tushare优先，富途不支持A股）
         self.priority = {
             "HK": [self.futu, self.yahoo, self.tushare, self.eastmoney, self.alpha],
             "US": [self.futu, self.yahoo, self.alpha],
-            "A": [self.tushare, self.futu, self.yahoo, self.eastmoney, self.alpha],
+            "A": [self.tushare, self.yahoo, self.eastmoney, self.alpha],
         }
 
     def _get_market(self, symbol: str) -> str:

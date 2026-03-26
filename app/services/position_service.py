@@ -21,6 +21,9 @@ class PositionService:
 
     def __init__(self, db: Session):
         self.db = db
+        # 初始化汇率服务（复用，避免重复创建）
+        from app.data_sources.exchange_rate_source import ExchangeRateSource
+        self._exchange_rate = ExchangeRateSource(retry_count=1)
 
     def get_all_positions(self) -> List[Position]:
         """获取所有持仓记录"""
@@ -246,10 +249,8 @@ class PositionService:
             result["position_weight"] = position.calculate_position_weight(current_price)
 
             # 汇率转换：将盈亏和市值转换为RMB显示
-            from app.data_sources.exchange_rate_source import ExchangeRateSource
-            er = ExchangeRateSource(retry_count=1)
             currency = position.currency or "CNY"
-            rate = float(er.get_rate_to_cny(currency)) if currency != "CNY" else 1.0
+            rate = float(self._exchange_rate.get_rate_to_cny(currency)) if currency != "CNY" else 1.0
 
             result["profit_rmb"] = result["profit"] * rate if result["profit"] is not None else None
             result["market_value_rmb"] = result["market_value"] * rate if result["market_value"] is not None else None
@@ -363,11 +364,9 @@ class PositionService:
         positions = self.get_all_positions()
 
         # 汇率（实时，失败则用默认值，不阻塞页面）
-        from app.data_sources.exchange_rate_source import ExchangeRateSource
-        er = ExchangeRateSource(retry_count=1)
         exchange_rates = {
-            "HKD": er.get_rate_to_cny("HKD"),
-            "USD": er.get_rate_to_cny("USD"),
+            "HKD": self._exchange_rate.get_rate_to_cny("HKD"),
+            "USD": self._exchange_rate.get_rate_to_cny("USD"),
             "CNY": Decimal("1.0"),
         }
 

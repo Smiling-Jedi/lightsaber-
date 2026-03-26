@@ -38,7 +38,13 @@ async def lifespan(app: FastAPI):
     yield
 
     scheduler.shutdown()
-    logger.info("Shutting down...")
+    logger.info("Scheduler stopped.")
+
+    # 关闭富途OpenD连接
+    from app.data_sources.futu_connection import close_futu_connection
+    close_futu_connection()
+
+    logger.info("Shutdown complete.")
 
 
 # 创建 FastAPI 应用

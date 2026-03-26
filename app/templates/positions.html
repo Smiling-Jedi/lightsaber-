@@ -189,7 +189,7 @@
       </a>
       <div class="ls-nav-links">
         <a class="ls-nav-link {% if active_page == 'positions' %}active{% endif %}" href="/positions/">持仓</a>
-        <a class="ls-nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="/dashboard/">分析</a>
+        <a class="ls-nav-link {% if active_page == 'investment' %}active{% endif %}" href="/investment/">投资中枢</a>
       </div>
     </nav>
 
@@ -849,7 +849,23 @@ async function loadAllNews() {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[Init] DOMContentLoaded fired, IS_DEMO =', IS_DEMO);
-    loadSignalsAndSummaries();
+    // 尝试加载缓存的信号（不强制刷新），避免OpenD连接阻塞页面
+    loadSignals(false).then(signals => {
+        if (signals.length === 0) {
+            // 无缓存时显示提示
+            document.querySelectorAll('[id^="signal-left-"]').forEach(el => {
+                el.innerHTML = '<div style="color:#6b7280;font-size:0.85rem;padding:12px 0;text-align:center">' +
+                    '<span style="display:block;margin-bottom:6px;">📊 信号待刷新</span>' +
+                    '<span style="font-size:0.75rem;color:#9aa0a6">点击上方"刷新信号"按钮获取最新信号</span>' +
+                    '</div>';
+            });
+        } else {
+            // 有缓存时加载summary
+            if (!IS_DEMO) {
+                signals.forEach(sig => loadSummary(sig.symbol));
+            }
+        }
+    });
     loadAllNews();
 });
 

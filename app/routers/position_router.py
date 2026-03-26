@@ -33,13 +33,6 @@ def positions_list(request: Request, db: Session = Depends(get_db)):
         last_update = datetime(2026, 3, 21, 15, 54, 0)
         cash_balances = {}
     else:
-        # 自动从富途同步最新持仓
-        try:
-            sync_result = FutuSyncService(db).sync()
-            logger.info(f"富途持仓自动同步: {sync_result}")
-        except Exception as e:
-            logger.warning(f"富途持仓同步失败（页面继续加载）: {e}")
-
         position_service = PositionService(db)
         price_service = PriceService(db)
         portfolio = position_service.get_portfolio_summary()

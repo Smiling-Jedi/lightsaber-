@@ -780,24 +780,23 @@ class SignalService:
     @staticmethod
     def _fetch_index(futu_code: str, days: int = 120):
         """通过富途 OpenD 获取市场指数历史数据"""
-        from futu import OpenQuoteContext, KLType, AuType, RET_OK
+        from futu import KLType, AuType, RET_OK
+        from app.data_sources.futu_connection import get_futu_context
         from datetime import datetime, timedelta
 
         start_date = (datetime.today() - timedelta(days=int(days * 1.5))).strftime("%Y-%m-%d")
         end_date = datetime.today().strftime("%Y-%m-%d")
 
-        ctx = OpenQuoteContext(host='127.0.0.1', port=11111)
-        try:
-            ret, data, _ = ctx.request_history_kline(
-                futu_code,
-                start=start_date,
-                end=end_date,
-                ktype=KLType.K_DAY,
-                autype=AuType.QFQ,
-                max_count=1000,
-            )
-        finally:
-            ctx.close()
+        # 使用全局复用的连接
+        ctx = get_futu_context()
+        ret, data, _ = ctx.request_history_kline(
+            futu_code,
+            start=start_date,
+            end=end_date,
+            ktype=KLType.K_DAY,
+            autype=AuType.QFQ,
+            max_count=1000,
+        )
 
         if ret != RET_OK or data.empty:
             return pd.DataFrame()

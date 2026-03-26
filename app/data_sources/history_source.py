@@ -81,7 +81,8 @@ class HistorySource:
 
     def _fetch_futu(self, code: str, market: str, days: int) -> pd.DataFrame:
         """通过富途 OpenD 拉取港股/美股历史日线数据"""
-        from futu import OpenQuoteContext, KLType, AuType, RET_OK
+        from futu import KLType, AuType, RET_OK
+        from app.data_sources.futu_connection import get_futu_context
 
         # 光剑格式 → 富途格式：HK:00700 → HK.00700，US:TSLA → US.TSLA
         futu_code = f"{market}.{code}"
@@ -89,28 +90,27 @@ class HistorySource:
         start_date = (datetime.today() - timedelta(days=int(days * 1.5))).strftime("%Y-%m-%d")
         end_date = datetime.today().strftime("%Y-%m-%d")
 
-        ctx = OpenQuoteContext(host='127.0.0.1', port=11111)
-        try:
-            all_rows = []
-            page_key = None
-            while True:
-                ret, data, next_key = ctx.request_history_kline(
-                    futu_code,
-                    start=start_date,
-                    end=end_date,
-                    ktype=KLType.K_DAY,
-                    autype=AuType.QFQ,
-                    max_count=1000,
-                    page_req_key=page_key,
-                )
-                if ret != RET_OK:
-                    raise ValueError(f"富途 K 线请求失败 {futu_code}: {data}")
-                all_rows.append(data)
-                if next_key is None:
-                    break
-                page_key = next_key
-        finally:
-            ctx.close()
+        # 使用全局复用的连接
+        ctx = get_futu_context()
+
+        all_rows = []
+        page_key = None
+        while True:
+            ret, data, next_key = ctx.request_history_kline(
+                futu_code,
+                start=start_date,
+                end=end_date,
+                ktype=KLType.K_DAY,
+                autype=AuType.QFQ,
+                max_count=1000,
+                page_req_key=page_key,
+            )
+            if ret != RET_OK:
+                raise ValueError(f"富途 K 线请求失败 {futu_code}: {data}")
+            all_rows.append(data)
+            if next_key is None:
+                break
+            page_key = next_key
 
         df = pd.concat(all_rows, ignore_index=True)
         if df.empty:
