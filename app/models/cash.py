@@ -12,7 +12,7 @@ class CashBalance(Base):
     __tablename__ = "cash_balances"
     __allow_unmapped__ = True
 
-    # 市场作为主键（HK / US / A）
+    # 市场作为主键（HK / US / A / FUND）
     market = Column(String(10), primary_key=True, comment="市场")
 
     # 币种

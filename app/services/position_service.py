@@ -445,8 +445,22 @@ class PositionService:
                 }
 
         # 设置各市场的基金余额
-        market_summary["HK"]["fund_hkd"] = hkd_fund
-        market_summary["US"]["fund_usd"] = usd_fund
+        # FUND是富途API返回的跨市场合计（HKD计），包含港元基金+美元基金折算
+        # 需要拆分到HK和US两个市场：用户提供一个，计算另一个
+        usd_fund_usd = self._get_usd_fund_from_env()  # 从环境变量读取用户提供的美元基金（USD）
+
+        if usd_fund_usd and usd_fund_usd > 0:
+            # 用户提供美元基金，计算港元基金
+            exchange_rate = exchange_rates.get("USD", Decimal("7.8"))  # USD->HKD汇率
+            usd_fund_in_hkd = usd_fund_usd * exchange_rate
+            hkd_fund = fund_assets_hkd - usd_fund_in_hkd
+
+            market_summary["HK"]["fund_hkd"] = hkd_fund if hkd_fund > 0 else Decimal("0")
+            market_summary["US"]["fund_usd"] = usd_fund_usd
+        else:
+            # 未提供拆分数据，FUND暂不归属任何市场（避免重复计算）
+            market_summary["HK"]["fund_hkd"] = Decimal("0")
+            market_summary["US"]["fund_usd"] = Decimal("0")
 
         # 每个市场的 total_with_cash = 股票市值 + 现金 + 基金（各市场独立货币）
         for market, data in market_summary.items():
@@ -468,11 +482,11 @@ class PositionService:
                 continue
             market = stock.market
             pos_summary = self.get_position_summary(pos)
-            # 用市场总资金（含现金）重新计算权重
-            market_total = market_summary[market]["total_with_cash"]
-            if market_total > 0 and pos_summary.get("market_value"):
+            # 用市场股票总市值（不含现金）重新计算权重
+            market_stock_total = market_summary[market]["total_market_value"]
+            if market_stock_total > 0 and pos_summary.get("market_value"):
                 pos_summary["position_weight"] = float(
-                    Decimal(str(pos_summary["market_value"])) / market_total * 100
+                    Decimal(str(pos_summary["market_value"])) / market_stock_total * 100
                 )
             market_summary[market]["positions"].append(pos_summary)
 
@@ -505,11 +519,12 @@ class PositionService:
             # 计算该市场的股票仓位占比和现金仓位占比（现金包含基金）
             total_with_cash = data["total_with_cash"]
             stock_value = data["total_market_value"]
-            # 现金仓位 = 普通现金 + 基金
+            # 现金仓位 = 普通现金 + 基金（fund_hkd 对真实账户是富途API基金，对模拟账户是HKD_FUND）
             if market == "HK":
                 cash_value = data["cash"] + data.get("fund_hkd", 0)
             elif market == "US":
-                cash_value = data["cash"] + data.get("fund_usd", 0)
+                # 美股基金已包含在 fund_hkd (FUND, HKD计) 中，此处不再重复加
+                cash_value = data["cash"]
             else:
                 cash_value = data["cash"]
             if total_with_cash > 0:
@@ -585,6 +600,25 @@ class PositionService:
             self.db.commit()
             return True
         return False
+
+    def _get_usd_fund_from_env(self) -> Optional[Decimal]:
+        """
+        从环境变量读取用户提供的美元基金金额（USD）
+
+        富途API的fund_assets返回的是港元合计值，不包含货币拆分。
+        需要用户提供其中一个市场的基金金额，才能拆分到HK和US两个市场。
+
+        环境变量：USD_FUND_AMOUNT（例如：67694.78）
+        返回：Decimal 或 None
+        """
+        import os
+        usd_fund_str = os.environ.get("USD_FUND_AMOUNT", "").strip()
+        if usd_fund_str:
+            try:
+                return Decimal(str(usd_fund_str))
+            except Exception:
+                logger.warning(f"USD_FUND_AMOUNT环境变量格式无效: {usd_fund_str}")
+        return None
 
     def _parse_swing_plan(self, position: Position, current_price: float):
         """
