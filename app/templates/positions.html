@@ -221,10 +221,30 @@
       </div>
     </div>
 
+    {# 预先合并市场数据（A股多币种合并），供头部卡片、tabs和panes共用 #}
+    {% set market_data = {} %}
+    {% for m, d in portfolio.markets.items() %}
+      {% set m_lower = m|lower %}
+      {% if m_lower in ['hk', 'us', 'a'] %}
+        {% if m_lower in market_data %}
+          {# A股多币种合并：累加数据 #}
+          {% set _ = market_data[m_lower].update({
+            'total_with_cash': market_data[m_lower].total_with_cash + d.total_with_cash,
+            'total_market_value': market_data[m_lower].total_market_value + d.total_market_value,
+            'positions': market_data[m_lower].positions + d.positions,
+            'cash': market_data[m_lower].cash + d.cash
+          }) %}
+        {% else %}
+          {% set _ = market_data.update({m_lower: d}) %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+
     <!-- 市场摘要卡片：港/美/A股 -->
     <div class="ls-summary-row-1">
-      {% for mkt_key, d in portfolio.markets.items() %}
-      {% set market_name = "港股" if mkt_key == "HK" else ("美股" if mkt_key == "US" else "A股") %}
+      {% for market_key, market_name in [('hk', '港股'), ('us', '美股'), ('a', 'A股')] %}
+      {% if market_key in market_data %}
+      {% set d = market_data[market_key] %}
       <div class="ls-summary-card">
         <div class="ls-s-label">{{ market_name }} · {{ d.currency }}</div>
         <div class="ls-s-value">{{ "{:,.0f}".format(d.total_with_cash) }}</div>
@@ -260,6 +280,7 @@
           </div>
         </div>
       </div>
+      {% endif %}
       {% endfor %}
     </div>
   </div>
@@ -267,25 +288,6 @@
 
 <!-- ── 主内容区 ────────────────────────────────────── -->
 <div class="ls-page">
-
-  {# 预先合并市场数据（A股多币种合并），供 tabs 和 panes 共用 #}
-  {% set market_data = {} %}
-  {% for m, d in portfolio.markets.items() %}
-    {% set m_lower = m|lower %}
-    {% if m_lower in ['hk', 'us', 'a'] %}
-      {% if m_lower in market_data %}
-        {# A股多币种合并：累加数据 #}
-        {% set _ = market_data[m_lower].update({
-          'total_with_cash': market_data[m_lower].total_with_cash + d.total_with_cash,
-          'total_market_value': market_data[m_lower].total_market_value + d.total_market_value,
-          'positions': market_data[m_lower].positions + d.positions,
-          'cash': market_data[m_lower].cash + d.cash
-        }) %}
-      {% else %}
-        {% set _ = market_data.update({m_lower: d}) %}
-      {% endif %}
-    {% endif %}
-  {% endfor %}
 
   <!-- 市场标签页：只显示标准市场 -->
   <div class="ls-tabs">
