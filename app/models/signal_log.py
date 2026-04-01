@@ -62,6 +62,11 @@ class SignalLog(Base):
     entry_price_reference    = Column(Float, nullable=True)    # 参考入场价
     position_value_estimated = Column(Float, nullable=True)    # 预计占用资金
 
+    # T+1限价单模式新增字段
+    limit_price     = Column(Float, nullable=True, comment="条件单挂价（T+1限价单价格）")
+    t1_low_price    = Column(Float, nullable=True, comment="T+1日最低价（用于成交判断）")
+    t1_open_price   = Column(Float, nullable=True, comment="T+1日开盘价（用于统计滑点）")
+
     # ─────────────────────────────────────────────────────
     # 便捷方法
     # ─────────────────────────────────────────────────────
@@ -116,4 +121,8 @@ class SignalLog(Base):
             "recommended_shares_second": self.recommended_shares_second,
             "entry_price_reference": self.entry_price_reference,
             "position_value_estimated": self.position_value_estimated,
+            # T+1限价单模式新增字段
+            "limit_price": self.limit_price,
+            "t1_low_price": self.t1_low_price,
+            "t1_open_price": self.t1_open_price,
         }

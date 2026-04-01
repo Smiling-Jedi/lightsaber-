@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光剑系统 - 头部设计统一稿</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .mockup-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 30px;
+            color: #333;
+            border-bottom: 2px solid #38346a;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 16px;
+            color: #666;
+            margin: 30px 0 15px;
+        }
+
+        .browser-mockup {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .browser-bar {
+            background: #e8e8e8;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .browser-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .dot-red { background: #ff5f57; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #28c840; }
+
+        .browser-url {
+            flex: 1;
+            background: #fff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            margin-left: 8px;
+        }
+
+        /* ====== 持仓管理页 - 优化后 ====== */
+        .ls-page-container {
+            background: #eceaf8;
+            min-height: 400px;
+        }
+
+        /* Header Band */
+        .ls-header-band {
+            background: #38346a;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+        }
+
+        .ls-header-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 28px 12px; /* 优化: 24px → 12px */
+        }
+
+        /* 导航栏 */
+        .ls-nav {
+            height: 48px; /* 优化: 62px → 48px */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ls-nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .ls-nav-brand span { color: #a5b4fc; }
+
+        .ls-nav-links {
+            display: flex;
+            gap: 4px;
+        }
+
+        .ls-nav-link {
+            padding: 5px 14px;
+            border-radius: 20px;
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .ls-nav-link.active {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+
+        /* 操作栏 */
+        .ls-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px; /* 优化: 20px → 8px */
+        }
+
+        .ls-status-text {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .ls-status-dot {
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #4ade80;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .ls-action-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .ls-btn {
+            padding: 5px 12px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.75);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .ls-btn-primary {
+            background: rgba(165,180,252,0.25);
+            border-color: rgba(165,180,252,0.5);
+            color: #c7d2fe;
+        }
+
+        /* 汇总卡片 - 优化后更紧凑 */
+        .ls-summary-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .ls-summary-card {
+            background: rgba(255,255,255,0.09);
+            border: 1px solid rgba(255,255,255,0.13);
+            border-radius: 8px;
+            padding: 10px 14px; /* 优化: 16px 20px → 10px 14px */
+        }
+
+        .ls-s-label {
+            font-size: 10px; /* 优化: 11px → 10px */
+            color: rgba(255,255,255,0.48);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 3px;
+        }
+
+        .ls-s-value {
+            font-size: 20px; /* 优化: 26px → 20px */
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            color: #fff;
+        }
+
+        .ls-s-sub {
+            font-size: 12px;
+            margin-top: 2px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* 内容区 */
+        .ls-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px 28px;
+        }
+
+        .placeholder-card {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #dcdaf0;
+            padding: 20px;
+            margin-bottom: 12px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* ====== 投资中枢页 - 统一后 ====== */
+        .inv-header-band {
+            background: #38346a;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+        }
+
+        .inv-header-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 28px 12px;
+        }
+
+        .inv-nav {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* 标题卡片 */
+        .inv-title-card {
+            background: rgba(255,255,255,0.09);
+            border: 1px solid rgba(255,255,255,0.13);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .inv-title-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .inv-title-icon {
+            font-size: 18px;
+        }
+
+        .inv-title-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .inv-title-date {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-left: 8px;
+        }
+
+        .inv-title-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* 侧边栏样式 */
+        .inv-content-area {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px 28px;
+            display: grid;
+            grid-template-columns: 180px 1fr 180px;
+            gap: 20px;
+        }
+
+        .inv-sidebar {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #dcdaf0;
+        }
+
+        .inv-sidebar-title {
+            font-size: 11px;
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .inv-sidebar-item {
+            padding: 6px 8px;
+            font-size: 13px;
+            color: #666;
+            border-radius: 4px;
+            margin-bottom: 2px;
+        }
+
+        .inv-sidebar-item.active {
+            background: #e9ecef;
+            color: #000;
+            font-weight: 500;
+        }
+
+        .inv-main {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #dcdaf0;
+            min-height: 300px;
+        }
+
+        /* 对比标注 */
+        .annotation {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .annotation code {
+            background: rgba(0,0,0,0.05);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="mockup-container">
+        <h1>光剑系统 - 头部设计统一稿</h1>
+
+        <!-- 持仓管理页 -->
+        <h2>1. 持仓管理页（优化后 - 头部高度降低）</h2>
+        <div class="browser-mockup">
+            <div class="browser-bar">
+                <span class="browser-dot dot-red"></span>
+                <span class="browser-dot dot-yellow"></span>
+                <span class="browser-dot dot-green"></span>
+                <span class="browser-url">127.0.0.1:8080/positions/</span>
+            </div>
+            <div class="ls-page-container">
+                <!-- Header -->
+                <div class="ls-header-band">
+                    <div class="ls-header-inner">
+                        <!-- 导航 -->
+                        <div class="ls-nav">
+                            <a href="#" class="ls-nav-brand">
+                                <span>⚔️</span>
+                                <span>光剑 Lightsaber</span>
+                            </a>
+                            <div class="ls-nav-links">
+                                <a href="#" class="ls-nav-link active">持仓</a>
+                                <a href="#" class="ls-nav-link">投资中枢</a>
+                            </div>
+                        </div>
+
+                        <!-- 操作栏 -->
+                        <div class="ls-top-bar">
+                            <span class="ls-status-text">
+                                <span class="ls-status-dot"></span>
+                                数据更新于 15:30
+                            </span>
+                            <div class="ls-action-btns">
+                                <button class="ls-btn">刷新价格</button>
+                                <button class="ls-btn ls-btn-primary">同步富途</button>
+                            </div>
+                        </div>
+
+                        <!-- 汇总卡片 -->
+                        <div class="ls-summary-row">
+                            <div class="ls-summary-card">
+                                <div class="ls-s-label">总市值</div>
+                                <div class="ls-s-value">¥128.5万</div>
+                                <div class="ls-s-sub">+2.3% 今日</div>
+                            </div>
+                            <div class="ls-summary-card">
+                                <div class="ls-s-label">累计盈亏</div>
+                                <div class="ls-s-value">+¥15.2万</div>
+                                <div class="ls-s-sub">+13.4%</div>
+                            </div>
+                            <div class="ls-summary-card">
+                                <div class="ls-s-label">持仓股票</div>
+                                <div class="ls-s-value">12只</div>
+                                <div class="ls-s-sub">港股5 美股4 A股3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 内容区 -->
+                <div class="ls-content">
+                    <div class="placeholder-card">股票卡片列表区域...</div>
+                    <div class="placeholder-card">股票卡片...</div>
+                    <div class="placeholder-card">股票卡片...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="annotation">
+            <strong>优化点：</strong>
+            <code>.ls-nav</code> 62px→48px |
+            <code>.ls-header-inner</code> padding-bottom 24px→12px |
+            <code>.ls-top-bar</code> margin-bottom 20px→8px |
+            <code>.ls-summary-card</code> padding 16px→10px |
+            <code>.ls-s-value</code> 字体 26px→20px
+        </div>
+
+        <!-- 投资中枢页 -->
+        <h2>2. 投资中枢页（统一后 - 采用持仓页风格）</h2>
+        <div class="browser-mockup">
+            <div class="browser-bar">
+                <span class="browser-dot dot-red"></span>
+                <span class="browser-dot dot-yellow"></span>
+                <span class="browser-dot dot-green"></span>
+                <span class="browser-url">127.0.0.1:8080/investment/</span>
+            </div>
+            <div class="ls-page-container">
+                <!-- Header -->
+                <div class="inv-header-band">
+                    <div class="inv-header-inner">
+                        <!-- 导航 -->
+                        <div class="inv-nav">
+                            <a href="#" class="ls-nav-brand">
+                                <span>⚔️</span>
+                                <span>光剑 Lightsaber</span>
+                            </a>
+                            <div class="ls-nav-links">
+                                <a href="#" class="ls-nav-link">持仓</a>
+                                <a href="#" class="ls-nav-link active">投资中枢</a>
+                            </div>
+                        </div>
+
+                        <!-- 标题卡片 -->
+                        <div class="inv-title-card">
+                            <div class="inv-title-left">
+                                <span class="inv-title-icon">📊</span>
+                                <span class="inv-title-text">体检报告</span>
+                                <span class="inv-title-date">2025年3月27日</span>
+                            </div>
+                            <div class="inv-title-actions">
+                                <button class="ls-btn">投资档案</button>
+                                <button class="ls-btn">全部报告</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 内容区 -->
+                <div class="inv-content-area">
+                    <div class="inv-sidebar">
+                        <div class="inv-sidebar-title">历史报告</div>
+                        <div class="inv-sidebar-item active">2025年3月27日</div>
+                        <div class="inv-sidebar-item">2025年3月24日</div>
+                        <div class="inv-sidebar-item">2025年3月21日</div>
+                        <div class="inv-sidebar-item">2025年3月18日</div>
+                        <div class="inv-sidebar-title" style="margin-top:15px;">本报告</div>
+                        <div class="inv-sidebar-item">一、仓位总览</div>
+                        <div class="inv-sidebar-item">二、五维雷达</div>
+                        <div class="inv-sidebar-item">三、个股诊断</div>
+                    </div>
+                    <div class="inv-main">
+                        <p style="color:#999;text-align:center;margin-top:100px;">体检报告内容区域...</p>
+                    </div>
+                    <div class="inv-sidebar" style="visibility:hidden;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="annotation">
+            <strong>统一改动：</strong>
+            抑制默认navbar，添加 <code>.ls-header-band</code> 深紫背景 |
+            导航栏高度统一为48px |
+            标题采用卡片式嵌入header-band |
+            内容区背景统一为 <code>#eceaf8</code> 浅紫色
+        </div>
+    </div>
+</body>
+</html>

@@ -263,35 +263,24 @@ class AnalysisService:
     def generate_health_check_report(self) -> Dict:
         """
         生成持仓体检报告（8大模块）
+        统一使用 position_service.get_portfolio_summary() 计算总资产，避免重复计算
         """
-        from app.models.cash import CashBalance
-
         portfolio = self.position_service.get_portfolio_summary()
         positions_data = portfolio.get("markets", {})
 
-        # 计算总资产和现金
+        # 统一使用 portfolio 中已计算好的总资产（包含现金和基金，已按汇率折算）
         total_assets = Decimal(str(portfolio.get("total_market_value_rmb", 0)))
+
+        # 从 portfolio 中提取现金（已包含在各市场的 total_with_cash 中）
         cash_total = Decimal("0")
-        cash_by_market = {}
+        for market, data in positions_data.items():
+            # 现金 = total_with_cash - 股票市值
+            total_with_cash = Decimal(str(data.get("total_with_cash", 0)))
+            stock_value = Decimal(str(data.get("total_market_value", 0)))
+            market_cash = total_with_cash - stock_value
+            cash_total += market_cash * Decimal(str(data.get("exchange_rate", 1.0)))
 
-        for cb in self.db.query(CashBalance).all():
-            amount = Decimal(str(cb.amount))
-            if cb.market == "FUND":
-                cash_by_market["HK"] = cash_by_market.get("HK", Decimal("0")) + amount
-                cash_total += amount * Decimal("0.93")  # 港币汇率
-            elif cb.market == "USD_FUND":
-                cash_by_market["US"] = cash_by_market.get("US", Decimal("0")) + amount
-                cash_total += amount * Decimal("7.25")  # 美元汇率
-            else:
-                cash_by_market[cb.market] = amount
-                if cb.currency == "HKD":
-                    cash_total += amount * Decimal("0.93")
-                elif cb.currency == "USD":
-                    cash_total += amount * Decimal("7.25")
-                else:
-                    cash_total += amount
-
-        total_with_cash = total_assets + cash_total
+        total_with_cash = total_assets  # portfolio 返回的已是折算后总值
         cash_ratio = float(cash_total / total_with_cash * 100) if total_with_cash > 0 else 0
 
         # 收集所有持仓

@@ -87,7 +87,7 @@ def update_news(db: Session = Depends(get_db)) -> Dict:
 @router.get("/portfolio/summary")
 def get_portfolio_summary(request: Request, db: Session = Depends(get_db)) -> Dict:
     """
-    获取投资组合汇总
+    获取投资组合汇总（统一从 position_service 获取，确保数据一致性）
     """
     if is_demo_mode(request):
         portfolio = get_demo_portfolio()
@@ -103,19 +103,25 @@ def get_portfolio_summary(request: Request, db: Session = Depends(get_db)) -> Di
     position_service = PositionService(db)
     portfolio = position_service.get_portfolio_summary()
 
-    # 添加现金明细
+    # 从 portfolio 数据构建现金明细（统一数据源，避免多头管理）
     cash_breakdown = {}
-    for cb in db.query(CashBalance).all():
-        if cb.market == "FUND":
-            cash_breakdown["HK_FUND"] = cash_breakdown.get("HK_FUND", 0) + float(cb.amount)
-        elif cb.market == "USD_FUND":
-            cash_breakdown["USD_FUND"] = cash_breakdown.get("USD_FUND", 0) + float(cb.amount)
-        elif cb.currency == "HKD":
-            cash_breakdown["HK_CASH"] = cash_breakdown.get("HK_CASH", 0) + float(cb.amount)
-        elif cb.currency == "USD":
-            cash_breakdown["USD_CASH"] = cash_breakdown.get("USD_CASH", 0) + float(cb.amount)
-        elif cb.currency == "CNY":
-            cash_breakdown["CNY"] = cash_breakdown.get("CNY", 0) + float(cb.amount)
+    markets = portfolio.get("markets", {})
+
+    # 港股现金和基金
+    if "HK" in markets:
+        hk_data = markets["HK"]
+        cash_breakdown["HK_CASH"] = hk_data.get("cash", 0)
+        cash_breakdown["HK_FUND"] = hk_data.get("fund_hkd", 0)
+
+    # 美股现金和基金
+    if "US" in markets:
+        us_data = markets["US"]
+        cash_breakdown["USD_CASH"] = us_data.get("cash", 0)
+        cash_breakdown["USD_FUND"] = us_data.get("fund_usd", 0)
+
+    # A股现金
+    if "A" in markets:
+        cash_breakdown["CNY"] = markets["A"].get("cash", 0)
 
     portfolio["cash_breakdown"] = cash_breakdown
     return portfolio

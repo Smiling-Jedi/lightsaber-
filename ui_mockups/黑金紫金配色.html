@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑金/紫金配色 - 持仓管理页</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            padding: 40px 20px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 500;
+            color: #f5f5f5;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 35px;
+            letter-spacing: 0.3px;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .scheme-wrapper h2 {
+            font-size: 12px;
+            font-weight: 500;
+            color: #999;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .browser-mockup {
+            border: 1px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #0d0d0d;
+        }
+
+        .browser-bar {
+            background: #1f1f1f;
+            padding: 7px 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .browser-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot-red { background: #5c3a3a; }
+        .dot-yellow { background: #5c543a; }
+        .dot-green { background: #3a5c3a; }
+
+        /* ========== 方案1：黑金 ========== */
+        .scheme-blackgold .page {
+            background: #141414;
+            min-height: 420px;
+        }
+        .scheme-blackgold .header {
+            background: #0a0a0a;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 0 24px 16px;
+        }
+        .scheme-blackgold .nav {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .scheme-blackgold .brand {
+            color: #c9a962;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .scheme-blackgold .nav-link {
+            padding: 5px 14px;
+            color: #666;
+            font-size: 13px;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .scheme-blackgold .nav-link:hover {
+            color: #999;
+            background: #1a1a1a;
+        }
+        .scheme-blackgold .nav-link.active {
+            color: #c9a962;
+            background: #1a1a1a;
+        }
+        .scheme-blackgold .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .scheme-blackgold .card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            padding: 14px 16px;
+        }
+        .scheme-blackgold .card:hover {
+            border-color: #3a3a3a;
+        }
+        .scheme-blackgold .label {
+            font-size: 10px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .scheme-blackgold .value {
+            font-size: 22px;
+            color: #e8e8e8;
+            font-weight: 400;
+            margin-top: 6px;
+            letter-spacing: -0.5px;
+        }
+        .scheme-blackgold .gold-accent {
+            color: #c9a962;
+        }
+        .scheme-blackgold .content { padding: 20px 24px; }
+        .scheme-blackgold .stock-card {
+            background: #1a1a1a;
+            border: 1px solid #252525;
+            border-radius: 4px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .scheme-blackgold .stock-card:hover {
+            border-color: #3a3a3a;
+            background: #1f1f1f;
+        }
+        .scheme-blackgold .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .scheme-blackgold .stock-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: #d0d0d0;
+        }
+        .scheme-blackgold .stock-code {
+            color: #555;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        .scheme-blackgold .chip {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 3px;
+            background: #252525;
+            color: #888;
+            border: 1px solid #333;
+        }
+        .scheme-blackgold .stock-body {
+            display: flex;
+            gap: 40px;
+            font-size: 13px;
+            color: #666;
+        }
+        .scheme-blackgold .col-val {
+            color: #999;
+            margin-left: 8px;
+        }
+        .scheme-blackgold .profit {
+            color: #7fb069;
+        }
+        .scheme-blackgold .loss {
+            color: #c9705c;
+        }
+
+        /* ========== 方案2：紫金 ========== */
+        .scheme-purpegold .page {
+            background: #15121a;
+            min-height: 420px;
+        }
+        .scheme-purpegold .header {
+            background: #0d0b12;
+            border-bottom: 1px solid #2a2435;
+            padding: 0 24px 16px;
+        }
+        .scheme-purpegold .nav {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .scheme-purpegold .brand {
+            color: #d4af37;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .scheme-purpegold .nav-link {
+            padding: 5px 14px;
+            color: #5a5a6a;
+            font-size: 13px;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .scheme-purpegold .nav-link:hover {
+            color: #8a8a9a;
+            background: #1a1620;
+        }
+        .scheme-purpegold .nav-link.active {
+            color: #d4af37;
+            background: #1a1620;
+        }
+        .scheme-purpegold .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .scheme-purpegold .card {
+            background: #1a1620;
+            border: 1px solid #2a2435;
+            border-radius: 4px;
+            padding: 14px 16px;
+        }
+        .scheme-purpegold .card:hover {
+            border-color: #3a3450;
+        }
+        .scheme-purpegold .label {
+            font-size: 10px;
+            color: #4a4a5a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .scheme-purpegold .value {
+            font-size: 22px;
+            color: #e0e0e8;
+            font-weight: 400;
+            margin-top: 6px;
+            letter-spacing: -0.5px;
+        }
+        .scheme-purpegold .gold-accent {
+            color: #d4af37;
+        }
+        .scheme-purpegold .content { padding: 20px 24px; }
+        .scheme-purpegold .stock-card {
+            background: #1a1620;
+            border: 1px solid #252030;
+            border-radius: 4px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .scheme-purpegold .stock-card:hover {
+            border-color: #3a3450;
+            background: #1f1a28;
+        }
+        .scheme-purpegold .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .scheme-purpegold .stock-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: #d0d0d8;
+        }
+        .scheme-purpegold .stock-code {
+            color: #4a4a5a;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        .scheme-purpegold .chip {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 3px;
+            background: #252030;
+            color: #7a7a8a;
+            border: 1px solid #353040;
+        }
+        .scheme-purpegold .stock-body {
+            display: flex;
+            gap: 40px;
+            font-size: 13px;
+            color: #5a5a6a;
+        }
+        .scheme-purpegold .col-val {
+            color: #9a9aaa;
+            margin-left: 8px;
+        }
+        .scheme-purpegold .profit {
+            color: #7fb069;
+        }
+        .scheme-purpegold .loss {
+            color: #c9705c;
+        }
+
+        /* 说明卡片 */
+        .notes {
+            margin-top: 35px;
+            padding: 24px;
+            background: #1a1a1a;
+            border-radius: 6px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .notes h3 {
+            font-size: 13px;
+            font-weight: 500;
+            color: #999;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .note-item h4 {
+            font-size: 12px;
+            color: #c9a962;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .note-item.purple h4 {
+            color: #d4af37;
+        }
+
+        .note-item ul {
+            list-style: none;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.9;
+        }
+
+        .color-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>黑金 / 紫金 配色方案</h1>
+        <p class="subtitle">低饱和、高对比、护眼暗色模式</p>
+
+        <div class="comparison">
+            <!-- 方案1：黑金 -->
+            <div class="scheme-wrapper">
+                <h2>方案1：黑金 (Black/Gold)</h2>
+                <div class="browser-mockup scheme-blackgold">
+                    <div class="browser-bar">
+                        <span class="browser-dot dot-red"></span>
+                        <span class="browser-dot dot-yellow"></span>
+                        <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="page">
+                        <div class="header">
+                            <div class="nav">
+                                <span class="brand">⚔️ 光剑 Lightsaber</span>
+                                <div>
+                                    <span class="nav-link active">持仓</span>
+                                    <span class="nav-link">投资中枢</span>
+                                </div>
+                            </div>
+                            <div class="summary">
+                                <div class="card">
+                                    <div class="label">总市值</div>
+                                    <div class="value gold-accent">¥128.5万</div>
+                                </div>
+                                <div class="card">
+                                    <div class="label">累计盈亏</div>
+                                    <div class="value profit">+¥15.2万</div>
+                                </div>
+                                <div class="card">
+                                    <div class="label">持仓股票</div>
+                                    <div class="value">12只</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="stock-card">
+                                <div class="stock-header">
+                                    <div>
+                                        <span class="stock-name">腾讯控股</span>
+                                        <span class="stock-code">00700.HK</span>
+                                    </div>
+                                    <span class="chip">港股</span>
+                                </div>
+                                <div class="stock-body">
+                                    <div>持仓<span class="col-val">100股</span></div>
+                                    <div>成本<span class="col-val">¥380.00</span></div>
+                                    <div>盈亏<span class="col-val profit">+¥4,750</span></div>
+                                </div>
+                            </div>
+                            <div class="stock-card">
+                                <div class="stock-header">
+                                    <div>
+                                        <span class="stock-name">阿里巴巴</span>
+                                        <span class="stock-code">09988.HK</span>
+                                    </div>
+                                    <span class="chip">港股</span>
+                                </div>
+                                <div class="stock-body">
+                                    <div>持仓<span class="col-val">200股</span></div>
+                                    <div>成本<span class="col-val">¥85.50</span></div>
+                                    <div>盈亏<span class="col-val loss">-¥1,460</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 方案2：紫金 -->
+            <div class="scheme-wrapper">
+                <h2>方案2：紫金 (Purple/Gold)</h2>
+                <div class="browser-mockup scheme-purpegold">
+                    <div class="browser-bar">
+                        <span class="browser-dot dot-red"></span>
+                        <span class="browser-dot dot-yellow"></span>
+                        <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="page">
+                        <div class="header">
+                            <div class="nav">
+                                <span class="brand">⚔️ 光剑 Lightsaber</span>
+                                <div>
+                                    <span class="nav-link active">持仓</span>
+                                    <span class="nav-link">投资中枢</span>
+                                </div>
+                            </div>
+                            <div class="summary">
+                                <div class="card">
+                                    <div class="label">总市值</div>
+                                    <div class="value gold-accent">¥128.5万</div>
+                                </div>
+                                <div class="card">
+                                    <div class="label">累计盈亏</div>
+                                    <div class="value profit">+¥15.2万</div>
+                                </div>
+                                <div class="card">
+                                    <div class="label">持仓股票</div>
+                                    <div class="value">12只</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="stock-card">
+                                <div class="stock-header">
+                                    <div>
+                                        <span class="stock-name">腾讯控股</span>
+                                        <span class="stock-code">00700.HK</span>
+                                    </div>
+                                    <span class="chip">港股</span>
+                                </div>
+                                <div class="stock-body">
+                                    <div>持仓<span class="col-val">100股</span></div>
+                                    <div>成本<span class="col-val">¥380.00</span></div>
+                                    <div>盈亏<span class="col-val profit">+¥4,750</span></div>
+                                </div>
+                            </div>
+                            <div class="stock-card">
+                                <div class="stock-header">
+                                    <div>
+                                        <span class="stock-name">阿里巴巴</span>
+                                        <span class="stock-code">09988.HK</span>
+                                    </div>
+                                    <span class="chip">港股</span>
+                                </div>
+                                <div class="stock-body">
+                                    <div>持仓<span class="col-val">200股</span></div>
+                                    <div>成本<span class="col-val">¥85.50</span></div>
+                                    <div>盈亏<span class="col-val loss">-¥1,460</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="notes">
+            <h3>设计要点</h3>
+            <div class="notes-grid">
+                <div class="note-item">
+                    <h4>黑金配色</h4>
+                    <ul>
+                        <li><span class="color-dot" style="background:#0a0a0a"></span>背景: #0a0a0a (纯黑)</li>
+                        <li><span class="color-dot" style="background:#1a1a1a"></span>卡片: #1a1a1a</li>
+                        <li><span class="color-dot" style="background:#2a2a2a"></span>边框: #2a2a2a</li>
+                        <li><span class="color-dot" style="background:#c9a962"></span>金色: #c9a962</li>
+                        <li><span class="color-dot" style="background:#7fb069"></span>盈利绿: #7fb069</li>
+                        <li><span class="color-dot" style="background:#c9705c"></span>亏损红: #c9705c</li>
+                    </ul>
+                </div>
+                <div class="note-item purple">
+                    <h4>紫金配色</h4>
+                    <ul>
+                        <li><span class="color-dot" style="background:#0d0b12"></span>背景: #0d0b12 (极暗紫)</li>
+                        <li><span class="color-dot" style="background:#1a1620"></span>卡片: #1a1620</li>
+                        <li><span class="color-dot" style="background:#2a2435"></span>边框: #2a2435</li>
+                        <li><span class="color-dot" style="background:#d4af37"></span>金色: #d4af37</li>
+                        <li><span class="color-dot" style="background:#7fb069"></span>盈利绿: #7fb069</li>
+                        <li><span class="color-dot" style="background:#c9705c"></span>亏损红: #c9705c</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color:#999;font-size:12px;margin-bottom:8px;">护眼特性</h4>
+                    <ul style="font-size:12px;color:#666;line-height:1.9;">
+                        <li>背景亮度 < 10%</li>
+                        <li>文字对比度 > 7:1</li>
+                        <li>无纯白色 (#fff)</li>
+                        <li>低饱和红绿色</li>
+                        <li>细边框分隔，无阴影</li>
+                        <li>适合长时间盯盘</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

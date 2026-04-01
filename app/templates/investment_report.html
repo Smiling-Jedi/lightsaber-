@@ -1,23 +1,191 @@
 {% extends "base.html" %}
 {% block title %}投资中枢 · 体检报告{% endblock %}
 
+{# 抑制默认navbar，使用自定义header-band #}
+{% block navbar %}{% endblock %}
+
+{# 覆盖默认的page_wrapper，移除container限制，让header-band拉通 #}
+{% block page_wrapper %}
+<!-- Header Band - 拉通整个宽度 -->
+<div class="ls-header-band">
+    <div class="ls-header-inner">
+        <!-- 导航栏 -->
+        <div class="ls-nav">
+            <a href="/" class="ls-nav-brand">
+                <span>⚔️</span>
+                <span>光剑 Lightsaber</span>
+            </a>
+            <div class="ls-nav-links">
+                <a href="/positions/" class="ls-nav-link">持仓</a>
+                <a href="/trades/" class="ls-nav-link">交易记录</a>
+                <a href="/investment/" class="ls-nav-link active">投资中枢</a>
+            </div>
+        </div>
+
+        <!-- 标题区 - 拉通宽度 -->
+        <div class="inv-title-area">
+            <div class="inv-title-left">
+                <span class="inv-title-icon">📊</span>
+                <span class="inv-title-text">体检报告</span>
+                {% if latest %}
+                <span class="inv-title-date">{{ latest.date_display }}</span>
+                {% endif %}
+            </div>
+            <div class="inv-title-actions">
+                <a href="/investment/profile" class="ls-btn">投资档案</a>
+                <a href="/investment/archive" class="ls-btn">全部报告</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 内容区 -->
+<div class="inv-content-area">
+    <div class="row">
+        <!-- 左侧：报告历史 + 导航 -->
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="report-sidebar">
+                <div class="sidebar-card">
+                    <div class="sidebar-title">历史报告</div>
+                    {% for r in reports %}
+                    <a href="/investment/archive/{{ r.date_str }}"
+                       class="archive-link {% if latest and r.date_str == latest.date_str and not is_archive is defined %}{% elif latest and r.date_str == latest.date_str %}active{% endif %}">
+                        {{ r.date_display }}
+                    </a>
+                    {% endfor %}
+                </div>
+                <div class="sidebar-card">
+                    <div class="report-nav" id="toc"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容 -->
+        <div class="col-lg-8">
+            <div class="report-main report-content">
+                {{ html_content | safe }}
+            </div>
+        </div>
+
+        <!-- 右侧空白 -->
+        <div class="col-lg-2"></div>
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_css %}
 <style>
+    /* 布局基础 - 与持仓页统一 */
+    body { background: #eceaf8 !important; }
+
+    /* Header Band - 拉通整个宽度 */
+    .ls-header-band {
+        background: #38346a;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+        width: 100%;
+    }
+    .ls-header-band .ls-header-inner {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 28px 12px;
+    }
+
+    /* 导航栏 - 与持仓页一致 */
+    .ls-nav { height: 48px; display: flex; align-items: center; justify-content: space-between; }
+    .ls-nav-brand { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; color: #fff; text-decoration: none; letter-spacing: -0.3px; }
+    .ls-nav-brand span { color: #a5b4fc; }
+    .ls-nav-links { display: flex; gap: 4px; }
+    .ls-nav-link { padding: 5px 14px; border-radius: 20px; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .ls-nav-link.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .ls-nav-link:hover:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
+
+    /* 标题区 - 拉通宽度 */
+    .inv-title-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0 4px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        margin-top: 8px;
+    }
+    .inv-title-left { display: flex; align-items: center; gap: 10px; }
+    .inv-title-icon { font-size: 18px; }
+    .inv-title-text { font-size: 16px; font-weight: 600; color: #fff; }
+    .inv-title-date { font-size: 12px; color: rgba(255,255,255,0.5); margin-left: 8px; }
+    .inv-title-actions { display: flex; gap: 6px; }
+    .ls-btn {
+        padding: 5px 12px;
+        border-radius: 5px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.75);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .ls-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+    /* 内容区 */
+    .inv-content-area {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 20px 28px;
+    }
+
+    /* 侧边栏样式 */
     .report-sidebar {
         position: sticky;
-        top: 80px;
-        max-height: calc(100vh - 100px);
+        top: 20px;
+        max-height: calc(100vh - 60px);
         overflow-y: auto;
     }
+    .sidebar-card {
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid #dcdaf0;
+        padding: 15px;
+        margin-bottom: 12px;
+    }
+    .sidebar-title {
+        font-size: 11px;
+        color: #666;
+        font-weight: 600;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .archive-link {
+        display: block;
+        padding: 6px 8px;
+        border-radius: 4px;
+        font-size: 13px;
+        color: #495057;
+        text-decoration: none;
+        margin-bottom: 2px;
+    }
+    .archive-link:hover { background: #f0f0f0; }
+    .archive-link.active { background: #e9ecef; font-weight: 600; color: #000; }
+
     .report-nav a {
         display: block;
-        padding: 4px 12px;
-        font-size: 0.85rem;
+        padding: 5px 8px;
+        font-size: 13px;
         color: #6c757d;
         text-decoration: none;
         border-left: 2px solid #dee2e6;
+        margin-left: 4px;
     }
     .report-nav a:hover { color: #000; border-left-color: #495057; }
+
+    /* 报告内容样式 */
+    .report-main {
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid #dcdaf0;
+        padding: 24px;
+    }
     .report-content table {
         width: 100%;
         border-collapse: collapse;
@@ -57,63 +225,7 @@
         overflow-x: auto;
         font-size: 0.85rem;
     }
-    .archive-link {
-        display: block;
-        padding: 6px 10px;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        color: #495057;
-        text-decoration: none;
-    }
-    .archive-link:hover { background: #f0f0f0; }
-    .archive-link.active { background: #e9ecef; font-weight: 600; color: #000; }
 </style>
-{% endblock %}
-
-{% block content %}
-<div class="row">
-
-    <!-- 左侧：报告历史 + 导航 -->
-    <div class="col-lg-2 d-none d-lg-block">
-        <div class="report-sidebar">
-            <div class="mb-3">
-                <div class="text-muted small mb-2 fw-bold">历史报告</div>
-                {% for r in reports %}
-                <a href="/investment/archive/{{ r.date_str }}"
-                   class="archive-link {% if latest and r.date_str == latest.date_str and not is_archive is defined %}{% elif latest and r.date_str == latest.date_str %}active{% endif %}">
-                    {{ r.date_display }}
-                </a>
-                {% endfor %}
-            </div>
-            <hr>
-            <div class="report-nav" id="toc"></div>
-        </div>
-    </div>
-
-    <!-- 主内容 -->
-    <div class="col-lg-8">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <div>
-                <h5 class="mb-0">
-                    📊 体检报告
-                    {% if latest %}
-                    <span class="text-muted fw-normal fs-6 ms-2">{{ latest.date_display }}</span>
-                    {% endif %}
-                </h5>
-            </div>
-            <div>
-                <a href="/investment/profile" class="btn btn-sm btn-outline-secondary me-1">投资档案</a>
-                <a href="/investment/archive" class="btn btn-sm btn-outline-secondary">全部报告</a>
-            </div>
-        </div>
-        <div class="report-content card p-4">
-            {{ html_content | safe }}
-        </div>
-    </div>
-
-    <!-- 右侧空白 -->
-    <div class="col-lg-2"></div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -123,7 +235,7 @@
     const toc = document.getElementById('toc');
     if (headings.length > 0) {
         const label = document.createElement('div');
-        label.className = 'text-muted small mb-2 fw-bold';
+        label.className = 'sidebar-title';
         label.textContent = '本报告';
         toc.appendChild(label);
         headings.forEach((h, i) => {

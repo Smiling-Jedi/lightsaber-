@@ -4,7 +4,7 @@
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import Column, String, DateTime, Numeric, Integer
+from sqlalchemy import Column, String, DateTime, Numeric, Integer, and_
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -55,8 +55,16 @@ class Stock(Base):
     # 创建时间
     created_at = Column(DateTime, default=datetime.now, nullable=False)
 
-    # 关联持仓记录
+    # 关联持仓记录（包含已清仓）
     positions: List["Position"] = relationship("Position", back_populates="stock", cascade="all, delete-orphan")
+
+    # 只返回有效持仓（total_shares > 0）
+    active_positions: List["Position"] = relationship(
+        "Position",
+        back_populates="stock",
+        primaryjoin="and_(Stock.symbol == Position.stock_symbol, Position.total_shares > 0)",
+        viewonly=True
+    )
 
     # 关联新闻
     news: List["News"] = relationship("News", back_populates="stock", cascade="all, delete-orphan")

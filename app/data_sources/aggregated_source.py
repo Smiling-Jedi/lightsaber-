@@ -1,7 +1,7 @@
 """
 聚合数据源 - 按优先级自动故障转移
-港股: 富途OpenD > Yahoo > Tushare > EastMoney > Alpha Vantage
-美股: 富途OpenD > Yahoo > Alpha Vantage
+港股: 富途OpenD > Tushare > Yahoo > EastMoney > Alpha Vantage
+美股: 富途OpenD > Tushare > Yahoo > Alpha Vantage
 A股: Tushare > Yahoo > EastMoney > Alpha Vantage
 """
 import logging
@@ -39,14 +39,16 @@ class FutuAdapterSource:
         if futu_code not in snapshots:
             raise DataSourceError(f"富途未返回 {symbol} 的数据")
         d = snapshots[futu_code]
+        market = symbol.split(":")[0] if ":" in symbol else "US"
         return PriceData(
             symbol=symbol,
+            market=market,
             current_price=d["current_price"],
             open_price=d.get("open_price", 0),
             high_price=d.get("high_price", 0),
             low_price=d.get("low_price", 0),
             volume=d.get("volume", 0),
-            change_pct=d.get("change_pct", 0),
+            source="futu",
         )
 
 
@@ -64,10 +66,10 @@ class AggregatedPriceSource:
         self.eastmoney = EastMoneySource()
         self.alpha = AlphaVantageSource(api_key=alpha_api_key or ALPHA_VANTAGE_KEY)
 
-        # 数据源优先级配置（富途为港/美股最高优先；A股Tushare优先，富途不支持A股）
+        # 数据源优先级配置（港美股OpenD优先；A股Tushare优先，OpenD不支持A股）
         self.priority = {
-            "HK": [self.futu, self.yahoo, self.tushare, self.eastmoney, self.alpha],
-            "US": [self.futu, self.yahoo, self.alpha],
+            "HK": [self.futu, self.tushare, self.yahoo, self.eastmoney, self.alpha],
+            "US": [self.futu, self.tushare, self.yahoo, self.alpha],
             "A": [self.tushare, self.yahoo, self.eastmoney, self.alpha],
         }
 
@@ -76,6 +78,19 @@ class AggregatedPriceSource:
         if ":" in symbol:
             return symbol.split(":")[0]
         return "US"  # 默认美股
+
+    def _is_hk_stock_connect(self, symbol: str) -> bool:
+        """识别港股通股票（A股账户持有的港股）
+
+        港股通代码特征：5位数字，如 09988(阿里)、01810(小米)
+        与A股代码区分：A股是6位（600xxx/000xxx/300xxx）
+        """
+        if not symbol.startswith("A:"):
+            return False
+        code = symbol.split(":")[1]
+        # 港股通代码：5位数字（09988, 01810等）
+        # A股代码：6位数字
+        return len(code) == 5 and code.isdigit()
 
     def get_price(self, symbol: str) -> PriceData:
         """
@@ -93,13 +108,22 @@ class AggregatedPriceSource:
         market = self._get_market(symbol)
         sources = self.priority.get(market, [self.yahoo, self.alpha])
 
+        # 港股通（A股账户里的港股）用富途优先查港股价格
+        if self._is_hk_stock_connect(symbol):
+            # 将 A:09988 转为 HK:09988 用富途查询
+            hk_symbol = symbol.replace("A:", "HK:")
+            sources = [self.futu, self.tushare, self.yahoo, self.eastmoney, self.alpha]
+            logger.info(f"识别为港股通: {symbol} -> {hk_symbol}, 使用富途优先")
+
         errors = []
 
         for source in sources:
             source_name = source.__class__.__name__
             try:
                 logger.info(f"尝试从 {source_name} 获取 {symbol}...")
-                price_data = source.get_price(symbol)
+                # 港股通查询时，富途需要用 HK:09988 格式
+                query_symbol = hk_symbol if (self._is_hk_stock_connect(symbol) and source_name == "FutuAdapterSource") else symbol
+                price_data = source.get_price(query_symbol)
                 logger.info(f"✅ {source_name} 成功获取 {symbol}: {price_data.current_price}")
                 return price_data
             except Exception as e:

@@ -6,10 +6,27 @@ __pycache__/
 
 # 数据与缓存（不入库）
 data/history/
+data/signal_cache/
+data/kline_cache/
 data/lightsaber.db
+lightsaber.db
+data/*.backup.*
+
+# 日志
+logs/
+*.log
+
+# 虚拟环境
+venv/
 
 # 环境
 .env
 
 # 系统
 .DS_Store
+
+# 临时验证脚本
+diagnose_assets.py
+verify_*.py
+test_api_validation.py
+app/main_test.py

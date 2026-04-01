@@ -32,7 +32,10 @@ def get_db():
 
 def init_db():
     """初始化数据库，创建所有表"""
-    from app.models import stock, position, trade, news, signal_log, sim_position
+    from app.models import (
+        stock, position, trade, news, signal_log, sim_position,
+        portfolio_snapshot, cash_flow_log, signal_execution, trade_plan
+    )
 
     Base.metadata.create_all(bind=engine)
 

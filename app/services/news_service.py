@@ -9,18 +9,28 @@ from sqlalchemy.orm import Session
 
 from app.models.stock import Stock
 from app.models.news import News
-from app.data_sources.news_source import SinaNewsSource as NewsSource
+from app.data_sources.news_source import SinaNewsSource as YFNewsSource
+from app.data_sources.eastmoney_news_source import EastmoneyNewsSource
 from app.services.news_process_service import process_news
 
 logger = logging.getLogger(__name__)
 
 
 class NewsService:
-    """新闻服务类"""
+    """新闻服务类 - 支持多源新闻"""
 
     def __init__(self, db: Session):
         self.db = db
-        self.news_source = NewsSource()
+        self.yf_source = YFNewsSource()      # YFinance - 美股
+        self.em_source = EastmoneyNewsSource()  # 东方财富 - 港股/A股
+
+    def _get_news_source(self, symbol: str):
+        """根据股票代码选择合适的新闻源"""
+        if ":" in symbol:
+            market = symbol.split(":")[0]
+            if market in ("HK", "A"):
+                return self.em_source  # 港股/A股用东方财富
+        return self.yf_source  # 默认用YFinance（美股）
 
     def fetch_news_for_stock(self, stock: Stock, max_results: int = 10) -> List[News]:
         """
@@ -34,8 +44,9 @@ class NewsService:
             新闻对象列表
         """
         try:
-            # 直接传完整 symbol（news_source 内部处理 HK:00700 → 0700.HK 转换）
-            news_data_list = self.news_source.get_news(stock.symbol, max_results)
+            # 根据市场选择新闻源
+            news_source = self._get_news_source(stock.symbol)
+            news_data_list = news_source.get_news(stock.symbol, max_results)
 
             # 过滤已存在的（URL 去重）
             new_items = []
@@ -47,24 +58,47 @@ class NewsService:
             if not new_items:
                 return []
 
-            # LLM 批量翻译+打分
-            raw_dicts = [{"title": nd.title, "summary": nd.summary or ""} for nd in new_items]
-            processed = process_news(raw_dicts)
+            # 判断是否是中文新闻源（东方财富）
+            is_chinese_source = isinstance(news_source, EastmoneyNewsSource)
 
-            added_news = []
-            for news_data, proc in zip(new_items, processed):
-                news = News(
-                    stock_symbol=stock.symbol,
-                    title=news_data.title,
-                    summary=news_data.summary or news_data.title[:100] + "...",
-                    url=news_data.url,
-                    source=news_data.source,
-                    published_at=news_data.published_at,
-                    title_zh=proc.get("title_zh"),
-                    importance=proc.get("importance"),
-                )
-                self.db.add(news)
-                added_news.append(news)
+            if is_chinese_source:
+                # 中文新闻：直接使用原标题，但仍需 LLM 判断重要度
+                raw_dicts = [{"title": nd.title, "summary": nd.summary or ""} for nd in new_items]
+                processed = process_news(raw_dicts, translate=False)  # 只打分不翻译
+
+                added_news = []
+                for news_data, proc in zip(new_items, processed):
+                    news = News(
+                        stock_symbol=stock.symbol,
+                        title=news_data.title,
+                        summary=news_data.summary or news_data.title[:100] + "...",
+                        url=news_data.url,
+                        source=news_data.source,
+                        published_at=news_data.published_at,
+                        title_zh=news_data.title,  # 中文新闻直接使用原标题
+                        importance=proc.get("importance"),
+                    )
+                    self.db.add(news)
+                    added_news.append(news)
+            else:
+                # 英文新闻：LLM 翻译+打分
+                raw_dicts = [{"title": nd.title, "summary": nd.summary or ""} for nd in new_items]
+                processed = process_news(raw_dicts, translate=True)
+
+                added_news = []
+                for news_data, proc in zip(new_items, processed):
+                    news = News(
+                        stock_symbol=stock.symbol,
+                        title=news_data.title,
+                        summary=news_data.summary or news_data.title[:100] + "...",
+                        url=news_data.url,
+                        source=news_data.source,
+                        published_at=news_data.published_at,
+                        title_zh=proc.get("title_zh"),
+                        importance=proc.get("importance"),
+                    )
+                    self.db.add(news)
+                    added_news.append(news)
 
             self.db.commit()
             logger.info(f"为 {stock.symbol} 新增 {len(added_news)} 条新闻")
@@ -82,7 +116,7 @@ class NewsService:
         Returns:
             统计信息
         """
-        stocks = self.db.query(Stock).join(Stock.positions).all()
+        stocks = self.db.query(Stock).join(Stock.active_positions).all()
 
         results = {
             "total_stocks": len(stocks),
@@ -122,9 +156,9 @@ class NewsService:
         return news
 
     def get_top_news(self, symbol: str, limit: int = 5) -> List[News]:
-        """返回3天内的新闻，按重要度+时间倒序，最多 limit 条"""
+        """返回7天内的新闻，按重要度+时间倒序，最多 limit 条"""
         from sqlalchemy import case
-        cutoff = datetime.now() - timedelta(days=3)
+        cutoff = datetime.now() - timedelta(days=7)
         importance_order = case(
             (News.importance == "HIGH", 0),
             (News.importance == "MEDIUM", 1),

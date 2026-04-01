@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}交易计划详情 - 光剑{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>交易计划详情</h2>
+            <span class="badge bg-{% if plan.status == '计划中' %}warning{% elif plan.status == '已执行' %}success{% else %}secondary{% endif %}">
+                {{ plan.status }}
+            </span>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">基础信息</div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr><td>股票代码</td><td>{{ plan.symbol }}</td></tr>
+                    <tr><td>策略类型</td><td>{{ plan.strategy_type }}</td></tr>
+                    <tr><td>创建时间</td><td>{{ plan.created_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">交易参数</div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr><td>计划买入价</td><td>¥{{ "%.2f"|format(plan.planned_price) }}</td></tr>
+                    <tr><td>目标价</td><td>¥{{ "%.2f"|format(plan.target_price) }}</td></tr>
+                    <tr><td>止损价</td><td>¥{{ "%.2f"|format(plan.stop_loss_price) }} ({{ plan.stop_loss_method }} {{ plan.stop_loss_param }})</td></tr>
+                    <tr><td>计划股数</td><td>{{ plan.planned_shares }} 股</td></tr>
+                    <tr><td>风险金额</td><td>¥{{ "%.2f"|format(plan.risk_amount) }}</td></tr>
+                    <tr><td>盈亏比</td><td>1:{{ "%.1f"|format(plan.risk_reward_ratio) }}</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">决策依据</div>
+            <div class="card-body">
+                <h6>买入理由</h6>
+                <p>{{ plan.buy_reason }}</p>
+
+                {% if plan.note %}
+                <hr>
+                <h6>补充说明</h6>
+                <p>{{ plan.note }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a href="/trades/" class="btn btn-outline-secondary">返回列表</a>
+
+            {% if plan.status == '计划中' %}
+            <form action="/trades/api/{{ plan.id }}" method="post" onsubmit="return confirm('确定删除此计划？')">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="btn btn-danger">删除</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配色方案对比 - 持仓管理页</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 30px;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .scheme-wrapper h2 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .browser-mockup {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .browser-bar {
+            background: #f5f5f5;
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .browser-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .dot-red { background: #ff5f57; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #28c840; }
+
+        /* ========== 方案1：靛蓝 (Indigo) ========== */
+        .scheme-indigo .page { background: #f8f9fc; min-height: 400px; }
+        .scheme-indigo .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            padding: 0 20px 12px;
+        }
+        .scheme-indigo .nav {
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .scheme-indigo .brand {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .scheme-indigo .nav-link {
+            padding: 4px 12px;
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            text-decoration: none;
+            border-radius: 16px;
+        }
+        .scheme-indigo .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+        .scheme-indigo .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .scheme-indigo .card {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .scheme-indigo .label {
+            font-size: 9px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .scheme-indigo .value {
+            font-size: 17px;
+            color: #fff;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+        .scheme-indigo .content { padding: 16px; }
+        .scheme-indigo .stock-card {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #e0e7ff;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .scheme-indigo .stock-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e1b4b;
+        }
+        .scheme-indigo .chip {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #e0e7ff;
+            color: #4f46e5;
+            margin-left: 6px;
+        }
+        .scheme-indigo .body-text {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        /* ========== 方案2：墨绿 (Forest) ========== */
+        .scheme-forest .page { background: #f6f7f6; min-height: 400px; }
+        .scheme-forest .header {
+            background: #1a4731;
+            padding: 0 20px 12px;
+        }
+        .scheme-forest .nav {
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .scheme-forest .brand {
+            color: #d1fae5;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .scheme-forest .nav-link {
+            padding: 4px 12px;
+            color: rgba(209,250,229,0.6);
+            font-size: 12px;
+            text-decoration: none;
+            border-radius: 16px;
+        }
+        .scheme-forest .nav-link.active {
+            background: rgba(209,250,229,0.15);
+            color: #d1fae5;
+        }
+        .scheme-forest .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .scheme-forest .card {
+            background: rgba(209,250,229,0.08);
+            border: 1px solid rgba(209,250,229,0.12);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .scheme-forest .label {
+            font-size: 9px;
+            color: rgba(209,250,229,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .scheme-forest .value {
+            font-size: 17px;
+            color: #ecfdf5;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+        .scheme-forest .content { padding: 16px; }
+        .scheme-forest .stock-card {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #d1fae5;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .scheme-forest .stock-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #064e3b;
+        }
+        .scheme-forest .chip {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #d1fae5;
+            color: #065f46;
+            margin-left: 6px;
+        }
+        .scheme-forest .body-text {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        /* ========== 方案3： slate灰 (Slate) ========== */
+        .scheme-slate .page { background: #f8fafc; min-height: 400px; }
+        .scheme-slate .header {
+            background: #334155;
+            padding: 0 20px 12px;
+        }
+        .scheme-slate .nav {
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .scheme-slate .brand {
+            color: #f1f5f9;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .scheme-slate .nav-link {
+            padding: 4px 12px;
+            color: rgba(241,245,249,0.6);
+            font-size: 12px;
+            text-decoration: none;
+            border-radius: 16px;
+        }
+        .scheme-slate .nav-link.active {
+            background: rgba(241,245,249,0.12);
+            color: #f1f5f9;
+        }
+        .scheme-slate .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .scheme-slate .card {
+            background: rgba(241,245,249,0.08);
+            border: 1px solid rgba(241,245,249,0.1);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .scheme-slate .label {
+            font-size: 9px;
+            color: rgba(241,245,249,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .scheme-slate .value {
+            font-size: 17px;
+            color: #f8fafc;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+        .scheme-slate .content { padding: 16px; }
+        .scheme-slate .stock-card {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .scheme-slate .stock-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .scheme-slate .chip {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            color: #475569;
+            margin-left: 6px;
+        }
+        .scheme-slate .body-text {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>配色方案对比 - 持仓管理页</h1>
+
+        <div class="comparison">
+            <!-- 方案1：靛蓝 -->
+            <div class="scheme-wrapper">
+                <h2>方案1：靛蓝 (Indigo)</h2>
+                <div class="browser-mockup scheme-indigo">
+                    <div class="browser-bar">
+                        <span class="browser-dot dot-red"></span>
+                        <span class="browser-dot dot-yellow"></span>
+                        <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="page">
+                        <div class="header">
+                            <div class="nav">
+                                <span class="brand">⚔️ 光剑 Lightsaber</span>
+                                <div>
+                                    <span class="nav-link active">持仓</span>
+                                    <span class="nav-link">投资中枢</span>
+                                </div>
+                            </div>
+                            <div class="summary">
+                                <div class="card">
+                                    <div class="label">总市值</div>
+                                    <div class="value">¥128.5万</div>
+                                </div>
+                                <div class="card">
+                                    <div class="label">累计盈亏</div>
+                                    <div class="value">+¥15.2万</div>
+                                </div>
+                                <div class="card">
+                                    <div class="label">持仓股票</div>
+                                    <div class="value">12只</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="stock-card">
+                                <span class="stock-name">腾讯控股</span>
+                                <span class="chip">港股</span>
+                                <div class="body-text">持仓 100股 | 成本 ¥380.00 | 现价 ¥427.50</div>
+                            </div>
+                            <div class="stock-card">
+                                <span class="stock-name">阿里巴巴</span>
+                                <span class="chip">港股</span>
+                                <div class="body-text">持仓 200股 | 成本 ¥85.50 | 现价 ¥78.20</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 方案2：墨绿 -->
+            <div class="scheme-wrapper">
+                <h2>方案2：墨绿 (Forest)</h2>
+                <div class="browser-mockup scheme-forest">
+                    <div class="browser-bar">
+                        <span class="browser-dot dot-red"></span>
+                        <span class="browser-dot dot-yellow"></span>
+                        <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="page">
+                        <div class="header">
+                            <div class="nav">
+                                <span class="brand">⚔️ 光剑 Lightsaber</span>
+                                <div>
+                                    <span class="nav-link active">持仓</span>
+                                    <span class="nav-link">投资中枢</span>
+                                </div>
+                            </div>
+                            <div class="summary">
+                                <div class="card">
+                                    <div class="label">总市值</div>
+                                    <div class="value">¥128.5万</div>
+                                </div>
+                                <div class="card">
+                                    <div class="label">累计盈亏</div>
+                                    <div class="value">+¥15.2万</div>
+                                </div>
+                                <div class="card">
+                                    <div class="label">持仓股票</div>
+                                    <div class="value">12只</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="stock-card">
+                                <span class="stock-name">腾讯控股</span>
+                                <span class="chip">港股</span>
+                                <div class="body-text">持仓 100股 | 成本 ¥380.00 | 现价 ¥427.50</div>
+                            </div>
+                            <div class="stock-card">
+                                <span class="stock-name">阿里巴巴</span>
+                                <span class="chip">港股</span>
+                                <div class="body-text">持仓 200股 | 成本 ¥85.50 | 现价 ¥78.20</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 方案3：Slate灰 -->
+            <div class="scheme-wrapper">
+                <h2>方案3：Slate灰</h2>
+                <div class="browser-mockup scheme-slate">
+                    <div class="browser-bar">
+                        <span class="browser-dot dot-red"></span>
+                        <span class="browser-dot dot-yellow"></span>
+                        <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="page">
+                        <div class="header">
+                            <div class="nav">
+                                <span class="brand">⚔️ 光剑 Lightsaber</span>
+                                <div>
+                                    <span class="nav-link active">持仓</span>
+                                    <span class="nav-link">投资中枢</span>
+                                </div>
+                            </div>
+                            <div class="summary">
+                                <div class="card">
+                                    <div class="label">总市值</div>
+                                    <div class="value">¥128.5万</div>
+                                </div>
+                                <div class="card">
+                                    <div class="label">累计盈亏</div>
+                                    <div class="value">+¥15.2万</div>
+                                </div>
+                                <div class="card">
+                                    <div class="label">持仓股票</div>
+                                    <div class="value">12只</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="stock-card">
+                                <span class="stock-name">腾讯控股</span>
+                                <span class="chip">港股</span>
+                                <div class="body-text">持仓 100股 | 成本 ¥380.00 | 现价 ¥427.50</div>
+                            </div>
+                            <div class="stock-card">
+                                <span class="stock-name">阿里巴巴</span>
+                                <span class="chip">港股</span>
+                                <div class="body-text">持仓 200股 | 成本 ¥85.50 | 现价 ¥78.20</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <h3 style="font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 16px;">配色说明</h3>
+            <table style="width: 100%; font-size: 13px; color: #666; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #f0f0f0;">
+                    <td style="padding: 10px 0; font-weight: 500;">方案1 靛蓝</td>
+                    <td style="padding: 10px 0;">Header: #4f46e5 → #4338ca | 内容背景: #f8f9fc | 卡片边框: #e0e7ff</td>
+                    <td style="padding: 10px 0; color: #999;">现代、科技感、专业</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f0f0f0;">
+                    <td style="padding: 10px 0; font-weight: 500;">方案2 墨绿</td>
+                    <td style="padding: 10px 0;">Header: #1a4731 | 内容背景: #f6f7f6 | 卡片边框: #d1fae5</td>
+                    <td style="padding: 10px 0; color: #999;">稳重、财富、自然</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 0; font-weight: 500;">方案3 Slate灰</td>
+                    <td style="padding: 10px 0;">Header: #334155 | 内容背景: #f8fafc | 卡片边框: #e2e8f0</td>
+                    <td style="padding: 10px 0; color: #999;">中性、商务、克制</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

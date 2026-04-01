@@ -62,6 +62,9 @@ class Trade(Base):
     # 关联持仓
     position: "Position" = relationship("Position", back_populates="trades")
 
+    # 关联交易计划
+    trade_plan = relationship("TradePlan", back_populates="trade", uselist=False)
+
     def __repr__(self) -> str:
         return f"<Trade(id={self.id}, type='{self.trade_type}', shares={self.shares}, price={self.price})>"
 

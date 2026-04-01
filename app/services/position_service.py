@@ -7,6 +7,10 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional, Dict
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+
+# 加载环境变量（用于USD_FUND_AMOUNT等配置）
+load_dotenv()
 
 from app.models.stock import Stock
 from app.models.position import Position
@@ -25,9 +29,20 @@ class PositionService:
         from app.data_sources.exchange_rate_source import ExchangeRateSource
         self._exchange_rate = ExchangeRateSource(retry_count=1)
 
-    def get_all_positions(self) -> List[Position]:
-        """获取所有持仓记录"""
-        return self.db.query(Position).all()
+    def get_all_positions(self, include_closed: bool = False) -> List[Position]:
+        """
+        获取所有持仓记录
+
+        Args:
+            include_closed: 是否包含已清仓的持仓（total_shares <= 0）
+
+        Returns:
+            持仓列表，默认只返回有持仓的股票
+        """
+        query = self.db.query(Position)
+        if not include_closed:
+            query = query.filter(Position.total_shares > 0)
+        return query.all()
 
     def get_position_by_symbol(self, symbol: str) -> Optional[Position]:
         """根据股票代码获取持仓"""
@@ -379,7 +394,8 @@ class PositionService:
 
         for pos in positions:
             stock = pos.stock
-            if not stock or not stock.current_price:
+            # 过滤已清仓的持仓（total_shares=0）
+            if not stock or not stock.current_price or pos.total_shares <= 0:
                 continue
 
             market = stock.market
@@ -404,20 +420,11 @@ class PositionService:
             total_cost += cost
 
         # 注入现金余额和基金余额
-        # HKD_FUND = 港元基金（由港股交易自动更新）
-        # USD_FUND = 美元基金（由美股交易自动更新）
-        # FUND = 富途API返回的合计值，仅用于核对展示
-        hkd_fund = Decimal("0")
-        usd_fund = Decimal("0")
+        # FUND = 富途API返回的跨市场合计（HKD计），包含港元基金+美元基金折算
+        # 需要拆分到HK和US两个市场：用户提供一个，计算另一个
         fund_assets_hkd = Decimal("0")  # 富途API合计，用于返回给前端展示
 
         for market, cb in cash_map.items():
-            if market == "HKD_FUND":
-                hkd_fund = Decimal(str(cb.amount))
-                continue
-            if market == "USD_FUND":
-                usd_fund = Decimal(str(cb.amount))
-                continue
             if market == "FUND":
                 fund_assets_hkd = Decimal(str(cb.amount))
                 continue
@@ -449,10 +456,13 @@ class PositionService:
         # 需要拆分到HK和US两个市场：用户提供一个，计算另一个
         usd_fund_usd = self._get_usd_fund_from_env()  # 从环境变量读取用户提供的美元基金（USD）
 
-        if usd_fund_usd and usd_fund_usd > 0:
+        if usd_fund_usd and usd_fund_usd > 0 and fund_assets_hkd > 0:
             # 用户提供美元基金，计算港元基金
-            exchange_rate = exchange_rates.get("USD", Decimal("7.8"))  # USD->HKD汇率
-            usd_fund_in_hkd = usd_fund_usd * exchange_rate
+            # USD->HKD 汇率 = USD->CNY / HKD->CNY
+            usd_to_cny = exchange_rates.get("USD", Decimal("7.2"))
+            hkd_to_cny = exchange_rates.get("HKD", Decimal("0.92"))
+            usd_to_hkd = usd_to_cny / hkd_to_cny if hkd_to_cny > 0 else Decimal("7.8")
+            usd_fund_in_hkd = usd_fund_usd * usd_to_hkd
             hkd_fund = fund_assets_hkd - usd_fund_in_hkd
 
             market_summary["HK"]["fund_hkd"] = hkd_fund if hkd_fund > 0 else Decimal("0")
@@ -478,7 +488,8 @@ class PositionService:
         # 用 total_with_cash 重新计算各持仓的仓位占比，再加入 positions 列表
         for pos in positions:
             stock = pos.stock
-            if not stock or not stock.current_price:
+            # 过滤已清仓的持仓（total_shares=0）
+            if not stock or not stock.current_price or pos.total_shares <= 0:
                 continue
             market = stock.market
             pos_summary = self.get_position_summary(pos)

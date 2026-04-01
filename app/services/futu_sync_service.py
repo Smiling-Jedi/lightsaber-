@@ -91,6 +91,9 @@ class FutuSyncService:
         # 同步交易流水（从周一开始）
         trades_synced, trades_created = self._sync_trades()
 
+        # 【T+1限价单模式】检查PENDING信号是否成交
+        signal_results = self._check_signal_executions()
+
         return {
             "synced": synced,
             "created": created,
@@ -98,6 +101,7 @@ class FutuSyncService:
             "market_funds": {k: v.get("total_assets", 0) for k, v in market_funds.items()},
             "trades_synced": trades_synced,
             "trades_created": trades_created,
+            "signal_check": signal_results,
         }
 
     # ─────────────────────────────────────────────────────
@@ -154,6 +158,7 @@ class FutuSyncService:
                                     "pl_val":     float(row["pl_val"]),
                                 }
                                 # 去重（同代码可能在多个券商出现）
+                                # 注意：同一市场的不同券商返回的是相同数据，不累加
                                 if not any(p["code"] == pos["code"] for p in positions):
                                     positions.append(pos)
 
@@ -460,50 +465,50 @@ class FutuSyncService:
 
     def _update_fund_from_trade(self, row, trade_type: str):
         """
-        根据交易自动反推基金变动。
+        ⚠️ 已禁用：真实交易不再更新 HKD_FUND/USD_FUND
 
-        逻辑：
-        - 港股SELL：资金进入港元基金 → HKD_FUND增加
-        - 港股BUY：资金从港元基金流出 → HKD_FUND减少
-        - 美股SELL：资金进入美元基金 → USD_FUND增加
-        - 美股BUY：资金从美元基金流出 → USD_FUND减少
+        原因：
+        - HKD_FUND/USD_FUND 专用于模拟账户资金追踪
+        - 真实交易的资金变动由 CashBalance 表（HK/US）记录
+        - 避免真实/模拟账户数据污染
+
+        如需追踪真实账户资金，请查询 CashBalance 表的 HK/US 市场记录。
         """
-        futu_code = str(row.get("code", ""))
-        market_prefix = futu_code.split(".")[0] if "." in futu_code else ""
+        # 完全禁用，不更新任何模拟账户字段
+        return
 
-        if market_prefix not in ["HK", "US"]:
-            return  # 只处理港股和美股
-
+    def _check_signal_executions(self) -> dict:
+        """
+        【T+1限价单模式】检查PENDING信号是否成交
+        在每日价格同步完成后调用
+        """
         try:
-            qty = float(row.get("qty", 0))
-            price = float(row.get("price", 0))
-            commission = float(row.get("commission", 0) or 0)
-            stamp_duty = float(row.get("stamp_duty", 0) or 0)
-            platform_fee = float(row.get("platform_fee", 0) or 0)
+            from app.services.signal_execution_service import SignalExecutionService
 
-            # 成交金额
-            trade_amount = qty * price
-            # 交易费用
-            fees = commission + stamp_duty + platform_fee
+            exec_svc = SignalExecutionService(self.db)
 
-            if "SELL" in trade_type:
-                # 卖出：资金进入基金（扣除费用后的净收入）
-                change = trade_amount - fees
-            elif "BUY" in trade_type:
-                # 买入：资金从基金流出（加上费用的总支出）
-                change = -(trade_amount + fees)
-            else:
-                return  # 其他类型不处理
+            # 检查T+1成交
+            results = exec_svc.check_pending_signals()
 
-            if market_prefix == "HK":
-                # 更新港元基金
-                self._update_fund_balance("HKD_FUND", "HKD", change)
-            elif market_prefix == "US":
-                # 更新美元基金
-                self._update_fund_balance("USD_FUND", "USD", change)
+            # 清理过期信号（超过3日未入场）
+            expired_count = exec_svc.check_and_expire_stale_signals()
+
+            logger.info(
+                f"信号执行检查完成: 检查{results['checked']}条, "
+                f"成交{results['executed']}条, 过期{results['expired']}条, "
+                f"自动失效{expired_count}条"
+            )
+
+            return {
+                "checked": results["checked"],
+                "executed": results["executed"],
+                "expired": results["expired"],
+                "stale_cancelled": expired_count,
+            }
 
         except Exception as e:
-            logger.warning(f"基金更新失败 ({futu_code}): {e}")
+            logger.warning(f"信号执行检查失败: {e}")
+            return {"error": str(e)}
 
     def _update_fund_balance(self, market_key: str, currency: str, change: float):
         """

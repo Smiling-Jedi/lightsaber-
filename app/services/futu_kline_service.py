@@ -64,7 +64,18 @@ class FutuKlineService:
         try:
             from futu import OpenQuoteContext, KLType, AuType, RET_OK
 
-            futu_code = symbol.replace(":", ".", 1)  # HK:00700 → HK.00700
+            # 处理 A: 前缀（A股）转换为 SH: 或 SZ:
+            futu_code = symbol
+            if symbol.startswith("A:"):
+                code = symbol[2:]
+                # 根据代码规则判断市场：60/68开头为上海，00/30开头为深圳
+                if code.startswith(('60', '68', '69')):
+                    futu_code = f"SH.{code}"
+                else:
+                    futu_code = f"SZ.{code}"
+            else:
+                futu_code = symbol.replace(":", ".", 1)  # HK:00700 → HK.00700
+
             ctx = OpenQuoteContext(host='127.0.0.1', port=11111)
             try:
                 ret, data, _ = ctx.request_history_kline(

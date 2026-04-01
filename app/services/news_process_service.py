@@ -9,12 +9,13 @@ import os
 logger = logging.getLogger(__name__)
 
 
-def process_news(items: list[dict]) -> list[dict]:
+def process_news(items: list[dict], translate: bool = True) -> list[dict]:
     """
     批量翻译标题 + 打分。
 
     Args:
         items: list of {"title": str, "summary": str, ...}
+        translate: 是否翻译标题为中文，False时只打分
 
     Returns:
         同样的 list，每条新增 title_zh 和 importance 字段。
@@ -49,7 +50,8 @@ def process_news(items: list[dict]) -> list[dict]:
 
         news_text = "\n\n".join(lines)
 
-        prompt = f"""你是财经新闻分析助手。对以下{len(items)}条新闻，分别完成：
+        if translate:
+            prompt = f"""你是财经新闻分析助手。对以下{len(items)}条新闻，分别完成：
 1. 将英文标题翻译成中文（简洁准确，不超过30字）
 2. 评估对股价的重要度：
    - HIGH：财报/监管处罚/重大收购/CEO变动/产品大事件等直接影响股价
@@ -60,6 +62,17 @@ def process_news(items: list[dict]) -> list[dict]:
 
 严格按 JSON 数组返回，不要其他文字：
 [{{"title_zh":"...","importance":"HIGH"}},{{"title_zh":"...","importance":"MEDIUM"}},...] """
+        else:
+            # 中文新闻：不翻译，只打分
+            prompt = f"""你是财经新闻分析助手。对以下{len(items)}条中文财经新闻，评估对股价的重要度：
+   - HIGH：财报/监管处罚/重大收购/CEO变动/产品大事件/回购/增减持等直接影响股价
+   - MEDIUM：行业动态/分析师评级/市场趋势/融资等间接影响
+   - LOW：背景资讯/公司介绍/无实质影响
+
+{news_text}
+
+严格按 JSON 数组返回，title_zh 字段保持原标题，不要其他文字：
+[{{"title_zh":"原标题","importance":"HIGH"}},{{"title_zh":"原标题","importance":"MEDIUM"}},...] """
 
         message = client.messages.create(
             model="claude-haiku-4-5-20251001",
