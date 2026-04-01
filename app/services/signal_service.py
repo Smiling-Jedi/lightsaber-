@@ -123,6 +123,9 @@ class TradeInstruction:
     entry_price_reference: float = 0.0 # 参考入场价（最新收盘价）
     position_value_estimated: float = 0.0  # 预计占用资金
 
+    # T+1限价单模式新增字段
+    limit_price: float = 0.0           # 条件单挂价（T+1限价单价格）
+
     def __post_init__(self):
         if self.sizing_params is None:
             self.sizing_params = {}
@@ -352,17 +355,22 @@ class SignalService:
 
     def generate_portfolio_signals(self, use_cache: bool = True) -> list[SignalResult]:
         """
-        只对持仓中的股票生成信号（B+D方案：按EV排序）
+        对原力监控的所有股票生成信号（B+D方案：按EV排序，港股优先）
+
+        刷新全部19只原力监控股票（港股9只+美股10只），不按持仓过滤。
+        返回结果按市场分组排序（港股在前，美股在后），以便前端分批渲染。
 
         Args:
             use_cache: 是否使用缓存（默认True），设为False强制重新计算
         """
-        positions = self.position_svc.get_all_positions()
-        symbols_in_portfolio = {p.stock_symbol for p in positions}
-        symbols = [s for s in STOCK_CATEGORY if s in symbols_in_portfolio]
+        # 获取所有原力监控股票（19只）
+        symbols = list(STOCK_CATEGORY.keys())
 
         if not symbols:
             return []
+
+        # 按市场分组排序：港股(HK)在前，美股(US)在后，A股最后，实现分批渲染效果
+        symbols.sort(key=lambda s: (0 if s.startswith("HK:") else 1 if s.startswith("US:") else 2))
 
         # 预热市场环境缓存（每个市场只拉一次指数数据）
         for market in {s.split(":")[0] for s in symbols}:
@@ -995,6 +1003,68 @@ class SignalService:
         )
 
     # ─────────────────────────────────────────────────────
+    # T+1限价单模式：按策略类型计算条件单挂价
+    # ─────────────────────────────────────────────────────
+
+    def _calculate_limit_price(self, close_price: float, category: str,
+                               indicators: dict, action: str = "BUY") -> float:
+        """
+        按策略类型计算条件单挂价（limit_price）
+
+        BUY规则：
+        | 策略类型 | 触发条件 | limit_price |
+        |----------|----------|-------------|
+        | cyclical | RSI<40 且 收盘价≤下轨 | T日收盘价 |
+        | defensive | 收盘价≤下轨×1.015 | 下轨 |
+        | large_tech | EMA金叉 | T日收盘价×102% |
+        | biotech | RSI<30 | T日收盘价×102% |
+
+        SELL规则（T+1限价单模式）：
+        | 策略类型 | limit_price | T+1成交规则 |
+        |----------|-------------|-------------|
+        | cyclical | T日收盘价 | 最高≥收盘价→成交，否则持有 |
+        | defensive | T日收盘价 | 同cyclical |
+        | large_tech | T日收盘价×99% | 开盘≥挂价→按开盘成交，否则按收盘成交 |
+        | biotech | T日收盘价×99% | 同large_tech |
+        """
+        bb_lower = indicators.get("bb_lower", close_price)
+
+        if action == "BUY":
+            if category == "cyclical":
+                # 周期股：挂T日收盘价，等T+1回调
+                return round(close_price, 2)
+
+            elif category == "defensive":
+                # 防御股：挂下轨，触支撑买入
+                return round(bb_lower, 2)
+
+            elif category in ["large_tech", "biotech"]:
+                # 大科技/医药：挂102%，不追太高
+                return round(close_price * 1.02, 2)
+
+            else:
+                # 默认：按收盘价
+                return round(close_price, 2)
+
+        elif action == "SELL":
+            # T+1限价单模式：SELL条件单挂价
+            if category in ["cyclical", "defensive"]:
+                # 均值回归策略：挂收盘价，等反弹
+                return round(close_price, 2)
+
+            elif category in ["large_tech", "biotech"]:
+                # 趋势/高波动策略：挂99%，确保成交优先
+                return round(close_price * 0.99, 2)
+
+            else:
+                # 默认：按收盘价
+                return round(close_price, 2)
+
+        else:
+            # WATCH/HOLD等信号，返回0
+            return 0.0
+
+    # ─────────────────────────────────────────────────────
     # B+D方案：多模型仓位计算与TradeInstruction构建
     # ─────────────────────────────────────────────────────
 
@@ -1073,18 +1143,36 @@ class SignalService:
         # 获取最新价格
         close_price = snap.get("close", 0)
 
-        # 计算建议买入股数
+        # =====================================================================
+        # 交易数量计算（所有action类型都必须在下面处理，防止遗漏）
+        # =====================================================================
         recommended_shares = 0
         recommended_shares_second = 0
         position_value = 0.0
 
         if action == "BUY" and close_price > 0:
+            # BUY: 根据仓位模型计算建议买入股数
             recommended_shares, recommended_shares_second, position_value = self._calculate_shares(
                 symbol=symbol,
                 sizing_model=sizing_model,
                 sizing_params=sizing_params,
                 close_price=close_price,
             )
+        elif action == "SELL" and close_price > 0:
+            # SELL: 建议卖出全部持仓
+            position = self.position_svc.get_position_by_symbol(symbol)
+            if position:
+                recommended_shares = position.total_shares
+                position_value = float(recommended_shares * close_price)
+        # elif action == "WATCH":
+        #     # WATCH: 无具体交易数量，保持0
+        #     pass
+        # elif action == "HOLD":
+        #     # HOLD: 无具体交易数量，保持0
+        #     pass
+        # =====================================================================
+        # 警告：如果新增 action 类型，必须在此处添加处理逻辑！
+        # =====================================================================
 
         instruction = TradeInstruction(
             entry_condition=entry_conditions.get(category, ""),
@@ -1101,6 +1189,13 @@ class SignalService:
             # 具体交易建议
             recommended_shares=recommended_shares,
             recommended_shares_second=recommended_shares_second,
+            # T+1限价单模式：计算条件单挂价
+            limit_price=self._calculate_limit_price(
+                close_price=close_price,
+                category=category,
+                indicators=snap,
+                action=action,
+            ),
             entry_price_reference=round(close_price, 2) if close_price else 0.0,
             position_value_estimated=round(position_value, 2),
         )

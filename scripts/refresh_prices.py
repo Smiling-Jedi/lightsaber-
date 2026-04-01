@@ -72,8 +72,32 @@ def refresh_all_prices():
             for s in failed_stocks:
                 print(f"   - {s}")
 
-        # ── 模拟出场检查 ─────────────────────────────────────
-        print("\n🔮 检查模拟交易出场条件...")
+        # ── T+1条件单成交检查 ─────────────────────────────────────
+        print("\n🔮 检查T+1条件单成交...")
+        try:
+            from app.services.signal_log_service import SignalLogService
+            from app.models.stock import Stock
+
+            # 构建价格 map
+            price_map = {}
+            all_stocks = db.query(Stock).all()
+            for s in all_stocks:
+                if s.current_price:
+                    price_map[s.symbol] = {
+                        "open":  float(s.open_price or s.current_price),
+                        "high":  float(s.high_price or s.current_price),
+                        "low":   float(s.low_price or s.current_price),
+                        "close": float(s.current_price),
+                    }
+
+            log_svc = SignalLogService(db)
+            stats = log_svc.auto_check_t1_orders(price_map)
+            print(f"   BUY成交: {stats['buy_executed']}, SELL成交: {stats['sell_executed']}, 过期: {stats['expired']}")
+        except Exception as e:
+            print(f"⚠️  T+1条件单检查失败: {e}")
+
+        # ── 持仓中信号的止损止盈检查 ─────────────────────────────────────
+        print("\n🛡️  检查持仓信号止损止盈...")
         try:
             from app.services.signal_log_service import SignalLogService
             from app.models.stock import Stock
@@ -91,9 +115,9 @@ def refresh_all_prices():
 
             log_svc = SignalLogService(db)
             n = log_svc.auto_check_sim_exits(price_map)
-            print(f"   模拟出场: {n} 条")
+            print(f"   止损/止盈出场: {n} 条")
         except Exception as e:
-            print(f"⚠️  模拟出场检查失败: {e}")
+            print(f"⚠️  止损止盈检查失败: {e}")
 
         # ── 富途成交同步 ─────────────────────────────────────
         print("\n📥 同步富途历史成交...")

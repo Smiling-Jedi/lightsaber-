@@ -170,11 +170,16 @@ class SignalLogService:
         recommended_shares_second = 0
         entry_price_ref = 0.0
         position_value = 0.0
+        limit_price = 0.0
         if instruction:
             recommended_shares = getattr(instruction, 'recommended_shares', 0) or 0
             recommended_shares_second = getattr(instruction, 'recommended_shares_second', 0) or 0
             entry_price_ref = getattr(instruction, 'entry_price_reference', 0.0) or 0.0
             position_value = getattr(instruction, 'position_value_estimated', 0.0) or 0.0
+            limit_price = getattr(instruction, 'limit_price', 0.0) or 0.0
+
+        # 【T+1限价单模式】BUY和SELL信号都改为PENDING状态，不立即入场/出场
+        is_pending = result.action in ("BUY", "SELL")
 
         log = SignalLog(
             symbol         = result.symbol,
@@ -192,10 +197,13 @@ class SignalLogService:
             triggers_json  = json.dumps(result.triggers, ensure_ascii=False),
             conflicts_json = json.dumps(result.conflicts, ensure_ascii=False),
             is_simulated   = True,
-            entered        = True,
-            entered_at     = datetime.now(),
-            entered_price  = entry_price,
+            # 【修改】BUY和SELL信号都改为PENDING，entered=False
+            entered        = False if is_pending else True,
+            entered_at     = None if is_pending else datetime.now(),
+            entered_price  = None if is_pending else entry_price,
             status         = "PENDING",
+            # T+1限价单模式新增字段
+            limit_price    = limit_price if limit_price > 0 else None,
             # 交易建议
             recommended_shares       = recommended_shares if recommended_shares > 0 else None,
             recommended_shares_second= recommended_shares_second if recommended_shares_second > 0 else None,
@@ -204,15 +212,13 @@ class SignalLogService:
         )
         self.db.add(log)
 
-        # 同步更新模拟持仓
-        if result.action == "BUY" and entry_price:
-            self._sim_buy(result.symbol, result.name, result.category, entry_price, params, result.instruction)
-        elif result.action == "SELL":
-            self._sim_sell(result.symbol, log)
+        # 【修改】BUY和SELL信号都不再立即执行，等待T+1成交检查
+        if is_pending:
+            logger.info(f"模拟{result.action}信号待执行: {result.symbol}，条件单挂价={limit_price}")
 
         self.db.commit()
         self.db.refresh(log)
-        logger.info(f"模拟信号入场: {result.symbol} {result.action} id={log.id}")
+        logger.info(f"模拟信号已保存: {result.symbol} {result.action} id={log.id}")
         return log
 
     def _sim_buy(self, symbol: str, name: str, category: str,
@@ -435,6 +441,153 @@ class SignalLogService:
         sim_pos.market_value = 0.0
         sim_pos.updated_at = datetime.now()
         self.db.flush()
+
+    def auto_check_t1_orders(self, price_map: Dict[str, Dict]) -> dict:
+        """
+        T+1限价单模式：检查待执行的BUY和SELL条件单是否成交。
+
+        BUY规则（cyclical/defensive/large_tech/biotech）：
+        - 若 T+1最低价 <= limit_price：成交，成交价 = max(limit_price, 开盘价)
+        - 否则：信号过期
+
+        SELL规则（cyclical/defensive）：
+        - 若 T+1最高价 >= limit_price：成交，成交价 = 触发时的价格（>=limit_price）
+        - 否则：继续持有，信号过期
+
+        SELL规则（large_tech/biotech）：
+        - 若 T+1开盘价 >= limit_price：按开盘价成交
+        - 若 T+1盘中最高价 >= limit_price：按limit_price成交
+        - 否则：按T+1收盘价强制成交
+
+        Args:
+            price_map: {symbol: {"open": ..., "high": ..., "low": ..., "close": ...}}
+
+        Returns:
+            {"buy_executed": n, "sell_executed": n, "expired": n}
+        """
+        from app.models.sim_position import SimPosition
+
+        # 获取所有待执行的PENDING信号（entered=False）
+        pending = (
+            self.db.query(SignalLog)
+            .filter(
+                SignalLog.is_simulated == True,
+                SignalLog.entered == False,
+                SignalLog.status == "PENDING",
+                SignalLog.action.in_(["BUY", "SELL"]),
+            )
+            .all()
+        )
+
+        stats = {"buy_executed": 0, "sell_executed": 0, "expired": 0}
+
+        for log in pending:
+            prices = price_map.get(log.symbol)
+            if not prices or not log.limit_price:
+                continue
+
+            limit_price = float(log.limit_price)
+            open_price = prices.get("open", limit_price)
+            high_price = prices.get("high", limit_price)
+            low_price = prices.get("low", limit_price)
+            close_price = prices.get("close", limit_price)
+
+            if log.action == "BUY":
+                # BUY条件单成交判断：最低价 <= limit_price
+                if low_price <= limit_price:
+                    # 成交价：max(limit_price, 开盘价)
+                    # 如果开盘就低于limit_price，按开盘价成交；否则按limit_price
+                    executed_price = max(limit_price, open_price) if open_price <= limit_price else limit_price
+                    if open_price <= limit_price:
+                        executed_price = open_price  # 开盘即触发
+                    else:
+                        executed_price = limit_price  # 盘中触发
+
+                    log.entered = True
+                    log.entered_at = datetime.now()
+                    log.entered_price = executed_price
+                    log.status = "PENDING"  # 入场后仍为PENDING，等待出场条件
+                    stats["buy_executed"] += 1
+                    logger.info(f"T+1 BUY成交: {log.symbol} @ {executed_price}")
+                else:
+                    # 未触发，信号过期
+                    log.status = "CANCELLED"
+                    log.note = "T+1未触发条件单，信号过期"
+                    stats["expired"] += 1
+                    logger.info(f"T+1 BUY过期: {log.symbol}, limit={limit_price}, low={low_price}")
+
+            elif log.action == "SELL":
+                # 根据策略类型判断成交规则
+                if log.category in ["cyclical", "defensive"]:
+                    # cyclical/defensive：最高价 >= limit_price 则成交，否则过期
+                    if high_price >= limit_price:
+                        # 成交价：触发时的价格（假设为limit_price或更高）
+                        executed_price = limit_price  # 简化处理，按挂价成交
+
+                        log.entered = True
+                        log.entered_at = datetime.now()
+                        log.entered_price = executed_price
+                        log.status = "HIT_TARGET"  # SELL成交即为主动出场
+                        log.exit_price = executed_price
+                        log.exit_date = datetime.now()
+                        stats["sell_executed"] += 1
+
+                        # 平仓模拟持仓
+                        sim_pos = self.db.query(SimPosition).filter_by(symbol=log.symbol).first()
+                        if sim_pos:
+                            # 计算收益率
+                            if sim_pos.avg_cost and sim_pos.avg_cost > 0:
+                                actual_pct = round((executed_price - sim_pos.avg_cost) / sim_pos.avg_cost * 100, 2)
+                                log.actual_pct = actual_pct
+                            sim_pos.shares = 0
+                            sim_pos.market_value = 0.0
+                            sim_pos.updated_at = datetime.now()
+
+                        logger.info(f"T+1 SELL成交(cyclical/defensive): {log.symbol} @ {executed_price}")
+                    else:
+                        # 未触发，继续持有，信号过期
+                        log.status = "CANCELLED"
+                        log.note = "T+1未达挂价，SELL信号过期，继续持有"
+                        stats["expired"] += 1
+                        logger.info(f"T+1 SELL过期: {log.symbol}, limit={limit_price}, high={high_price}")
+
+                elif log.category in ["large_tech", "biotech"]:
+                    # large_tech/biotech：确保成交
+                    executed_price = None
+
+                    if open_price >= limit_price:
+                        # 开盘 >= limit_price，按开盘成交
+                        executed_price = open_price
+                    elif high_price >= limit_price:
+                        # 盘中触发，按limit_price成交
+                        executed_price = limit_price
+                    else:
+                        # 全天未触发，按收盘价强制成交
+                        executed_price = close_price
+
+                    log.entered = True
+                    log.entered_at = datetime.now()
+                    log.entered_price = executed_price
+                    log.status = "HIT_TARGET"
+                    log.exit_price = executed_price
+                    log.exit_date = datetime.now()
+                    stats["sell_executed"] += 1
+
+                    # 平仓模拟持仓
+                    sim_pos = self.db.query(SimPosition).filter_by(symbol=log.symbol).first()
+                    if sim_pos:
+                        if sim_pos.avg_cost and sim_pos.avg_cost > 0:
+                            actual_pct = round((executed_price - sim_pos.avg_cost) / sim_pos.avg_cost * 100, 2)
+                            log.actual_pct = actual_pct
+                        sim_pos.shares = 0
+                        sim_pos.market_value = 0.0
+                        sim_pos.updated_at = datetime.now()
+
+                    logger.info(f"T+1 SELL成交(large_tech/biotech): {log.symbol} @ {executed_price}")
+
+        self.db.commit()
+        logger.info(f"T+1条件单检查完成: BUY成交{stats['buy_executed']}, SELL成交{stats['sell_executed']}, 过期{stats['expired']}")
+        return stats
 
     def auto_check_sim_exits(self, price_map: Dict[str, Dict]) -> int:
         """
