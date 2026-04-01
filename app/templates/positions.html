@@ -268,22 +268,34 @@
 <!-- ── 主内容区 ────────────────────────────────────── -->
 <div class="ls-page">
 
-  <!-- 市场标签页：只显示标准市场（HK/US/A），按固定顺序 -->
+  {# 预先合并市场数据（A股多币种合并），供 tabs 和 panes 共用 #}
+  {% set market_data = {} %}
+  {% for m, d in portfolio.markets.items() %}
+    {% set m_lower = m|lower %}
+    {% if m_lower in ['hk', 'us', 'a'] %}
+      {% if m_lower in market_data %}
+        {# A股多币种合并：累加数据 #}
+        {% set _ = market_data[m_lower].update({
+          'total_with_cash': market_data[m_lower].total_with_cash + d.total_with_cash,
+          'total_market_value': market_data[m_lower].total_market_value + d.total_market_value,
+          'positions': market_data[m_lower].positions + d.positions,
+          'cash': market_data[m_lower].cash + d.cash
+        }) %}
+      {% else %}
+        {% set _ = market_data.update({m_lower: d}) %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+
+  <!-- 市场标签页：只显示标准市场 -->
   <div class="ls-tabs">
-    {% set standard_markets = {'hk': '港股', 'us': '美股', 'a': 'A股'} %}
     {% for market_key, market_name in [('hk', '港股'), ('us', '美股'), ('a', 'A股')] %}
-      {% set market_data = None %}
-      {% for m, d in portfolio.markets.items() %}
-        {% if m|lower == market_key %}
-          {% set market_data = d %}
-        {% endif %}
-      {% endfor %}
-      {% if market_data %}
+      {% if market_key in market_data %}
     <button class="ls-tab {% if loop.first %}active{% endif %}"
             data-market="{{ market_key }}"
             onclick="lsSwitchTab('{{ market_key }}')">
       {{ market_name }}
-      <span class="ls-tab-count">{{ market_data.positions|length }}</span>
+      <span class="ls-tab-count">{{ market_data[market_key].positions|length }}</span>
     </button>
       {% endif %}
     {% endfor %}
@@ -291,41 +303,36 @@
 
   <!-- 持仓列表（每市场一个 pane）：只渲染标准市场 -->
   {% for market_key, market_name in [('hk', '港股'), ('us', '美股'), ('a', 'A股')] %}
-  {% set market_data = None %}
-  {% for m, d in portfolio.markets.items() %}
-    {% if m|lower == market_key %}
-      {% set market_data = d %}
-    {% endif %}
-  {% endfor %}
-  {% if market_data %}
+  {% if market_key in market_data %}
+  {% set mkt = market_data[market_key] %}
   <div class="ls-market-pane {% if loop.first %}active{% endif %}" id="market-{{ market_key }}">
 
     <!-- 市场详情汇总 -->
     <div style="background:#fff;border-radius:12px;border:1px solid #dcdaf0;padding:20px 24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(56,52,106,0.05);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <div style="font-size:16px;font-weight:600;color:#38346a;">{{ market_name }}持仓明细</div>
-        <div style="font-size:13px;color:#7c76a6;">总资金 {{ market_data.currency }} {{ "{:,.0f}".format(market_data.total_with_cash) }}</div>
+        <div style="font-size:13px;color:#7c76a6;">总资金 {{ mkt.currency }} {{ "{:,.0f}".format(mkt.total_with_cash) }}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
         <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
           <div style="font-size:11px;color:#7c76a6;margin-bottom:4px;">股票市值</div>
-          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ "{:,.0f}".format(market_data.total_market_value) }}</div>
-          <div style="font-size:12px;color:#a5b4fc;margin-top:2px;">{{ "%.0f"|format(market_data.stock_position_pct|default(0)) }}%</div>
+          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ "{:,.0f}".format(mkt.total_market_value) }}</div>
+          <div style="font-size:12px;color:#a5b4fc;margin-top:2px;">{{ "%.0f"|format(mkt.stock_position_pct|default(0)) }}%</div>
         </div>
         <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
           <div style="font-size:11px;color:#7c76a6;margin-bottom:4px;">现金余额</div>
-          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ "{:,.0f}".format(market_data.cash + (market_data.fund_hkd|default(0) if market_key == 'hk' else market_data.fund_usd|default(0))) }}</div>
-          <div style="font-size:12px;color:#a5b4fc;margin-top:2px;">{{ "%.0f"|format(market_data.cash_position_pct|default(0)) }}%</div>
+          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ "{:,.0f}".format(mkt.cash + (mkt.fund_hkd|default(0) if market_key == 'hk' else mkt.fund_usd|default(0))) }}</div>
+          <div style="font-size:12px;color:#a5b4fc;margin-top:2px;">{{ "%.0f"|format(mkt.cash_position_pct|default(0)) }}%</div>
         </div>
         <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
           <div style="font-size:11px;color:#7c76a6;margin-bottom:4px;">持股数量</div>
-          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ market_data.positions|length }} 只</div>
+          <div style="font-size:18px;font-weight:600;color:#38346a;">{{ mkt.positions|length }} 只</div>
         </div>
         <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
           <div style="font-size:11px;color:#7c76a6;margin-bottom:4px;">市场盈亏</div>
-          {% if market_data.profit_pct %}
-          <div style="font-size:18px;font-weight:600;{% if market_data.profit_pct >= 0 %}color:#d93025{% else %}color:#188038{% endif %};">
-            {{ "+%.1f"|format(market_data.profit_pct) if market_data.profit_pct >= 0 else "−%.1f"|format(market_data.profit_pct|abs) }}%
+          {% if mkt.profit_pct %}
+          <div style="font-size:18px;font-weight:600;{% if mkt.profit_pct >= 0 %}color:#d93025{% else %}color:#188038{% endif %};">
+            {{ "+%.1f"|format(mkt.profit_pct) if mkt.profit_pct >= 0 else "−%.1f"|format(mkt.profit_pct|abs) }}%
           </div>
           {% else %}
           <div style="font-size:18px;font-weight:600;color:#9aa0a6;">—</div>
@@ -334,7 +341,7 @@
       </div>
     </div>
 
-    {% for pos in market_data.positions %}
+    {% for pos in mkt.positions %}
     {% set key = pos.symbol.replace(':', '_') %}
     <div class="ls-stock-card {% if pos.profit_pct is not none and pos.profit_pct >= 0 %}profit{% else %}loss{% endif %}">
       <div class="ls-card-body">
@@ -419,8 +426,8 @@
     </div>
     {% endfor %}
 
-    {% if market_data.cash_position %}
-    {% set cp = market_data.cash_position %}
+    {% if mkt.cash_position %}
+    {% set cp = mkt.cash_position %}
     <div class="ls-stock-card" style="border-left:5px solid #9aa0a6">
       <div class="ls-card-body">
         <div class="ls-col-stock">
