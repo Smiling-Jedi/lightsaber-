@@ -228,11 +228,16 @@
       {% if m_lower in ['hk', 'us', 'a'] %}
         {% if m_lower in market_data %}
           {# A股多币种合并：累加数据 #}
+          {% set new_total_with_cash = market_data[m_lower].total_with_cash + d.total_with_cash %}
+          {% set new_total_market_value = market_data[m_lower].total_market_value + d.total_market_value %}
+          {% set new_cash = market_data[m_lower].cash + d.cash %}
           {% set _ = market_data[m_lower].update({
-            'total_with_cash': market_data[m_lower].total_with_cash + d.total_with_cash,
-            'total_market_value': market_data[m_lower].total_market_value + d.total_market_value,
+            'total_with_cash': new_total_with_cash,
+            'total_market_value': new_total_market_value,
             'positions': market_data[m_lower].positions + d.positions,
-            'cash': market_data[m_lower].cash + d.cash
+            'cash': new_cash,
+            'stock_position_pct': (new_total_market_value / new_total_with_cash * 100) if new_total_with_cash > 0 else 0,
+            'cash_position_pct': (new_cash / new_total_with_cash * 100) if new_total_with_cash > 0 else 0
           }) %}
         {% else %}
           {% set _ = market_data.update({m_lower: d}) %}
@@ -246,7 +251,7 @@
       {% if market_key in market_data %}
       {% set d = market_data[market_key] %}
       <div class="ls-summary-card">
-        <div class="ls-s-label">{{ market_name }} · {{ d.currency }}</div>
+        <div class="ls-s-label">{{ market_name }}{% if market_key != 'a' %} · {{ d.currency }}{% endif %}</div>
         <div class="ls-s-value">{{ "{:,.0f}".format(d.total_with_cash) }}</div>
         <div class="ls-pos-card-inner" style="margin-top:12px;gap:12px;">
           <div style="flex:1;">
@@ -313,7 +318,7 @@
     <div style="background:#fff;border-radius:12px;border:1px solid #dcdaf0;padding:20px 24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(56,52,106,0.05);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <div style="font-size:16px;font-weight:600;color:#38346a;">{{ market_name }}持仓明细</div>
-        <div style="font-size:13px;color:#7c76a6;">总资金 {{ mkt.currency }} {{ "{:,.0f}".format(mkt.total_with_cash) }}</div>
+        <div style="font-size:13px;color:#7c76a6;">总资金{% if market_key != 'a' %} {{ mkt.currency }}{% endif %} {{ "{:,.0f}".format(mkt.total_with_cash) }}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
         <div style="text-align:center;padding:12px;background:#f8f7fc;border-radius:8px;">
