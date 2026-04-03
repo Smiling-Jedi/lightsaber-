@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db, init_db, SessionLocal
 from app.routers import position_router, dashboard_router, api_router, investment_router, trade_plan_router
+from app.routers.sell_plan_router import router as sell_plan_router
 from app.scheduler import create_scheduler
 
 # 配置日志
@@ -67,7 +68,7 @@ app.include_router(dashboard_router.router, prefix="/dashboard", tags=["仪表�
 app.include_router(api_router.router, prefix="/api", tags=["API接口"])
 app.include_router(investment_router.router, prefix="/investment", tags=["投资中枢"])
 app.include_router(trade_plan_router.router, prefix="/trades", tags=["交易计划"])
-
+app.include_router(sell_plan_router, prefix="/sells", tags=["卖出计划"])
 
 @app.get("/")
 async def root(request: Request):

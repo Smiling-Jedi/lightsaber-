@@ -1,13 +1,27 @@
 """
 富途持仓同步服务
 
-从富途 OpenD 实时拉取持仓 + 快照，自动同步到本地 DB。
-- 股票基本信息 (Stock)：自动创建/更新
-- 持仓数据 (Position)：自动创建/更新 qty、cost_price、当前价
-- 交易流水 (Trade)：从周一开始的成交明细
-- 现金余额 (CashBalance)：按市场同步富途账户现金
-- base_shares（底仓）：首次创建时默认=总股数；已有记录不覆盖，保留用户手动设置
-- 不在富途持仓里的本地记录：不删除（可能是已平仓记录，保留做历史）
+【数据维度说明】（重要！以下三个维度完全独立，禁止混为一谈）
+
+1. 【持仓同步】（数量/成本/交易流水）
+   - 港股：✅ 富途OpenD API自动获取
+   - 美股：✅ 富途OpenD API自动获取
+   - A股：✗ 无API支持，必须用户手动录入（截图/口头告知）
+
+2. 【价格更新】（当前价/开盘价/收盘价等）
+   - 港股：OpenD > Tushare > Yahoo
+   - 美股：OpenD > Tushare > Yahoo
+   - A股：Tushare > EastMoney > akshare（注意：A股无OpenD选项）
+
+3. 【现金余额】
+   - HK_CASH：✅ 富途OpenD API
+   - US_CASH：✅ 富途OpenD API
+   - A_CASH：✗ 用户手动录入
+   - FUND：✅ 富途OpenD API（返回港币合计，需拆分）
+
+【本服务处理范围】
+本服务只处理维度1（持仓同步）和维度3（现金余额）中的港/美股部分。
+A股持仓数量和A股现金余额需通过其他方式（截图/口头告知）手动更新。
 
 需要 OpenD 运行在 127.0.0.1:11111
 """
@@ -23,6 +37,7 @@ from app.models.stock import Stock
 from app.models.position import Position
 from app.models.cash import CashBalance
 from app.models.trade import Trade
+from app.services.position_audit_service import PositionAuditService
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +64,11 @@ class FutuSyncService:
 
     def sync(self) -> Dict:
         """
-        从富途拉取全部实盘持仓，同步到本地 DB。
+        从富途拉取港/美股实盘持仓，同步到本地 DB。
+
+        ⚠️ 注意：本方法只同步港/美股持仓（HK/US），A股持仓不在富途OpenD覆盖范围内，
+        需通过 scripts/import_a_shares.py 或其他方式手动录入。
+
         返回同步摘要 {"synced": N, "created": M, "errors": [...]}
         """
         try:
@@ -85,8 +104,21 @@ class FutuSyncService:
                 errors.append(f"{pos_data.get('code')}: {e}")
                 logger.warning(f"同步持仓失败 {pos_data.get('code')}: {e}")
 
+        # 【新增】标记已清仓持仓：在富途持仓中不存在但本地有持仓的记录
+        closed_count = self._mark_closed_positions(futu_positions)
+        if closed_count > 0:
+            synced += closed_count  # 将清仓标记计入同步统计
+
         self.db.commit()
-        logger.info(f"富途持仓同步完成: synced={synced}, created={created}, errors={len(errors)}")
+        # 【数据保护】验证A股持仓一致性
+        audit_service = PositionAuditService(self.db)
+        validation_result = audit_service.validate_a_shares_consistency()
+        if not validation_result["is_valid"]:
+            for warning in validation_result["warnings"]:
+                logger.warning(warning["message"])
+
+        self.db.commit()
+        logger.info(f"富途持仓同步完成: synced={synced}, created={created}, closed={closed_count}, errors={len(errors)}")
 
         # 同步交易流水（从周一开始）
         trades_synced, trades_created = self._sync_trades()
@@ -110,7 +142,10 @@ class FutuSyncService:
 
     def _fetch_futu_positions(self) -> Tuple[List[Dict], Dict]:
         """
-        调用富途 API 获取实盘持仓和各市场账户资金。
+        调用富途 API 获取港/美股实盘持仓和各市场账户资金。
+
+        ⚠️ 注意：富途OpenD API只返回港/美股持仓，A股持仓需手动录入。
+
         返回 (positions, market_funds)
         market_funds: {"HK": {"total_assets": ..., "cash": ..., "currency": "HKD"}, "US": {...}}
         """
@@ -126,10 +161,8 @@ class FutuSyncService:
         positions = []
         market_funds: Dict[str, Dict] = {}
 
-        # 每个市场期望的货币，用于过滤错误的账户数据
-        expected_currency = {"HK": "HKD", "US": "USD"}
-
         # US市场优先用 FUTUINC（美元账户），HK市场优先用 FUTUSECURITIES（港元账户）
+        # 注意：富途OpenD只覆盖港/美股持仓同步，A股持仓数量和A股现金需手动录入
         market_configs = [
             (TrdMarket.HK, "HK", [SecurityFirm.FUTUSECURITIES, SecurityFirm.FUTUINC]),
             (TrdMarket.US, "US", [SecurityFirm.FUTUINC, SecurityFirm.FUTUSECURITIES]),
@@ -186,7 +219,9 @@ class FutuSyncService:
 
     def _sync_cash_balances(self, market_funds: Dict[str, Dict]):
         """
-        将富途账户现金余额同步到 CashBalance 表。
+        将富途账户现金余额同步到 CashBalance 表（港/美股现金）。
+
+        ⚠️ 注意：A股现金（market="A"）不在富途OpenD覆盖范围内，需手动录入。
 
         字段说明（来自 accinfo_query）：
         - hk_cash: 港元现金（不含基金）
@@ -304,6 +339,9 @@ class FutuSyncService:
         avg_cost     = Decimal(str(round(pos_data["cost_price"], 4)))
         is_new = False
 
+        # 记录审计日志
+        audit_service = PositionAuditService(self.db)
+
         if not position:
             position = Position(
                 stock_symbol=symbol,
@@ -312,19 +350,84 @@ class FutuSyncService:
                 avg_cost=avg_cost,
                 currency=currency,
                 market_total_fund=Decimal(str(total_assets)),
+                source="FUTU_AUTO",
+                last_sync_at=datetime.now(),
             )
             self.db.add(position)
+            self.db.flush()
+
+            # 记录创建审计日志
+            audit_service.log_change(
+                position, "total_shares", None, total_shares,
+                change_reason="SYNC", source="FUTU"
+            )
             is_new = True
         else:
+            # 记录旧值
+            old_shares = position.total_shares
+            old_cost = position.avg_cost
+            old_source = position.source
+
             position.total_shares      = total_shares
             # 负成本（历史卖出已回收成本）不被富途同步覆盖，保留手动设置值
             if position.avg_cost is None or position.avg_cost >= 0:
                 position.avg_cost = avg_cost
             position.market_total_fund = Decimal(str(total_assets))
+            position.source = "FUTU_AUTO" if old_source != "MANUAL" else "MIXED"
+            position.last_sync_at = datetime.now()
             # base_shares 不覆盖，保留用户手动设置的底仓数
+
+            # 记录变更审计日志
+            if old_shares != total_shares:
+                audit_service.log_change(
+                    position, "total_shares", old_shares, total_shares,
+                    change_reason="SYNC", source="FUTU"
+                )
+            if old_cost != avg_cost and (old_cost is None or old_cost >= 0):
+                audit_service.log_change(
+                    position, "avg_cost", old_cost, avg_cost,
+                    change_reason="SYNC", source="FUTU"
+                )
 
         self.db.flush()
         return is_new
+
+    def _mark_closed_positions(self, futu_positions: List[Dict]) -> int:
+        """
+        标记已清仓的持仓：只处理富途能覆盖的市场（HK / US）。
+        A 股市场持仓为手动录入/其他来源维护，不应被富途同步误清空。
+        """
+        # 获取富途返回的所有股票代码（转换为光剑格式）
+        futu_codes = {p["code"].replace(".", ":", 1) for p in futu_positions}
+
+        # 只查询富途覆盖市场的本地持仓（HK / US），跳过 A 股
+        from sqlalchemy import or_
+        local_positions = (
+            self.db.query(Position)
+            .filter(Position.total_shares > 0)
+            .filter(
+                or_(
+                    Position.stock_symbol.like("HK:%"),
+                    Position.stock_symbol.like("US:%"),
+                )
+            )
+            .all()
+        )
+
+        closed_count = 0
+        for pos in local_positions:
+            if pos.stock_symbol not in futu_codes:
+                # 该持仓在富途已不存在，标记为清仓
+                pos.total_shares = 0
+                # base_shares 也设为 0，保持一致性
+                pos.base_shares = 0
+                closed_count += 1
+                logger.info(f"持仓已清仓: {pos.stock_symbol}")
+
+        if closed_count > 0:
+            logger.info(f"标记 {closed_count} 个已清仓持仓")
+
+        return closed_count
 
     def _sync_trades(self) -> tuple:
         """

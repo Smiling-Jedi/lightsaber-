@@ -270,7 +270,11 @@
             <span class="ls-plan-status-icon">⚠</span>
             <span>待补录交易计划</span>
           </div>
-          <a href="/trades/new?trade_id={{ trade.id }}" class="ls-action-btn ls-action-btn-primary">+ 补录计划</a>
+          {% if trade.trade_type == 'BUY' %}
+          <a href="/trades/new?trade_id={{ trade.id }}" class="ls-action-btn ls-action-btn-primary">+ 补录买入计划</a>
+          {% else %}
+          <a href="/sells/new?trade_id={{ trade.id }}" class="ls-action-btn ls-action-btn-primary">+ 补录卖出计划</a>
+          {% endif %}
           {% endif %}
         </div>
       </div>

@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """
-导入混合持仓 CSV（港股+美股）
+⚠️ 废弃脚本 - 不再使用
+
+原因：
+1. 引用的CSV文件已不存在（2026-03-19的旧文件）
+2. 港美股持仓现在通过富途OpenD自动同步（futu_sync_service.py）
+
+如需手动导入持仓，请使用：
+- 港股/美股：scripts/sync_futu.py（自动同步）
+- A股：scripts/import_a_shares.py（手动录入）
+
+保留此文件仅供历史参考，请勿使用。
 """
 import csv
 import sys

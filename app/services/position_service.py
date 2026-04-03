@@ -16,6 +16,7 @@ from app.models.stock import Stock
 from app.models.position import Position
 from app.models.trade import Trade
 from app.models.cash import CashBalance
+from app.services.position_audit_service import PositionAuditService
 
 logger = logging.getLogger(__name__)
 
@@ -153,12 +154,30 @@ class PositionService:
 
         # 检查是否已有持仓
         position = self.get_position_by_symbol(symbol)
+        audit_service = PositionAuditService(self.db)
+
         if position:
+            # 记录旧值
+            old_shares = position.total_shares
+            old_cost = position.avg_cost
+
             # 更新现有持仓
             position.total_shares = shares
             position.avg_cost = avg_cost
             position.market_total_fund = market_total_fund
+            position.source = "MANUAL"
+            position.last_sync_at = datetime.now()
             position.updated_at = datetime.now()
+
+            # 记录审计日志
+            audit_service.log_change(
+                position, "total_shares", old_shares, shares,
+                change_reason="MANUAL", source="SCRIPT"
+            )
+            audit_service.log_change(
+                position, "avg_cost", old_cost, avg_cost,
+                change_reason="MANUAL", source="SCRIPT"
+            )
         else:
             # 创建新持仓
             position = Position(
@@ -169,8 +188,17 @@ class PositionService:
                 avg_cost=avg_cost,
                 market_total_fund=market_total_fund,
                 currency=currency,
+                source="MANUAL",
+                last_sync_at=datetime.now(),
             )
             self.db.add(position)
+            self.db.flush()
+
+            # 记录创建审计日志
+            audit_service.log_change(
+                position, "total_shares", None, shares,
+                change_reason="MANUAL", source="SCRIPT"
+            )
 
         self.db.commit()
         self.db.refresh(position)
@@ -191,6 +219,10 @@ class PositionService:
         position = self.db.query(Position).filter(Position.id == position_id).first()
         if not position:
             raise ValueError(f"持仓不存在: ID={position_id}")
+
+        # 记录旧值用于审计
+        old_shares = position.total_shares
+        audit_service = PositionAuditService(self.db)
 
         trade = Trade(
             position_id=position_id,
@@ -213,6 +245,12 @@ class PositionService:
             position.total_shares -= shares
 
         position.updated_at = datetime.now()
+
+        # 记录审计日志
+        audit_service.log_change(
+            position, "total_shares", old_shares, position.total_shares,
+            change_reason="TRADE", source="USER"
+        )
 
         self.db.commit()
         self.db.refresh(trade)

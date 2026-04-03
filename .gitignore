@@ -30,3 +30,9 @@ diagnose_assets.py
 verify_*.py
 test_api_validation.py
 app/main_test.py
+
+# 临时文件
+.playwright-mcp/
+ENDSCRIPT
+PYEND
+PYEOF

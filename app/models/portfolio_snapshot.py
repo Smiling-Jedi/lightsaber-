@@ -42,6 +42,10 @@ class PortfolioSnapshot(Base):
     # 折算为人民币的总资产（统一口径）
     total_assets_rmb = Column(Numeric(20, 4), default=0, comment="折算人民币总资产")
 
+    # 当日汇率（固化，历史重算时用）
+    hkd_rate = Column(Numeric(10, 6), nullable=True, comment="当日汇率: 1 HKD = ? CNY")
+    usd_rate = Column(Numeric(10, 6), nullable=True, comment="当日汇率: 1 USD = ? CNY")
+
     # 成分明细（JSON存储，灵活扩展）
     # 结构：{
     #   "stocks": {"HK:00700": {"shares": 100, "price": 400, "value": 40000}, ...},
@@ -101,6 +105,8 @@ class PortfolioSnapshot(Base):
             "total_assets_usd": float(self.total_assets_usd),
             "total_assets_cny": float(self.total_assets_cny),
             "total_assets_rmb": float(self.total_assets_rmb),
+            "hkd_rate": float(self.hkd_rate) if self.hkd_rate else None,
+            "usd_rate": float(self.usd_rate) if self.usd_rate else None,
             "breakdown": self.get_breakdown(),
             "note": self.note,
             "created_at": self.created_at.isoformat() if self.created_at else None,

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}卖出计划 - 光剑{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>卖出计划</h2>
+    <a href="/sells/new" class="btn btn-primary">+ 新建卖出计划</a>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  {% if plans %}
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>股票</th>
+          <th>卖出股数</th>
+          <th>计划卖出价</th>
+          <th>预计盈利</th>
+          <th>类型</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for plan in plans %}
+        <tr>
+          <td>{{ plan.stock_name }} ({{ plan.symbol }})</td>
+          <td>{{ plan.planned_shares }} 股</td>
+          <td>{% if plan.planned_price %}¥{{ "%.2f"|format(plan.planned_price) }}{% else %}-{% endif %}</td>
+          <td>{% if plan.estimated_profit_pct %}{{ "%.1f"|format(plan.estimated_profit_pct) }}%{% else %}-{% endif %}</td>
+          <td>
+            <span class="badge bg-{{ 'success' if plan.sell_type == '止盈' else 'danger' if plan.sell_type == '止损' else 'warning' }}">
+              {{ plan.sell_type }}
+            </span>
+          </td>
+          <td>
+            <span class="badge bg-{{ 'warning' if plan.status == '计划中' else 'success' if plan.status == '已执行' else 'secondary' }}">
+              {{ plan.status }}
+            </span>
+          </td>
+          <td>
+            <a href="/sells/{{ plan.id }}" class="btn btn-sm btn-outline-primary">查看</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <div class="mb-3">📋</div>
+    <p>暂无卖出计划</p>
+    <a href="/sells/new" class="btn btn-primary">创建第一个卖出计划</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

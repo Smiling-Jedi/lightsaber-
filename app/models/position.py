@@ -47,6 +47,12 @@ class Position(Base):
     # 币种（缓存，方便查询）
     currency = Column(String(10), nullable=False, comment="币种")
 
+    # 数据来源
+    source = Column(String(50), nullable=True, default="MIXED", comment="数据来源: FUTU_AUTO-富途自动/MANUAL-手动录入/MIXED-混合")
+
+    # 最后同步时间
+    last_sync_at = Column(DateTime, nullable=True, comment="最后同步时间")
+
     # 备注
     notes = Column(String(500), nullable=True, comment="备注")
 
@@ -61,6 +67,7 @@ class Position(Base):
 
     # 关联交易记录（波段批次）
     trades: List["Trade"] = relationship("Trade", back_populates="position", cascade="all, delete-orphan")
+    sell_plans: List["SellPlan"] = relationship("SellPlan", back_populates="position")
 
     def __repr__(self) -> str:
         return f"<Position(id={self.id}, stock='{self.stock_symbol}', shares={self.total_shares})>"

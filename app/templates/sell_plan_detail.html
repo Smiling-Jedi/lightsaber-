@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}卖出计划详情 - 光剑{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>卖出计划详情</h2>
+        <span class="badge bg-{% if plan.status == '计划中' %}warning{% elif plan.status == '已执行' %}success{% else %}secondary{% endif %}">
+          {{ plan.status }}
+        </span>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">基础信息</div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr><td>股票代码</td><td>{{ plan.symbol }}</td></tr>
+            <tr><td>卖出类型</td><td>
+              <span class="badge bg-{{ 'success' if plan.sell_type == '止盈' else 'danger' if plan.sell_type == '止损' else 'warning' }}">
+                {{ plan.sell_type }}
+              </span>
+            </td></tr>
+            {% if plan.buy_plan %}
+            <tr><td>关联买入计划</td><td>买入 {{ plan.buy_plan.planned_shares }}股 @ ¥{{ plan.buy_plan.planned_price }}</td></tr>
+            {% endif %}
+            <tr><td>创建时间</td><td>{{ plan.created_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">卖出参数</div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr><td>计划卖出价</td><td>{% if plan.planned_price %}¥{{ "%.2f"|format(plan.planned_price) }}{% else %}-{% endif %}</td></tr>
+            <tr><td>计划股数</td><td>{{ plan.planned_shares }} 股</td></tr>
+            <tr><td>触发方式</td><td>{{ plan.sell_trigger_method }} {{ plan.sell_trigger_param }}</td></tr>
+            {% if plan.original_target_price %}
+            <tr><td>原目标价参考</td><td>¥{{ "%.2f"|format(plan.original_target_price) }}</td></tr>
+            {% endif %}
+          </table>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">盈利测算</div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr><td>预计盈利</td><td>{% if plan.estimated_profit %}+¥{{ "%.2f"|format(plan.estimated_profit) }} ({{ "%.1f"|format(plan.estimated_profit_pct) }}%){% else %}-{% endif %}</td></tr>
+            <tr><td>目标达成度</td><td>{% if plan.target_achievement_pct %}{{ "%.1f"|format(plan.target_achievement_pct) }}%{% else %}-{% endif %}</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">决策依据</div>
+        <div class="card-body">
+          <h6>卖出理由</h6>
+          <p>{{ plan.sell_reason }}</p>
+
+          {% if plan.note %}
+          <hr>
+          <h6>补充说明</h6>
+          <p>{{ plan.note }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <a href="/sells/" class="btn btn-outline-secondary">返回列表</a>
+
+        {% if plan.status == '计划中' %}
+        <form action="/sells/api/{{ plan.id }}" method="post" onsubmit="return confirm('确定删除此计划？')">
+          <input type="hidden" name="_method" value="DELETE">
+          <button type="submit" class="btn btn-danger">删除</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

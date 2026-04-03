@@ -1,8 +1,18 @@
 """
-聚合数据源 - 按优先级自动故障转移
-港股: 富途OpenD > Tushare > Yahoo > EastMoney > Alpha Vantage
-美股: 富途OpenD > Tushare > Yahoo > Alpha Vantage
-A股: Tushare > Yahoo > EastMoney > Alpha Vantage
+聚合数据源 - 用于价格更新（市场公开数据）
+
+⚠️ 重要区分：
+- 持仓同步（账户数据）：港股/美股走富途OpenD，A股必须用户手动录入
+- 价格更新（市场数据）：用本聚合源，按优先级自动选择
+
+实时股价优先级（2026-04-03更新）:
+- A股: iFinD > Tushare > Yahoo > EastMoney
+- 港股: iFinD > 富途OpenD > Tushare > Yahoo
+- 美股: 富途OpenD > iFinD > Yahoo
+
+详细配置：docs/数据源优先级配置.md
+
+基本面/历史数据: 用 app.data_sources.ifind_source 直接查iFinD
 """
 import logging
 from typing import List

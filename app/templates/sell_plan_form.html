@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}{{ mode }}卖出计划 - 光剑{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <h2 class="mb-4">{{ mode }}卖出计划</h2>
+
+      {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+
+      <form id="sellPlanForm" action="/sells/api" method="post">
+        <!-- 基础信息 -->
+        <div class="card mb-4">
+          <div class="card-header">基础信息</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">股票代码 *</label>
+              <input type="text" name="symbol" class="form-control" value="{{ default_data.symbol or '' }}" placeholder="例如：A:300274" required>
+            </div>
+
+            {% if buy_plans %}
+            <div class="mb-3">
+              <label class="form-label">关联买入计划</label>
+              <select name="buy_plan_id" class="form-select" id="buyPlanSelect">
+                <option value="">-- 选择买入计划 --</option>
+                {% for bp in buy_plans %}
+                <option value="{{ bp.id }}" data-target-price="{{ bp.target_price }}" data-planned-price="{{ bp.planned_price }}">
+                  {{ bp.created_at.strftime('%Y-%m-%d') }} 买入 {{ bp.planned_shares }}股 @ ¥{{ bp.planned_price }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="form-label">原目标价参考</label>
+              <input type="number" step="0.01" name="original_target_price" class="form-control" id="originalTargetPrice" placeholder="关联买入计划后自动填充">
+            </div>
+          </div>
+        </div>
+
+        <!-- 卖出参数 -->
+        <div class="card mb-4">
+          <div class="card-header">卖出参数</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">计划卖出价</label>
+              <input type="number" step="0.01" name="planned_price" class="form-control" id="plannedPrice" value="{{ default_data.planned_price or '' }}" placeholder="例如：180.00">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">计划股数 *</label>
+              <input type="number" name="planned_shares" class="form-control" value="{{ default_data.planned_shares or default_data.current_shares or '' }}" placeholder="例如：300" required>
+              {% if default_data.current_shares %}
+              <div class="form-text">当前持仓：{{ default_data.current_shares }} 股</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">卖出触发逻辑 *</label>
+              <select name="sell_trigger_method" class="form-select" id="triggerMethod" required>
+                {% for method, config in trigger_methods.items() %}
+                <option value="{{ method }}" data-type="{{ config.sell_type }}">{{ method }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">触发参数 *</label>
+              <div class="input-group">
+                <input type="number" step="0.1" name="sell_trigger_param" class="form-control" id="triggerParam" value="10.0" required>
+                <span class="input-group-text" id="paramUnit">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 决策依据 -->
+        <div class="card mb-4">
+          <div class="card-header">决策依据</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">卖出理由 *</label>
+              <textarea name="sell_reason" class="form-control" rows="4" placeholder="为什么现在卖出？目标达成/趋势转弱/基本面变化/资金需求..." required></textarea>
+              <div class="form-text">最少10个字</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">补充说明</label>
+              <textarea name="note" class="form-control" rows="2" placeholder="其他备注（可选）"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- 评估结果面板 -->
+        <div class="card mb-4" id="evalPanel" style="display:none;">
+          <div class="card-header bg-primary text-white">评估结果</div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-4 text-center">
+                <div class="h3" id="evalProfit">-</div>
+                <small>预计盈利</small>
+              </div>
+              <div class="col-md-4 text-center">
+                <div class="h3" id="evalAchievement">-</div>
+                <small>目标达成度</small>
+              </div>
+              <div class="col-md-4 text-center">
+                <div class="h3" id="evalRemaining">-</div>
+                <small>剩余持仓</small>
+              </div>
+            </div>
+            <div id="evalChecks"></div>
+          </div>
+        </div>
+
+        <!-- 按钮 -->
+        <div class="d-flex justify-content-between">
+          <a href="/sells/" class="btn btn-outline-secondary">取消</a>
+          <div>
+            <button type="button" class="btn btn-secondary me-2" onclick="evaluatePlan()">评估计划</button>
+            <button type="submit" class="btn btn-primary">提交保存</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 关联买入计划时自动填充目标价
+document.getElementById('buyPlanSelect')?.addEventListener('change', function() {
+  const option = this.options[this.selectedIndex];
+  const targetPrice = option.getAttribute('data-target-price');
+  if (targetPrice) {
+    document.getElementById('originalTargetPrice').value = targetPrice;
+  }
+});
+
+// 触发方式改变时更新参数单位
+document.getElementById('triggerMethod')?.addEventListener('change', function() {
+  const method = this.value;
+  const unitMap = {
+    '固定比例止盈': '%',
+    '固定比例止损': '%',
+    'ATR倍数止盈': '倍',
+    '压力位': '元',
+    '移动平均线': '天'
+  };
+  document.getElementById('paramUnit').textContent = unitMap[method] || '';
+});
+
+// 评估计划
+async function evaluatePlan() {
+  const form = document.getElementById('sellPlanForm');
+  const formData = new FormData(form);
+
+  try {
+    const resp = await fetch('/sells/api/evaluate', {
+      method: 'POST',
+      body: formData
+    });
+    const result = await resp.json();
+
+    // 显示评估面板
+    document.getElementById('evalPanel').style.display = 'block';
+
+    if (result.error) {
+      document.getElementById('evalChecks').innerHTML = `
+        <div class="alert alert-danger">${result.messages.join('；')}</div>
+      `;
+      return;
+    }
+
+    const plan = result.plan || {};
+    const evalData = result.evaluation || {};
+
+    // 更新显示
+    document.getElementById('evalProfit').textContent = plan.estimated_profit_pct ? `+${plan.estimated_profit_pct.toFixed(1)}%` : '-';
+    document.getElementById('evalAchievement').textContent = plan.target_achievement_pct ? `${plan.target_achievement_pct.toFixed(1)}%` : '-';
+    document.getElementById('evalRemaining').textContent = plan.remaining_shares ? `${plan.remaining_shares}股` : '-';
+
+    // 检查项
+    const checks = evalData.checks || [];
+    const checksHtml = checks.map(check => {
+      const icon = check.status === 'pass' ? '✅' : check.status === 'warning' ? '⚠️' : '❌';
+      const color = check.status === 'pass' ? 'success' : check.status === 'warning' ? 'warning' : 'danger';
+      return `<div class="alert alert-${color} py-2">${icon} ${check.item}：${check.message}</div>`;
+    }).join('');
+    document.getElementById('evalChecks').innerHTML = checksHtml;
+
+  } catch (e) {
+    alert('评估失败：' + e.message);
+  }
+}
+</script>
+{% endblock %}

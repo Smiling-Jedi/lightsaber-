@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """
-导入 A 股持仓数据（从截图提取）
+导入 A 股持仓数据（持仓数量 + 成本价）
+
+⚠️ 说明：
+- 富途OpenD API不支持A股持仓同步，因此A股的持仓数量和成本价需通过本脚本手动录入
+- A股的当前价格会自动从Tushare/EastMoney等接口获取，无需在此设置
+- 使用方法：根据截图更新A_SHARE_HOLDINGS列表，然后运行本脚本
 """
 import sys
 from decimal import Decimal
@@ -12,24 +17,27 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from app.core.database import SessionLocal, init_db
 from app.services.position_service import PositionService
 
-# A 股持仓数据（从截图提取，2026-03-24）
-# 总资产约 555万 RMB，用于计算仓位占比
+# A 股持仓数据（更新于 2026-04-03）
+# 注意：A股持仓必须通过截图/口头告知更新，无API自动同步
+# 总资产约 465万 RMB（仅A股持仓部分），用于计算仓位占比
 A_SHARE_HOLDINGS = [
     # 代码, 名称, 持仓数量, 成本价, 现价
-    ("512010", "医药ETF易方达", 2457100, Decimal("0.3966"), Decimal("0.3570")),
+    ("512010", "医药ETF易方达", 2484800, Decimal("0.3962"), Decimal("0.3570")),
     ("562500", "机器人ETF华夏", 700000, Decimal("0.9573"), Decimal("0.9200")),
-    ("600030", "中信证券", 20200, Decimal("27.8337"), Decimal("24.3600")),
+    ("600030", "中信证券", 3800, Decimal("28.9712"), Decimal("24.3600")),
     ("600036", "招商银行", 2500, Decimal("39.3939"), Decimal("39.2500")),
     ("601166", "兴业银行", 5500, Decimal("18.7165"), Decimal("18.7200")),
     ("601328", "交通银行", 15000, Decimal("7.0953"), Decimal("6.8200")),
-    ("002594", "比亚迪", 15000, Decimal("87.9491"), Decimal("106.6400")),
-    ("300059", "东方财富", 25000, Decimal("24.9730"), Decimal("19.7700")),
-    ("300274", "阳光电源", 1700, Decimal("160.5883"), Decimal("164.6800")),
+    ("002594", "比亚迪", 15000, Decimal("87.9810"), Decimal("106.6400")),
+    ("300274", "阳光电源", 3500, Decimal("155.9780"), Decimal("164.6800")),
     ("300750", "宁德时代", 1000, Decimal("118.3013"), Decimal("396.9900")),
+    ("159949", "创业板50ETF", 60000, Decimal("1.5396"), Decimal("1.0200")),
+    ("01810", "小米集团-W", 3000, Decimal("32.3424"), Decimal("58.5000")),
+    ("09988", "阿里巴巴-W", 1000, Decimal("123.6066"), Decimal("125.0000")),
 ]
 
 # A 股总资产（用于计算仓位占比）
-A_TOTAL_ASSETS = Decimal("5550000")  # 约 555 万 RMB
+A_TOTAL_ASSETS = Decimal("4650000")  # 约 465 万 RMB
 
 
 def import_a_shares():
