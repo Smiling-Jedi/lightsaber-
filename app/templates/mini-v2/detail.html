@@ -583,6 +583,18 @@
         <span class="d-indicator-label">趋势强度</span>
         <span class="d-indicator-val">{{ indicator_summary.trend_strength }}</span>
       </div>
+      {% if indicator_summary.vwap20 %}
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">VWAP(20)</span>
+        <span class="d-indicator-val">{{ "%.2f"|format(indicator_summary.vwap20) }}</span>
+      </div>
+      {% endif %}
+      {% if indicator_summary.obv %}
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">OBV</span>
+        <span class="d-indicator-val">{{ "%.0f"|format(indicator_summary.obv) }}</span>
+      </div>
+      {% endif %}
     </div>
   </div>
 
@@ -606,6 +618,45 @@
   <div style="font-size:13px;color:#666;">
     指标计算失败：{{ indicator_summary.error }}
   </div>
+</div>
+{% endif %}
+
+<!-- ━━━━━━━━━━ v2 新增：技术异动信号 ━━━━━━━━━━ -->
+{% if anomaly_summary and not anomaly_summary.get('error') %}
+<div class="d-section">
+  <div class="d-section-title">技术异动信号<span class="d-section-title-aux">最近7天</span></div>
+
+  {% set daily = anomaly_summary.get('daily', {}) %}
+  {% set weekly = anomaly_summary.get('weekly', {}) %}
+  {% set monthly = anomaly_summary.get('monthly', {}) %}
+
+  {% if daily.signals or weekly.signals or monthly.signals %}
+    {% if daily.signals %}
+    <div style="margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:4px;">日K异动</div>
+      {% for signal in daily.signals[:3] %}
+      <div style="font-size:12px;color:#333;line-height:1.6;padding:2px 0;">• {{ signal }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if weekly.signals %}
+    <div style="margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:4px;">周K异动</div>
+      {% for signal in weekly.signals[:2] %}
+      <div style="font-size:12px;color:#333;line-height:1.6;padding:2px 0;">• {{ signal }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if anomaly_summary.resonance and anomaly_summary.resonance != 'none' %}
+    <div style="margin-top:8px;padding:6px 10px;background:#f8f9ff;border-radius:4px;font-size:12px;color:#666;">
+      综合判断：{{ anomaly_summary.summary }}
+    </div>
+    {% endif %}
+  {% else %}
+    <div style="font-size:13px;color:#999;">最近7天无明显技术异动</div>
+  {% endif %}
 </div>
 {% endif %}
 
@@ -697,7 +748,6 @@
 </div>
 {% endif %}
 {% endif %}
-{% endif %}
 
 <!-- ━━━━━━━━━━ 关注事项 ━━━━━━━━━━ -->
 {% if watch_items %}
@@ -715,6 +765,7 @@
   </div>
   {% endfor %}
 </div>
+{% endif %}
 {% endif %}
 
 <!-- 底部留白 -->

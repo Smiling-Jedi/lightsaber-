@@ -660,8 +660,8 @@
 <!-- ━━━━━━━━━━ 决策面板（核心）━━━━━━━━━━ -->
 <div class="d-decision">
   <div class="d-decision-head">
-    <div class="d-decision-score" style="color: #f39c12;">
-      🟡 中<span class="d-decision-score-aux">· 6.3/10</span>
+    <div class="d-decision-score" style="color: #27AE60;">
+      🟢 低<span class="d-decision-score-aux">· 4.3/10</span>
     </div>
     
     <div class="d-decision-risk high">⚠️ 风险 高</div>
@@ -673,9 +673,9 @@
     <div class="d-act-row">
       <div class="d-act-label">🏛️ 底仓</div>
       <div>
-        <span class="d-act-text">继续持有</span>
+        <span class="d-act-text">继续持有，当前底仓成本936.82低于现价970.70，有+3.6%浮盈缓冲</span>
         
-        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>继续持有，三周期共振支撑长期逻辑</span>
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>继续持有</span>
         
       </div>
     </div>
@@ -685,9 +685,9 @@
     <div class="d-act-row">
       <div class="d-act-label">🎯 波段</div>
       <div>
-        <span class="d-act-text">观望，若放量突破1085.68可分批建仓，触发价1085.68，止损价980.00</span>
+        <span class="d-act-text">观望，待突破1053.09并站稳3个交易日且成交量大于800万可考虑加仓，或跌破892.58减仓；触发加仓价1053.09，止损价854.62</span>
         
-        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>可积极加仓，共振信号最强</span>
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>可谨慎加仓，等待第三周期确认</span>
         
       </div>
     </div>
@@ -697,9 +697,9 @@
     <div class="d-act-row">
       <div class="d-act-label">🛑 止损</div>
       <div>
-        <span class="d-act-text">跌破右肩低点624.84的80%位置即499.87或跌破近期震荡平台下沿799.56止损</span>
+        <span class="d-act-text">收盘跌破892.58且次日无法收回则止损，或跌破854.62（5月7日低点）立即止损</span>
         
-        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>统一止损 799.56</span>
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>统一止损 707.84</span>
         
       </div>
     </div>
@@ -709,9 +709,9 @@
     <div class="d-act-row">
       <div class="d-act-label">🎁 目标</div>
       <div>
-        <span class="d-act-text">第一目标1085.68，第二目标1382.92（等幅测量：1085.68+(1085.68-558.44)=1382.92）</span>
+        <span class="d-act-text">第一目标1053.09，第二目标1085.68（区间高点），第三目标突破后量度涨幅约1213.60</span>
         
-        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>分批止盈，先看第一目标</span>
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>分批止盈</span>
         
       </div>
     </div>
@@ -720,7 +720,7 @@
 
   
   <div class="d-decision-hint">
-    <span class="d-decision-hint-label">📈 如何提升</span>价格放量突破颈线1085.68且收盘站稳3日以上则升为高置信
+    <span class="d-decision-hint-label">📈 如何提升</span>价格放量突破1053.09并站稳3个交易日且成交量持续大于700万则升为medium；突破后回踩1053.09不破且MACD金叉则升为high
   </div>
   
 </div>
@@ -740,6 +740,10 @@
     <li>中期趋势向上，动量偏多</li>
     
     <li>MACD动量减弱，警惕趋势反转</li>
+    
+    <li>OBV下降，资金流出，警惕量价背离</li>
+    
+    <li>价格高于VWAP(927.90) 4.6%，偏离机构成本</li>
     
   </ul>
 
@@ -783,6 +787,18 @@
         <span class="d-indicator-label">趋势强度</span>
         <span class="d-indicator-val">弱趋势</span>
       </div>
+      
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">VWAP(20)</span>
+        <span class="d-indicator-val">927.90</span>
+      </div>
+      
+      
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">OBV</span>
+        <span class="d-indicator-val">122626851</span>
+      </div>
+      
     </div>
   </div>
 
@@ -800,18 +816,55 @@
 </div>
 
 
+<!-- ━━━━━━━━━━ v2 新增：技术异动信号 ━━━━━━━━━━ -->
+
+<div class="d-section">
+  <div class="d-section-title">技术异动信号<span class="d-section-title-aux">最近7天</span></div>
+
+  
+  
+  
+
+  
+    
+    <div style="margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:4px;">日K异动</div>
+      
+      <div style="font-size:12px;color:#333;line-height:1.6;padding:2px 0;">• MA指标呈现多头排列，暗示价格可能持续上涨。</div>
+      
+      <div style="font-size:12px;color:#333;line-height:1.6;padding:2px 0;">• 收盘价跌破MA5和MA10，表明价格可能继续下跌。</div>
+      
+    </div>
+    
+
+    
+    <div style="margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:4px;">周K异动</div>
+      
+      <div style="font-size:12px;color:#333;line-height:1.6;padding:2px 0;">• MA指标呈现多头排列，暗示价格可能持续上涨。</div>
+      
+      <div style="font-size:12px;color:#333;line-height:1.6;padding:2px 0;">• 收盘价跌破MA5和MA10，表明价格可能继续下跌。</div>
+      
+    </div>
+    
+
+    
+  
+</div>
+
+
 <!-- ━━━━━━━━━━ 三周期共振 + 形态表格 ━━━━━━━━━━ -->
 
 <div class="d-section">
   <div class="d-section-title">三周期共振</div>
   <div class="d-reso-head">
     <div class="d-reso-state">
-      三周期共振看涨
+      中长期共振看涨
       <span class="d-reso-stars">
-        ⭐⭐⭐⭐⭐
+        ⭐⭐⭐⭐
       </span>
     </div>
-    <div class="d-reso-detail">日/周/月三周期同步看涨，短中长期资金达成共识，信号最强</div>
+    <div class="d-reso-detail">周线+月线同步看涨，中长期趋势向好，日线处于整理</div>
   </div>
 
   
@@ -823,9 +876,9 @@
         
         <div class="d-period-row">
           <div class="d-period-label">日K</div>
-          <div class="d-period-pattern">头肩底</div>
-          <div class="d-period-state">已确认</div>
-          <div class="d-period-dir dir-up">看涨</div>
+          <div class="d-period-pattern">矩形整理</div>
+          <div class="d-period-state">构筑中</div>
+          <div class="d-period-dir dir-neutral">中性</div>
         </div>
       
     
@@ -861,28 +914,28 @@
 <!-- ━━━━━━━━━━ 形态分析（日K）━━━━━━━━━━ -->
 <div class="d-section">
   <div class="d-section-title">形态分析<span class="d-section-title-aux">日K</span></div>
-  <div class="d-summary">头肩底已确认，当前970.70位于右肩区域，颈线1085.68（-10.6%），头部低点558.44，左肩低点约616.09，右肩低点约624.84，形态完整但尚未突破颈线</div>
+  <div class="d-summary">矩形整理构筑中，当前970.70位于整理区间892.58-1053.09内，距区间上沿1053.09约-7.8%，距区间下沿892.58约+8.7%，尚未选择突破方向</div>
 
   
   
   <div class="d-prices">
     
-    <div class="d-price-row"><span class="d-price-label">支撑</span><span class="d-price-val">624.84</span></div>
+    <div class="d-price-row"><span class="d-price-label">支撑</span><span class="d-price-val">892.58</span></div>
     
     
-    <div class="d-price-row"><span class="d-price-label">阻力/颈线</span><span class="d-price-val">1085.68</span></div>
+    <div class="d-price-row"><span class="d-price-label">阻力/颈线</span><span class="d-price-val">1053.09</span></div>
     
     
-    <div class="d-price-row"><span class="d-price-label">止损位</span><span class="d-price-val down">799.56</span></div>
+    <div class="d-price-row"><span class="d-price-label">止损位</span><span class="d-price-val down">854.62</span></div>
     
     
     <div class="d-price-row"><span class="d-price-label">目标一</span><span class="d-price-val up">1085.68</span></div>
     
     
-    <div class="d-price-row"><span class="d-price-label">目标二</span><span class="d-price-val up">1382.92</span></div>
+    <div class="d-price-row"><span class="d-price-label">目标二</span><span class="d-price-val up">1200.00</span></div>
     
     
-    <div class="d-price-row"><span class="d-price-label">距关键位</span><span class="d-price-val">-10.6%</span></div>
+    <div class="d-price-row"><span class="d-price-label">距关键位</span><span class="d-price-val">-7.8%（距上沿）/+8.7%（距下沿）</span></div>
     
   </div>
   
@@ -896,25 +949,25 @@
   <div class="d-section-title">多维度验证</div>
   
   <div class="d-val-item">
-    <span class="d-val-icon">📈</span><span class="d-val-label">成交量</span><span class="d-val-text">头部558.44对应放量875万，左肩616.09对应492万，右肩624.84对应503万，右肩量能略大于左肩，符合头肩底量能特征；颈线附近5月11日放量955万冲击1073.33后回落</span>
+    <span class="d-val-icon">📈</span><span class="d-val-label">成交量</span><span class="d-val-text">区间整理期间成交量呈萎缩-放量交替特征，5月6日-7日放量下跌（990万/726万）后5月11日放量反弹至955万，5月15日放量下跌1014万，量能分歧加大</span>
   </div>
   
   
   <div class="d-val-item">
-    <span class="d-val-icon">⚡</span><span class="d-val-label">波动</span><span class="d-val-text">区间振幅276.3%，近期ATR约50-80，波动剧烈，属于高波动状态</span>
+    <span class="d-val-icon">⚡</span><span class="d-val-label">波动</span><span class="d-val-text">近期ATR显著放大，5月11日单日振幅达124.88（1073.33-949.45），波动率处于区间高位，显示多空博弈激烈</span>
   </div>
   
   
   <div class="d-val-item">
-    <span class="d-val-icon">🔭</span><span class="d-val-label">周期</span><span class="d-val-text">日K级别短期处于头肩底右肩构筑后的反弹阶段，但颈线1085.68未突破，短期偏震荡；若突破颈线则确认中期上升趋势</span>
+    <span class="d-val-icon">🔭</span><span class="d-val-label">周期</span><span class="d-val-text">日K级别短期处于高位震荡，反弹至1073.33后快速回落，短期偏空；需观察892.58支撑有效性</span>
   </div>
   
 </div>
 
 
 
-
 <!-- ━━━━━━━━━━ 关注事项 ━━━━━━━━━━ -->
+
 
 
 <!-- 底部留白 -->

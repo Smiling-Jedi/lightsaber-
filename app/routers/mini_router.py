@@ -20,6 +20,7 @@ from app.models.pattern_analysis import PatternAnalysis
 from app.services.resonance_service import ResonanceService
 from app.services.indicator_service import IndicatorService
 from app.services.futu_kline_service import FutuKlineService
+from app.data_sources.technical_anomaly_source import TechnicalAnomalySource, summarize_patterns
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -312,6 +313,27 @@ def _compute_indicator_summary(df: pd.DataFrame) -> dict:
     elif adx < 20:
         conclusions.append(f"ADX={adx:.1f}，震荡环境，减少波段操作")
 
+    # OBV 和 VWAP 分析
+    obv = latest.get("obv")
+    vwap = latest.get("vwap20")
+    obv_prev = prev.get("obv") if len(df) >= 2 else obv
+    if obv is not None and obv_prev is not None:
+        obv_change = obv - obv_prev
+        if obv_change > 0:
+            conclusions.append("OBV上升，资金流入，量价配合健康")
+        elif obv_change < 0:
+            conclusions.append("OBV下降，资金流出，警惕量价背离")
+
+    if vwap is not None:
+        price_vs_vwap = latest["close"] - vwap
+        vwap_pct = price_vs_vwap / vwap * 100 if vwap != 0 else 0
+        if abs(vwap_pct) < 1:
+            conclusions.append(f"价格接近VWAP({vwap:.2f})，处于机构成本中枢")
+        elif vwap_pct > 3:
+            conclusions.append(f"价格高于VWAP({vwap:.2f}) {vwap_pct:.1f}%，偏离机构成本")
+        elif vwap_pct < -3:
+            conclusions.append(f"价格低于VWAP({vwap:.2f}) {abs(vwap_pct):.1f}%，低于机构成本")
+
     # 最终建议
     if signal == "偏多" and rsi < 70 and not bb_break_upper:
         suggestion = "方向偏多，等待回踩再考虑加仓"
@@ -352,6 +374,9 @@ def _compute_indicator_summary(df: pd.DataFrame) -> dict:
         "bb_upper": round(latest["bb_upper"], 2),
         "bb_mid": round(latest["bb_mid"], 2),
         "bb_lower": round(latest["bb_lower"], 2),
+        # v2 新增成交量指标
+        "obv": round(latest["obv"], 0) if "obv" in latest and pd.notna(latest["obv"]) else None,
+        "vwap20": round(latest["vwap20"], 2) if "vwap20" in latest and pd.notna(latest["vwap20"]) else None,
     }
 
 
@@ -431,6 +456,16 @@ def mini_stock_detail_v2(request: Request, symbol: str, db: Session = Depends(ge
         logger.warning(f"指标计算失败 {symbol}: {e}")
         indicator_summary = {"error": str(e)}
 
+    # 7. v2 新增：获取技术异动信号
+    anomaly_summary = None
+    try:
+        anomaly_source = TechnicalAnomalySource()
+        anomaly_results = anomaly_source.fetch_all_timeframes(symbol)
+        anomaly_summary = summarize_patterns(anomaly_results)
+    except Exception as e:
+        logger.warning(f"技术异动查询失败 {symbol}: {e}")
+        anomaly_summary = {"error": str(e)}
+
     return templates.TemplateResponse("mini-v2/detail.html", {
         "request": request,
         "symbol": symbol,
@@ -445,6 +480,7 @@ def mini_stock_detail_v2(request: Request, symbol: str, db: Session = Depends(ge
         "market_value": market_value,
         "weight": weight,
         "indicator_summary": indicator_summary,
+        "anomaly_summary": anomaly_summary,
     })
 
 

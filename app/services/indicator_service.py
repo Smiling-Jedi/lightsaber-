@@ -62,6 +62,13 @@ class IndicatorService:
         # WMSR（14）
         df["wmsr14"] = self._wmsr(df, n=14)
 
+        # ── v2 新增：成交量指标 ──
+        # OBV
+        df["obv"] = self._obv(df)
+
+        # VWAP（20日）
+        df["vwap20"] = self._vwap(df, period=20)
+
         return df
 
     # ────────────────────────────────────────────────
@@ -247,6 +254,28 @@ class IndicatorService:
     # ────────────────────────────────────────────────
     # 工具方法：提取最新指标快照
     # ────────────────────────────────────────────────
+
+    @staticmethod
+    def _obv(df: pd.DataFrame) -> pd.Series:
+        """
+        OBV（On Balance Volume）
+        今日OBV = 昨日OBV + sign(今日close - 昨日close) × 今日volume
+        """
+        close_diff = df["close"].diff()
+        obv = (close_diff.apply(lambda x: 1 if x > 0 else (-1 if x < 0 else 0)) * df["volume"]).cumsum()
+        return obv
+
+    @staticmethod
+    def _vwap(df: pd.DataFrame, period: int = 20) -> pd.Series:
+        """
+        VWAP（Volume Weighted Average Price）
+        typical_price = (high + low + close) / 3
+        VWAP = cumsum(typical_price * volume) / cumsum(volume)
+        这里用滚动窗口计算
+        """
+        tp = (df["high"] + df["low"] + df["close"]) / 3
+        vwap = (tp * df["volume"]).rolling(window=period, min_periods=1).sum() / df["volume"].rolling(window=period, min_periods=1).sum()
+        return vwap
 
     @staticmethod
     def latest_snapshot(df: pd.DataFrame) -> dict:

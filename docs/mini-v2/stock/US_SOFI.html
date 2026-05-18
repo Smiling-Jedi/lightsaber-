@@ -663,8 +663,8 @@
 <!-- ━━━━━━━━━━ 决策面板（核心）━━━━━━━━━━ -->
 <div class="d-decision">
   <div class="d-decision-head">
-    <div class="d-decision-score" style="color: #27AE60;">
-      🟢 低<span class="d-decision-score-aux">· 5.0/10</span>
+    <div class="d-decision-score" style="color: #f39c12;">
+      🟡 中<span class="d-decision-score-aux">· 6.0/10</span>
     </div>
     
     <div class="d-decision-risk high">⚠️ 风险 高</div>
@@ -676,9 +676,9 @@
     <div class="d-act-row">
       <div class="d-act-label">🏛️ 底仓</div>
       <div>
-        <span class="d-act-text">继续持有，当前底仓成本19.34距现价浮亏19.3%，不宜割肉，等待反弹至17.05以上再考虑减仓降本</span>
+        <span class="d-act-text">继续持有，当前底仓成本19.34距现价15.61亏损19.3%，不宜割肉但需防范进一步破位</span>
         
-        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>继续持有，不改长期逻辑</span>
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>减仓观望</span>
         
       </div>
     </div>
@@ -688,9 +688,9 @@
     <div class="d-act-row">
       <div class="d-act-label">🎯 波段</div>
       <div>
-        <span class="d-act-text">观望，触发条件：放量突破16.50可轻仓试多，止损14.50；或回踩14.93不破且缩量可分批建仓，止损14.50</span>
+        <span class="d-act-text">观望，暂不建仓；若放量突破18.32可考虑建仓，触发价18.32，止损价17.50</span>
         
-        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>观望，等待方向明朗</span>
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>不操作或轻仓试探</span>
         
       </div>
     </div>
@@ -700,9 +700,9 @@
     <div class="d-act-row">
       <div class="d-act-label">🛑 止损</div>
       <div>
-        <span class="d-act-text">统一止损14.50（区间低点14.93下方约2.9%），若收盘跌破14.93且放量则触发止损</span>
+        <span class="d-act-text">若收盘价跌破14.93且次日无法收回，底仓需减仓止损；波段仓触发价18.32，止损价17.50</span>
         
-        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>严格止损，防止假突破</span>
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>跌破 12.43 止损</span>
         
       </div>
     </div>
@@ -712,9 +712,9 @@
     <div class="d-act-row">
       <div class="d-act-label">🎁 目标</div>
       <div>
-        <span class="d-act-text">第一目标17.05（4月13日反弹高点），第二目标19.03（4月16日高点/颈线位），终极目标看通道上轨22.00附近</span>
+        <span class="d-act-text">第一目标17.37，第二目标18.32，第三目标19.34（成本线）</span>
         
-        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>不追高，不抄底</span>
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>观望</span>
         
       </div>
     </div>
@@ -723,7 +723,7 @@
 
   
   <div class="d-decision-hint">
-    <span class="d-decision-hint-label">📈 如何提升</span>价格放量突破16.50且收盘站稳17.05，同时成交量放大至8,000万以上，则置信度可升至medium；突破19.03颈线且回踩确认则升为high
+    <span class="d-decision-hint-label">📈 如何提升</span>价格放量突破18.32并站稳3个交易日，且成交量放大至8000万以上，则置信度可从medium升为high
   </div>
   
 </div>
@@ -743,6 +743,10 @@
     <li>中期趋势向下，动量偏空</li>
     
     <li>MACD动量增强，趋势有望延续</li>
+    
+    <li>OBV下降，资金流出，警惕量价背离</li>
+    
+    <li>价格低于VWAP(16.76) 6.9%，低于机构成本</li>
     
   </ul>
 
@@ -786,6 +790,18 @@
         <span class="d-indicator-label">趋势强度</span>
         <span class="d-indicator-val">弱趋势</span>
       </div>
+      
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">VWAP(20)</span>
+        <span class="d-indicator-val">16.76</span>
+      </div>
+      
+      
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">OBV</span>
+        <span class="d-indicator-val">-1554589535</span>
+      </div>
+      
     </div>
   </div>
 
@@ -803,18 +819,55 @@
 </div>
 
 
+<!-- ━━━━━━━━━━ v2 新增：技术异动信号 ━━━━━━━━━━ -->
+
+<div class="d-section">
+  <div class="d-section-title">技术异动信号<span class="d-section-title-aux">最近7天</span></div>
+
+  
+  
+  
+
+  
+    
+    <div style="margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:4px;">日K异动</div>
+      
+      <div style="font-size:12px;color:#333;line-height:1.6;padding:2px 0;">• RSI(6)和CCI均从中性区间进入超卖区域，表明价格可能即将反弹，显示潜在的反转机会。</div>
+      
+      <div style="font-size:12px;color:#333;line-height:1.6;padding:2px 0;">• 收盘价跌破MA5和MA10，暗示价格可能继续下跌。MA20跌破MA30形成死叉，表明价格可能进一步下行。</div>
+      
+    </div>
+    
+
+    
+    <div style="margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:4px;">周K异动</div>
+      
+      <div style="font-size:12px;color:#333;line-height:1.6;padding:2px 0;">• RSI(6)和CCI均从中性区间进入超卖区域，表明价格可能即将反弹，显示潜在的反转机会。</div>
+      
+      <div style="font-size:12px;color:#333;line-height:1.6;padding:2px 0;">• 收盘价跌破MA5和MA10，暗示价格可能继续下跌。MA20跌破MA30形成死叉，表明价格可能进一步下行。</div>
+      
+    </div>
+    
+
+    
+  
+</div>
+
+
 <!-- ━━━━━━━━━━ 三周期共振 + 形态表格 ━━━━━━━━━━ -->
 
 <div class="d-section">
   <div class="d-section-title">三周期共振</div>
   <div class="d-reso-head">
     <div class="d-reso-state">
-      周期冲突
+      中短期共振看跌
       <span class="d-reso-stars">
-        ⭐⭐
+        ⭐⭐⭐⭐
       </span>
     </div>
-    <div class="d-reso-detail">各周期信号不一致，方向不明，建议观望</div>
+    <div class="d-reso-detail">日线+周线同步看跌，中期调整中，月线尚未确认</div>
   </div>
 
   
@@ -850,9 +903,9 @@
         
         <div class="d-period-row">
           <div class="d-period-label">月K</div>
-          <div class="d-period-pattern">头肩底</div>
-          <div class="d-period-state">已确认</div>
-          <div class="d-period-dir dir-up">看涨</div>
+          <div class="d-period-pattern">无明显形态</div>
+          <div class="d-period-state">失效</div>
+          <div class="d-period-dir dir-neutral">中性</div>
         </div>
       
     
@@ -864,28 +917,28 @@
 <!-- ━━━━━━━━━━ 形态分析（日K）━━━━━━━━━━ -->
 <div class="d-section">
   <div class="d-section-title">形态分析<span class="d-section-title-aux">日K</span></div>
-  <div class="d-summary">下降通道已确认，当前15.61位于通道下沿附近，距通道上轨压力线约22.00（+40.9%），距区间低点14.93约+4.6%，整体处于长期下跌趋势的末端缩量整理阶段</div>
+  <div class="d-summary">下降通道已确认，当前15.61位于通道下沿附近，距通道上轨压力线约23.50（-33.6%），距区间低点14.93约+4.6%</div>
 
   
   
   <div class="d-prices">
     
-    <div class="d-price-row"><span class="d-price-label">支撑</span><span class="d-price-val">14.93</span></div>
+    <div class="d-price-row"><span class="d-price-label">支撑</span><span class="d-price-val">14.93（2026-04-02低点）</span></div>
     
     
-    <div class="d-price-row"><span class="d-price-label">阻力/颈线</span><span class="d-price-val">19.03</span></div>
+    <div class="d-price-row"><span class="d-price-label">阻力/颈线</span><span class="d-price-val">18.32（2026-04-23高点，近期反弹高点连线形成的通道上轨对应约23.50）</span></div>
     
     
     <div class="d-price-row"><span class="d-price-label">止损位</span><span class="d-price-val down">14.50</span></div>
     
     
-    <div class="d-price-row"><span class="d-price-label">目标一</span><span class="d-price-val up">17.05</span></div>
+    <div class="d-price-row"><span class="d-price-label">目标一</span><span class="d-price-val up">17.37</span></div>
     
     
-    <div class="d-price-row"><span class="d-price-label">目标二</span><span class="d-price-val up">19.03</span></div>
+    <div class="d-price-row"><span class="d-price-label">目标二</span><span class="d-price-val up">18.32</span></div>
     
     
-    <div class="d-price-row"><span class="d-price-label">距关键位</span><span class="d-price-val">距关键阻力19.03约-18.0%，距区间低点14.93约+4.6%</span></div>
+    <div class="d-price-row"><span class="d-price-label">距关键位</span><span class="d-price-val">当前15.61距通道上轨23.50约-33.6%，距下轨14.93约+4.6%</span></div>
     
   </div>
   
@@ -899,25 +952,25 @@
   <div class="d-section-title">多维度验证</div>
   
   <div class="d-val-item">
-    <span class="d-val-icon">📈</span><span class="d-val-label">成交量</span><span class="d-val-text">下跌过程中量能逐步萎缩，4月29日放量暴跌20,048万后，5月以来成交量维持在5,000-7,000万区间，较前期高点缩量约60%，呈现下跌末端量能衰竭特征</span>
+    <span class="d-val-icon">📈</span><span class="d-val-label">成交量</span><span class="d-val-text">下跌过程量能逐步萎缩，2026-04-29放量暴跌（20048万）后缩量整理，近期成交量维持在5000-7000万水平，未见明显放量反弹</span>
   </div>
   
   
   <div class="d-val-item">
-    <span class="d-val-icon">⚡</span><span class="d-val-label">波动</span><span class="d-val-text">ATR显著收敛，近期日均波幅收窄至3-5%，较1-2月暴跌阶段（日均波幅8-12%）明显降低，波动率压缩显示多空趋于平衡</span>
+    <span class="d-val-icon">⚡</span><span class="d-val-label">波动</span><span class="d-val-text">ATR显著收窄，近期日均波动约0.50-0.80，较1-2月暴跌阶段（日均1.50-2.50）明显降低，呈现下跌末端缩量整理特征</span>
   </div>
   
   
   <div class="d-val-item">
-    <span class="d-val-icon">🔭</span><span class="d-val-label">周期</span><span class="d-val-text">日K级别短期处于超跌反弹与筑底博弈阶段，下跌动能衰减但尚未出现明确反转信号，需警惕通道下轨14.93破位风险</span>
+    <span class="d-val-icon">🔭</span><span class="d-val-label">周期</span><span class="d-val-text">日K级别短期仍处于下降通道末端整理，未见明确反转信号，需等待放量突破18.32确认短期反弹</span>
   </div>
   
 </div>
 
 
 
-
 <!-- ━━━━━━━━━━ 关注事项 ━━━━━━━━━━ -->
+
 
 
 <!-- 底部留白 -->
