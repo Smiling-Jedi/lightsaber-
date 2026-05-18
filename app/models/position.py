@@ -78,6 +78,32 @@ class Position(Base):
         return self.total_shares - self.base_shares
 
     @property
+    def display_avg_cost(self) -> Optional[Decimal]:
+        """对外展示用的加权平均成本：用 base/swing 实时加权，绕开 avg_cost 字段历史错乱
+
+        优先级：
+        1. base + swing 都有且为正：按股数加权
+        2. 只有 base 有效（>0）：返回 base_cost
+        3. 只有 swing 有效（>0）：返回 swing_cost
+        4. base_cost 或 avg_cost 异常（None / <=0）：返回 None，前端显示"成本数据缺失"
+        """
+        bc = self.base_cost if self.base_cost and self.base_cost > 0 else None
+        sc = self.swing_cost if self.swing_cost and self.swing_cost > 0 else None
+        bs = max(self.base_shares or 0, 0)
+        ss = max(self.swing_shares or 0, 0)
+
+        if bc and sc and bs > 0 and ss > 0:
+            return (bc * bs + sc * ss) / Decimal(bs + ss)
+        if bc and bs > 0:
+            return bc
+        if sc and ss > 0:
+            return sc
+        # 兜底：avg_cost 若为正也用一下（但仅作为最后的 fallback）
+        if self.avg_cost and self.avg_cost > 0:
+            return self.avg_cost
+        return None
+
+    @property
     def invested_cost(self) -> Decimal:
         """投入成本（不含交易成本）"""
         if self.avg_cost:

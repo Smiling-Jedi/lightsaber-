@@ -64,9 +64,10 @@ def mini_home(request: Request, db: Session = Depends(get_db)):
             svc = ResonanceService(db)
             resonance = svc.analyze_resonance(pos.stock_symbol)
 
-        # 计算盈亏
+        # 计算盈亏（用实时加权成本，绕开 avg_cost 字段历史错乱）
         current_price = float(stock.current_price) if stock and stock.current_price else 0
-        avg_cost = float(pos.avg_cost) if pos.avg_cost else 0
+        display_cost = pos.display_avg_cost
+        avg_cost = float(display_cost) if display_cost else 0
         pl_pct = ((current_price - avg_cost) / avg_cost * 100) if avg_cost > 0 else 0
 
         # 计算仓位占比
@@ -197,10 +198,11 @@ def mini_stock_detail(request: Request, symbol: str, db: Session = Depends(get_d
         .all()
     )
 
-    # 5. 计算盈亏和仓位（全部转为float避免模板类型问题）
+    # 5. 计算盈亏和仓位（用实时加权成本，绕开 avg_cost 字段历史错乱）
     current_price = float(stock.current_price) if stock and stock.current_price else 0
     prev_close = float(stock.prev_close_price) if stock and stock.prev_close_price else current_price
-    avg_cost = float(position.avg_cost) if position and position.avg_cost else 0
+    display_cost = position.display_avg_cost if position else None
+    avg_cost = float(display_cost) if display_cost else 0
     pl_pct = ((current_price - avg_cost) / avg_cost * 100) if avg_cost > 0 else 0
     market_value = position.total_shares * current_price if position else 0
     market_fund = float(position.market_total_fund) if position and position.market_total_fund else 1
