@@ -20,7 +20,9 @@ class IndicatorService:
         """
         一次性计算所有指标，返回追加以下列的 DataFrame：
         ema20, ema60, macd, macd_signal, macd_hist,
-        rsi14, atr14, bb_upper, bb_mid, bb_lower, adx14
+        rsi14, atr14, bb_upper, bb_mid, bb_lower, adx14,
+        kdj_k, kdj_d, kdj_j, cci14,
+        bias6, bias12, bias24, wmsr14
         """
         if df.empty or len(df) < 30:
             logger.warning("历史数据不足30条，跳过指标计算")
@@ -46,6 +48,19 @@ class IndicatorService:
 
         # ADX
         df["adx14"] = self._adx(df, 14)
+
+        # ── 新增指标（2026-05-15）──
+        # KDJ（9/3/3）
+        df["kdj_k"], df["kdj_d"], df["kdj_j"] = self._kdj(df, n=9, m1=3, m2=3)
+
+        # CCI（14）
+        df["cci14"] = self._cci(df, n=14)
+
+        # BIAS（6/12/24）
+        df["bias6"], df["bias12"], df["bias24"] = self._bias(df, n=6, m1=12, m2=24)
+
+        # WMSR（14）
+        df["wmsr14"] = self._wmsr(df, n=14)
 
         return df
 
@@ -149,6 +164,87 @@ class IndicatorService:
         return adx
 
     # ────────────────────────────────────────────────
+    # 新增指标（2026-05-15）
+    # ────────────────────────────────────────────────
+
+    @staticmethod
+    def _kdj(df: pd.DataFrame, n: int = 9, m1: int = 3, m2: int = 3):
+        """
+        KDJ（随机指标）
+        RSV = (close - lowest_low_n) / (highest_high_n - lowest_low_n) * 100
+        K = 2/3 * prev_K + 1/3 * RSV
+        D = 2/3 * prev_D + 1/3 * K
+        J = 3K - 2D
+        """
+        low_list = df["low"].rolling(window=n, min_periods=n).min()
+        high_list = df["high"].rolling(window=n, min_periods=n).max()
+        rsv = (df["close"] - low_list) / (high_list - low_list) * 100
+
+        # 处理除零：如果 high == low，RSV = 50（中性）
+        rsv = rsv.where(high_list != low_list, 50)
+        rsv = rsv.fillna(50)
+
+        k = pd.Series(index=df.index, dtype=float)
+        d = pd.Series(index=df.index, dtype=float)
+
+        k.iloc[0] = 50
+        d.iloc[0] = 50
+
+        for i in range(1, len(df)):
+            k.iloc[i] = 2 / 3 * k.iloc[i - 1] + 1 / 3 * rsv.iloc[i]
+            d.iloc[i] = 2 / 3 * d.iloc[i - 1] + 1 / 3 * k.iloc[i]
+
+        j = 3 * k - 2 * d
+        return k, d, j
+
+    @staticmethod
+    def _cci(df: pd.DataFrame, n: int = 14) -> pd.Series:
+        """
+        CCI（商品通道指数）
+        TP = (high + low + close) / 3
+        CCI = (TP - SMA(TP, n)) / (0.015 * mean_deviation)
+        """
+        tp = (df["high"] + df["low"] + df["close"]) / 3
+        sma_tp = tp.rolling(window=n, min_periods=n).mean()
+        mean_dev = tp.rolling(window=n, min_periods=n).apply(
+            lambda x: np.mean(np.abs(x - np.mean(x))), raw=True
+        )
+        cci = (tp - sma_tp) / (0.015 * mean_dev.replace(0, np.inf))
+        return cci
+
+    @staticmethod
+    def _bias(df: pd.DataFrame, n: int = 6, m1: int = 12, m2: int = 24):
+        """
+        BIAS（乖离率）
+        BIAS_n = (close - MA(close, n)) / MA(close, n) * 100
+        返回多周期：bias6, bias12, bias24
+        """
+        ma6 = df["close"].rolling(window=n, min_periods=n).mean()
+        ma12 = df["close"].rolling(window=m1, min_periods=m1).mean()
+        ma24 = df["close"].rolling(window=m2, min_periods=m2).mean()
+
+        bias6 = (df["close"] - ma6) / ma6.replace(0, np.inf) * 100
+        bias12 = (df["close"] - ma12) / ma12.replace(0, np.inf) * 100
+        bias24 = (df["close"] - ma24) / ma24.replace(0, np.inf) * 100
+
+        return bias6, bias12, bias24
+
+    @staticmethod
+    def _wmsr(df: pd.DataFrame, n: int = 14) -> pd.Series:
+        """
+        WMSR（威廉指标，Williams %R）
+        WMSR = (highest_high_n - close) / (highest_high_n - lowest_low_n) * -100
+        范围：0 ~ -100，-20以上超买，-80以下超卖
+        """
+        highest_high = df["high"].rolling(window=n, min_periods=n).max()
+        lowest_low = df["low"].rolling(window=n, min_periods=n).min()
+
+        wmsr = (highest_high - df["close"]) / (highest_high - lowest_low) * -100
+        # 处理除零
+        wmsr = wmsr.where(highest_high != lowest_low, -50)
+        return wmsr
+
+    # ────────────────────────────────────────────────
     # 工具方法：提取最新指标快照
     # ────────────────────────────────────────────────
 
@@ -160,7 +256,9 @@ class IndicatorService:
         row = df.iloc[-1]
         snapshot = {}
         for col in ["ema20", "ema60", "macd", "macd_signal", "macd_hist",
-                    "rsi14", "atr14", "bb_upper", "bb_mid", "bb_lower", "adx14", "close"]:
+                    "rsi14", "atr14", "bb_upper", "bb_mid", "bb_lower", "adx14", "close",
+                    "kdj_k", "kdj_d", "kdj_j", "cci14",
+                    "bias6", "bias12", "bias24", "wmsr14"]:
             if col in row.index and pd.notna(row[col]):
                 snapshot[col] = round(float(row[col]), 4)
         return snapshot

@@ -657,7 +657,7 @@ class PositionService:
         富途API的fund_assets返回的是港元合计值，不包含货币拆分。
         需要用户提供其中一个市场的基金金额，才能拆分到HK和US两个市场。
 
-        环境变量：USD_FUND_AMOUNT（例如：67694.78）
+        环境变量：USD_FUND_AMOUNT（值由 Jedi 手动维护，从 .env 加载）
         返回：Decimal 或 None
         """
         import os

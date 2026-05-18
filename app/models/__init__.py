@@ -14,9 +14,12 @@ from app.models.trade_plan import TradePlan
 from app.models.sell_plan import SellPlan
 from app.models.position_audit_log import PositionAuditLog
 from app.models.exchange_rate_history import ExchangeRateHistory
+from app.models.pattern_analysis import PatternAnalysis
+from app.models.watch_item import WatchItem
 
 __all__ = [
     "Stock", "Position", "Trade", "News", "CashBalance", "SimPosition",
     "PortfolioSnapshot", "CashFlowLog", "SignalExecution", "TradePlan",
     "SellPlan", "PositionAuditLog", "ExchangeRateHistory",
+    "PatternAnalysis", "WatchItem",
 ]

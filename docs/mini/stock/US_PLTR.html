@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Palantir - 小光剑</title>
+  <style>
+    /* ── 基础重置 ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #333;
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── 桌面端模拟手机 ── */
+    @media (min-width: 769px) {
+      body {
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-wrapper {
+        width: 100%;
+        max-width: 480px;
+        background: #fff;
+        min-height: 100vh;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      }
+    }
+    @media (max-width: 768px) {
+      .mobile-wrapper { width: 100%; }
+    }
+
+    /* ── 顶部导航 ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e8e8e8;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+    }
+    .header-meta {
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* ── 市场Tab ── */
+    .market-tabs {
+      display: flex;
+      border-bottom: 1px solid #e8e8e8;
+      background: #fff;
+      position: sticky;
+      top: 49px;
+      z-index: 99;
+    }
+    .market-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 14px;
+      color: #666;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .market-tab.active {
+      color: #333;
+      font-weight: 600;
+      border-bottom-color: #333;
+    }
+
+    /* ── 卡片 ── */
+    .card {
+      margin: 12px 16px;
+      border: 1px solid #e8e8e8;
+      background: #fff;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .card-stock-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .card-stock-code {
+      font-size: 12px;
+      color: #999;
+      margin-left: 4px;
+    }
+    .card-price {
+      text-align: right;
+    }
+    .card-price-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .card-price-change {
+      font-size: 12px;
+    }
+
+    /* ── 涨跌色 ── */
+    .up { color: #E74C3C; }
+    .down { color: #27AE60; }
+    .neutral { color: #999; }
+
+    /* ── 持仓信息 ── */
+    .card-position {
+      padding: 10px 16px;
+      font-size: 12px;
+      color: #666;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── 形态分析区 ── */
+    .card-patterns {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .pattern-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 13px;
+    }
+    .pattern-label {
+      color: #666;
+    }
+    .pattern-value {
+      font-weight: 500;
+    }
+
+    /* ── 共振状态 ── */
+    .card-resonance {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fafafa;
+    }
+    .resonance-title {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 4px;
+    }
+    .resonance-state {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .resonance-desc {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    /* ── 底部信息 ── */
+    .card-footer {
+      padding: 8px 16px;
+      font-size: 11px;
+      color: #bbb;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── 内容区 ── */
+    .content {
+      padding-bottom: 20px;
+    }
+
+    /* ── Tab内容 ── */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ── 空状态 ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+  </style>
+  
+<style>
+  /* ── 详情页 v3：决策优先 + 排版分层 ── */
+
+  /* 返回 */
+  .d-back {
+    display: inline-block;
+    padding: 10px 16px 6px;
+    font-size: 13px;
+    color: #888;
+    text-decoration: none;
+  }
+
+  /* ── 头部 ── */
+  .d-head {
+    padding: 0 16px 14px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  .d-head-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .d-name {
+    font-size: 19px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .d-code {
+    font-size: 12px;
+    font-weight: 400;
+    color: #999;
+    margin-left: 6px;
+  }
+  .d-price {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .d-change {
+    font-size: 13px;
+    font-weight: 400;
+    margin-left: 6px;
+  }
+  .d-meta {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.6;
+  }
+  .d-meta-label { color: #999; margin-right: 4px; }
+  .d-meta-sep { color: #ddd; margin: 0 8px; }
+
+  /* ── 通用区块 ── */
+  .d-section {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .d-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+  }
+  .d-section-title-aux {
+    font-size: 12px;
+    font-weight: 400;
+    color: #999;
+    margin-left: 6px;
+  }
+
+  /* ── 决策面板（核心）── */
+  .d-decision {
+    margin: 14px 12px;
+    padding: 16px;
+    background: #fffbf0;
+    border: 1px solid #ffe6a3;
+    border-radius: 6px;
+  }
+  .d-decision-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ffe6a3;
+  }
+  .d-decision-score {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .d-decision-score-aux {
+    font-size: 13px;
+    font-weight: 400;
+    color: #666;
+    margin-left: 4px;
+  }
+  .d-decision-risk {
+    font-size: 12px;
+    color: #c62828;
+    background: #ffebee;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .d-decision-risk.low { color: #2e7d32; background: #e8f5e9; }
+  .d-decision-risk.medium { color: #ef6c00; background: #fff3e0; }
+
+  .d-act-list {
+    padding: 12px 0;
+  }
+  .d-act-row {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 10px;
+    padding: 8px 0;
+    align-items: start;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .d-act-label {
+    color: #666;
+    font-weight: 600;
+  }
+  .d-act-text {
+    color: #1a1a1a;
+    font-weight: 400;
+  }
+  .d-act-alt {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #888;
+  }
+  .d-act-alt-label {
+    color: #1976d2;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+
+  .d-decision-hint {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid #ffe6a3;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #5a5a5a;
+  }
+  .d-decision-hint-label {
+    color: #ef6c00;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+
+  /* ── 三周期共振 + 表格（合并）── */
+  .d-reso-head {
+    margin-bottom: 10px;
+  }
+  .d-reso-state {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .d-reso-stars {
+    color: #f39c12;
+    margin-left: 4px;
+  }
+  .d-reso-detail {
+    font-size: 13px;
+    font-weight: 400;
+    color: #666;
+    margin-top: 4px;
+    line-height: 1.6;
+  }
+  .d-period-table {
+    margin-top: 10px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 4px;
+  }
+  .d-period-row {
+    display: grid;
+    grid-template-columns: 40px 1fr auto auto;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 13px;
+    gap: 12px;
+    border-bottom: 1px dashed #f0f0f0;
+  }
+  .d-period-row:last-child { border-bottom: none; }
+  .d-period-label {
+    font-weight: 600;
+    color: #666;
+    font-size: 12px;
+  }
+  .d-period-pattern {
+    color: #1a1a1a;
+    font-weight: 400;
+  }
+  .d-period-state {
+    font-size: 11px;
+    color: #999;
+  }
+  .d-period-dir {
+    font-weight: 600;
+    font-size: 13px;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  /* ── 形态分析 ── */
+  .d-summary {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 14px;
+  }
+  .d-prices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 20px;
+    font-size: 13px;
+  }
+  .d-price-row {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted #eee;
+    padding: 6px 0;
+  }
+  .d-price-label { color: #888; font-weight: 400; }
+  .d-price-val { font-weight: 600; color: #1a1a1a; font-size: 14px; }
+
+  /* ── 多维度验证（紧凑 1 行/项）── */
+  .d-val-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 6px 0;
+    border-bottom: 1px dashed #f5f5f5;
+  }
+  .d-val-item:last-child { border-bottom: none; }
+  .d-val-icon {
+    font-size: 13px;
+    min-width: 22px;
+  }
+  .d-val-label {
+    color: #888;
+    font-size: 12px;
+    min-width: 48px;
+    font-weight: 600;
+  }
+  .d-val-text {
+    color: #333;
+    font-weight: 400;
+    flex: 1;
+  }
+
+  /* ── 关注事项 ── */
+  .d-watch-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #f0f0f0;
+    font-size: 13px;
+  }
+  .d-watch-item:last-child { border-bottom: none; }
+  .d-watch-content { flex: 1; color: #1a1a1a; font-weight: 400; }
+  .d-watch-date {
+    font-size: 11px;
+    color: #999;
+    margin-left: 8px;
+  }
+  .d-watch-tag {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+  .d-watch-tag.high { background: #ffebee; color: #c62828; }
+  .d-watch-tag.medium { background: #fff3e0; color: #ef6c00; }
+  .d-watch-tag.low { background: #e8f5e9; color: #2e7d32; }
+
+  /* ── 通用色 ── */
+  .up { color: #E74C3C; }
+  .down { color: #27AE60; }
+  .neutral { color: #999; }
+  .dir-up { color: #E74C3C; }
+  .dir-down { color: #27AE60; }
+  .dir-neutral { color: #999; }
+</style>
+
+</head>
+<body>
+  <div class="mobile-wrapper">
+    
+
+
+
+
+
+<a href="../index.html" class="d-back">← 返回</a>
+
+<!-- 头部：股票名 + 价格 + 持仓元信息 -->
+<div class="d-head">
+  <div class="d-head-top">
+    <div>
+      <span class="d-name">Palantir</span>
+      <span class="d-code">PLTR</span>
+    </div>
+    <div>
+      <span class="d-price up">133.90</span>
+      <span class="d-change up">
+        +0.1%
+      </span>
+    </div>
+  </div>
+  <div class="d-meta">
+    <span class="d-meta-label">盈亏</span><span class="up">+4.4%</span>
+    <span class="d-meta-sep">|</span>
+    <span class="d-meta-label">仓位</span>0.0%
+    
+    <span class="d-meta-sep">|</span>
+    <span class="d-meta-label">底仓</span>30@0.0
+    
+    
+  </div>
+</div>
+
+
+
+
+
+
+<!-- 计算置信度总分 -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ━━━━━━━━━━ 决策面板（核心）━━━━━━━━━━ -->
+<div class="d-decision">
+  <div class="d-decision-head">
+    <div class="d-decision-score" style="color: #27AE60;">
+      🟢 低<span class="d-decision-score-aux">· 4.0/10</span>
+    </div>
+    
+    <div class="d-decision-risk high">⚠️ 风险 高</div>
+    
+  </div>
+
+  <div class="d-act-list">
+    
+    <div class="d-act-row">
+      <div class="d-act-label">🏛️ 底仓</div>
+      <div>
+        <span class="d-act-text">继续持有，若跌破128.06则考虑减仓</span>
+        
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>继续持有，不改长期逻辑</span>
+        
+      </div>
+    </div>
+    
+
+    
+    <div class="d-act-row">
+      <div class="d-act-label">🎯 波段</div>
+      <div>
+        <span class="d-act-text">观望，突破156.38且放量至7000万以上可分批建仓，止损148.06</span>
+        
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>观望，等待方向明朗</span>
+        
+      </div>
+    </div>
+    
+
+    
+    <div class="d-act-row">
+      <div class="d-act-label">🛑 止损</div>
+      <div>
+        <span class="d-act-text">底仓止损122.68（区间低点），波段仓止损148.06（颈线下方约5%）</span>
+        
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>严格止损，防止假突破</span>
+        
+      </div>
+    </div>
+    
+
+    
+    <div class="d-act-row">
+      <div class="d-act-label">🎁 目标</div>
+      <div>
+        <span class="d-act-text">第一目标156.38，第二目标190.00（前高195.00附近）</span>
+        
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>不追高，不抄底</span>
+        
+      </div>
+    </div>
+    
+  </div>
+
+  
+  <div class="d-decision-hint">
+    <span class="d-decision-hint-label">📈 如何提升</span>价格放量突破颈线156.38且成交量持续高于7000万则升为中等置信，突破后回踩156.38站稳再升为高置信
+  </div>
+  
+</div>
+
+<!-- ━━━━━━━━━━ 三周期共振 + 形态表格 ━━━━━━━━━━ -->
+
+<div class="d-section">
+  <div class="d-section-title">三周期共振</div>
+  <div class="d-reso-head">
+    <div class="d-reso-state">
+      周期冲突
+      <span class="d-reso-stars">
+        ⭐⭐
+      </span>
+    </div>
+    <div class="d-reso-detail">各周期信号不一致，方向不明，建议观望</div>
+  </div>
+
+  
+  <div class="d-period-table">
+    
+      
+        
+        
+        
+        <div class="d-period-row">
+          <div class="d-period-label">日K</div>
+          <div class="d-period-pattern">双底</div>
+          <div class="d-period-state">构筑中</div>
+          <div class="d-period-dir dir-up">看涨</div>
+        </div>
+      
+    
+      
+        
+        
+        
+        <div class="d-period-row">
+          <div class="d-period-label">周K</div>
+          <div class="d-period-pattern">头肩底</div>
+          <div class="d-period-state">构筑中</div>
+          <div class="d-period-dir dir-up">看涨</div>
+        </div>
+      
+    
+      
+        
+        
+        
+        <div class="d-period-row">
+          <div class="d-period-label">月K</div>
+          <div class="d-period-pattern">头肩顶</div>
+          <div class="d-period-state">已确认</div>
+          <div class="d-period-dir dir-down">看跌</div>
+        </div>
+      
+    
+  </div>
+  
+</div>
+
+
+<!-- ━━━━━━━━━━ 形态分析（日K）━━━━━━━━━━ -->
+<div class="d-section">
+  <div class="d-section-title">形态分析<span class="d-section-title-aux">日K</span></div>
+  <div class="d-summary">双底构筑中，当前133.99位于第二个底部区域，第一底122.68与第二底128.06形成双底结构，颈线156.38距当前价约+16.7%</div>
+
+  
+  
+  <div class="d-prices">
+    
+    <div class="d-price-row"><span class="d-price-label">支撑</span><span class="d-price-val">128.06</span></div>
+    
+    
+    <div class="d-price-row"><span class="d-price-label">阻力/颈线</span><span class="d-price-val">156.38</span></div>
+    
+    
+    <div class="d-price-row"><span class="d-price-label">止损位</span><span class="d-price-val down">122.68</span></div>
+    
+    
+    <div class="d-price-row"><span class="d-price-label">目标一</span><span class="d-price-val up">156.38</span></div>
+    
+    
+    <div class="d-price-row"><span class="d-price-label">目标二</span><span class="d-price-val up">190.00</span></div>
+    
+    
+    <div class="d-price-row"><span class="d-price-label">距关键位</span><span class="d-price-val">+16.7%</span></div>
+    
+  </div>
+  
+</div>
+
+<!-- ━━━━━━━━━━ 多维度验证（紧凑）━━━━━━━━━━ -->
+
+
+
+<div class="d-section">
+  <div class="d-section-title">多维度验证</div>
+  
+  <div class="d-val-item">
+    <span class="d-val-icon">📈</span><span class="d-val-label">成交量</span><span class="d-val-text">第二底128.06当日成交量11665万显著放大，为区间最大量能，呈恐慌性抛售后放量特征；近期反弹量能5500-7000万，未达颈线突破所需量能</span>
+  </div>
+  
+  
+  <div class="d-val-item">
+    <span class="d-val-icon">⚡</span><span class="d-val-label">波动</span><span class="d-val-text">区间振幅62.1%，ATR极高；近期波动收窄至4-6%，显示短期抛压减弱</span>
+  </div>
+  
+  
+  <div class="d-val-item">
+    <span class="d-val-icon">🔭</span><span class="d-val-label">周期</span><span class="d-val-text">短期处于超跌反弹后的二次探底阶段，需观察能否守住128.06并放量突破颈线</span>
+  </div>
+  
+</div>
+
+
+
+
+<!-- ━━━━━━━━━━ 关注事项 ━━━━━━━━━━ -->
+
+
+<!-- 底部留白 -->
+<div style="height: 40px;"></div>
+
+  </div>
+
+  <script>
+    // Tab切换
+    function switchTab(market) {
+      document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelector('.market-tab[data-market="' + market + '"]').classList.add('active');
+      document.querySelector('.tab-content[data-market="' + market + '"]').classList.add('active');
+      localStorage.setItem('mini_active_tab', market);
+    }
+
+    // 恢复上次选中的Tab
+    document.addEventListener('DOMContentLoaded', function() {
+      const saved = localStorage.getItem('mini_active_tab') || 'HK';
+      switchTab(saved);
+    });
+  </script>
+  
+</body>
+</html>

@@ -23,6 +23,10 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.data_sources.history_source import HistorySource
+from app.data_sources.technical_anomaly_source import (
+    TechnicalAnomalySource,
+    summarize_patterns,
+)
 from app.services.indicator_service import IndicatorService
 from app.services.position_service import PositionService
 from app.services.signal_cache_service import get_signal_cache
@@ -168,6 +172,9 @@ class SignalResult:
     # B+D方案：完整交易指令（新增）
     instruction: Optional[TradeInstruction] = None  # 交易执行指令
 
+    # K线形态多维度分析（2026-05-15新增）
+    pattern_summary: Optional[dict] = None  # 日/周/月K线形态共振分析
+
 
 # ─────────────────────────────────────────────────────────
 # 信号服务
@@ -180,13 +187,14 @@ class SignalService:
         self.history_src = HistorySource()
         self.indicator_svc = IndicatorService()
         self.position_svc = PositionService(db)
+        self._tech_anomaly_src = TechnicalAnomalySource()
         self._market_env_cache: dict = {}  # market → (env, note)
 
     # ─────────────────────────────────────────────────────
     # 公开接口
     # ─────────────────────────────────────────────────────
 
-    def _generate_signal_internal(self, symbol: str) -> SignalResult:
+    def _generate_signal_internal(self, symbol: str, include_patterns: bool = True) -> SignalResult:
         """
         内部信号生成方法（不含缓存逻辑，供批量调用）
         """
@@ -205,19 +213,29 @@ class SignalService:
 
         snap = self.indicator_svc.latest_snapshot(df)
 
+        # ── 新增：K线形态多维度验证（2026-05-15）──
+        # 批量生成时跳过K线形态查询（避免超时），单股查询时启用
+        pattern_summary = None
+        if include_patterns:
+            try:
+                anomaly_results = self._tech_anomaly_src.fetch_all_timeframes(symbol)
+                pattern_summary = summarize_patterns(anomaly_results)
+            except Exception as e:
+                logger.warning(f"K线形态查询失败 {symbol}: {e}")
+
         # 市场环境
         market = symbol.split(":")[0]
         env, env_note = self._check_market_env(market)
 
-        # 分类信号逻辑
+        # 分类信号逻辑（传入pattern_summary用于形态验证）
         if category == "large_tech":
-            action, confidence, triggers, conflicts = self._signal_large_tech(df, snap)
+            action, confidence, triggers, conflicts = self._signal_large_tech(df, snap, pattern_summary)
         elif category == "cyclical":
-            action, confidence, triggers, conflicts = self._signal_cyclical(df, snap)
+            action, confidence, triggers, conflicts = self._signal_cyclical(df, snap, pattern_summary)
         elif category == "defensive":
-            action, confidence, triggers, conflicts = self._signal_defensive(df, snap)
+            action, confidence, triggers, conflicts = self._signal_defensive(df, snap, pattern_summary)
         else:  # biotech
-            action, confidence, triggers, conflicts = self._signal_biotech(df, snap)
+            action, confidence, triggers, conflicts = self._signal_biotech(df, snap, pattern_summary)
 
         # 市场环境降级：BUY → WATCH（熊市环境）
         if action == "BUY" and env == "BEAR":
@@ -314,9 +332,10 @@ class SignalService:
             target_pct_1=float(target_pct),
             backtest_ref=backtest_ref,
             instruction=instruction,
+            pattern_summary=pattern_summary,
         )
 
-    def generate_signal(self, symbol: str, use_cache: bool = True) -> SignalResult:
+    def generate_signal(self, symbol: str, use_cache: bool = True, include_patterns: bool = True) -> SignalResult:
         """
         对单只股票生成信号包裹
 
@@ -333,7 +352,7 @@ class SignalService:
                 return cached_result
 
         # 生成信号
-        result = self._generate_signal_internal(symbol)
+        result = self._generate_signal_internal(symbol, include_patterns=include_patterns)
 
         # 保存到缓存
         if use_cache:
@@ -397,7 +416,7 @@ class SignalService:
         new_results = []
         for symbol in symbols_to_generate:
             try:
-                result = self._generate_signal_internal(symbol)
+                result = self._generate_signal_internal(symbol, include_patterns=False)
                 new_results.append(result)
                 results.append(result)
             except Exception as e:
@@ -446,7 +465,7 @@ class SignalService:
     # 各类别信号逻辑
     # ─────────────────────────────────────────────────────
 
-    def _signal_large_tech(self, df, snap):
+    def _signal_large_tech(self, df, snap, pattern_summary=None):
         """
         大市值科技平台：EMA金叉 + MACD + ADX
         主信号：EMA20 > EMA60（金叉）+ ADX > 25（趋势确认）
@@ -542,9 +561,14 @@ class SignalService:
             confidence = "LOW"
             conflicts.append(f"ADX={adx:.1f} < 15（横盘震荡，趋势未确立，金叉可信度低）")
 
+        # ── 扩展指标与K线形态验证（2026-05-15）──
+        action, confidence, triggers, conflicts = self._apply_extended_validation(
+            action, confidence, triggers, conflicts, snap, pattern_summary
+        )
+
         return action, confidence, triggers, conflicts
 
-    def _signal_cyclical(self, df, snap):
+    def _signal_cyclical(self, df, snap, pattern_summary=None):
         """
         周期/行业股：RSI + 布林带 + MACD背离
         主信号：RSI < 动态阈值 + 触及布林下轨
@@ -623,9 +647,14 @@ class SignalService:
             confidence = "MEDIUM"
             triggers.append(f"RSI={rsi:.1f}，价格在布林带中（{bb_lower:.2f}~{bb_upper:.2f}），无明显信号")
 
+        # ── 扩展指标与K线形态验证（2026-05-15）──
+        action, confidence, triggers, conflicts = self._apply_extended_validation(
+            action, confidence, triggers, conflicts, snap, pattern_summary
+        )
+
         return action, confidence, triggers, conflicts
 
-    def _signal_defensive(self, df, snap):
+    def _signal_defensive(self, df, snap, pattern_summary=None):
         """
         防御低波动股：布林带 + RSI
         主信号：价格偏离布林中轨 + RSI低位
@@ -680,9 +709,14 @@ class SignalService:
                 f"价格在布林带中（偏离中轨{deviation_pct:+.1f}%），RSI={rsi:.1f}，无明显信号"
             )
 
+        # ── 扩展指标与K线形态验证（2026-05-15）──
+        action, confidence, triggers, conflicts = self._apply_extended_validation(
+            action, confidence, triggers, conflicts, snap, pattern_summary
+        )
+
         return action, confidence, triggers, conflicts
 
-    def _signal_biotech(self, df, snap):
+    def _signal_biotech(self, df, snap, pattern_summary=None):
         """
         生物医药（高波动）：RSI极值 + ATR止损参考
         主信号：RSI < 30（极度超卖）
@@ -730,6 +764,93 @@ class SignalService:
             action = "HOLD"
             confidence = "MEDIUM"
             triggers.append(f"RSI={rsi:.1f}（未达极值），持仓观察")
+
+        # ── 扩展指标与K线形态验证（2026-05-15）──
+        action, confidence, triggers, conflicts = self._apply_extended_validation(
+            action, confidence, triggers, conflicts, snap, pattern_summary
+        )
+
+        return action, confidence, triggers, conflicts
+
+    def _apply_extended_validation(self, action, confidence, triggers, conflicts, snap, pattern_summary):
+        """
+        扩展指标与K线形态验证（2026-05-15新增）
+        在原有信号逻辑基础上，叠加KDJ/CCI/BIAS/WMSR和K线形态验证
+        """
+        if not pattern_summary:
+            return action, confidence, triggers, conflicts
+
+        # ── K线形态共振验证 ──
+        resonance = pattern_summary.get("resonance", "none")
+        summary_text = pattern_summary.get("summary", "")
+
+        if resonance == "strong_bullish":
+            if action == "BUY":
+                triggers.append(f"🎯 K线形态三级共振看涨（日/周/月）")
+            elif action == "HOLD":
+                triggers.append(f"🎯 K线形态三级共振看涨，关注潜在买入机会")
+        elif resonance == "strong_bearish":
+            if action == "SELL":
+                triggers.append(f"🚨 K线形态三级共振看跌（日/周/月）")
+            elif action in ("BUY", "HOLD"):
+                conflicts.append(f"🚨 K线形态三级共振看跌，与当前信号矛盾")
+        elif resonance == "medium_bullish":
+            if action == "BUY":
+                triggers.append(f"✓ K线形态日周共振看涨")
+        elif resonance == "medium_bearish":
+            if action in ("BUY", "HOLD"):
+                conflicts.append(f"⚠ K线形态日周共振看跌")
+
+        # ── KDJ验证 ──
+        kdj_k = snap.get("kdj_k")
+        kdj_d = snap.get("kdj_d")
+        kdj_j = snap.get("kdj_j")
+
+        if kdj_k is not None and kdj_d is not None:
+            # 检测KDJ金叉/死叉（需要前一天数据，这里用当前值近似）
+            if kdj_k > kdj_d and kdj_k < 80:
+                if action == "BUY":
+                    triggers.append(f"KDJ金叉（K={kdj_k:.1f} > D={kdj_d:.1f}）")
+            elif kdj_k < kdj_d and kdj_k > 20:
+                if action in ("BUY", "HOLD"):
+                    conflicts.append(f"KDJ死叉（K={kdj_k:.1f} < D={kdj_d:.1f}），短期动能转弱")
+
+            # J值极端
+            if kdj_j is not None:
+                if kdj_j > 100 and action == "BUY":
+                    conflicts.append(f"KDJ J值={kdj_j:.1f} > 100（极端超买，警惕追高风险）")
+                elif kdj_j < 0 and action == "SELL":
+                    triggers.append(f"KDJ J值={kdj_j:.1f} < 0（极端超卖，可能反弹）")
+
+        # ── CCI验证 ──
+        cci = snap.get("cci14")
+        if cci is not None:
+            if cci < -200 and action == "BUY":
+                triggers.append(f"CCI={cci:.1f}（极度超卖，价格极端偏离）")
+            elif cci > 200 and action == "SELL":
+                triggers.append(f"CCI={cci:.1f}（极度超买）")
+            elif cci > 100 and action == "BUY":
+                conflicts.append(f"CCI={cci:.1f}（已进入超买区，与买入信号矛盾）")
+            elif cci < -100 and action == "SELL":
+                conflicts.append(f"CCI={cci:.1f}（已进入超卖区，与卖出信号矛盾）")
+
+        # ── BIAS验证 ──
+        bias24 = snap.get("bias24")
+        if bias24 is not None:
+            if bias24 < -8 and action == "BUY":
+                triggers.append(f"BIAS24={bias24:.1f}%（深度偏离均线，支持均值回归）")
+            elif bias24 > 8 and action == "SELL":
+                triggers.append(f"BIAS24={bias24:.1f}%（大幅偏离均线）")
+
+        # ── WMSR验证 ──
+        wmsr = snap.get("wmsr14")
+        if wmsr is not None:
+            if wmsr < -80 and action == "BUY":
+                triggers.append(f"WMSR={wmsr:.1f}（超卖区，与RSI互相确认）")
+            elif wmsr > -20 and action == "SELL":
+                triggers.append(f"WMSR={wmsr:.1f}（超买区）")
+            elif wmsr > -20 and action == "BUY":
+                conflicts.append(f"WMSR={wmsr:.1f}（超买区，与买入信号矛盾，RSI可能钝化）")
 
         return action, confidence, triggers, conflicts
 

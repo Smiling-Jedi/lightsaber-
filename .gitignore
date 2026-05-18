@@ -36,3 +36,17 @@ app/main_test.py
 ENDSCRIPT
 PYEND
 PYEOF
+
+# Claude Code / MCP
+.claude/
+.mcp.json
+
+# 个人截图与素材(NOT 静态站点的 docs/mini/ HTML)
+*.jpg
+*.jpeg
+*.png
+*.MOV
+*.mov
+
+# 历史遗留空文件
+app.db
