@@ -21,6 +21,7 @@ from app.services.resonance_service import ResonanceService
 from app.services.indicator_service import IndicatorService
 from app.services.futu_kline_service import FutuKlineService
 from app.data_sources.technical_anomaly_source import TechnicalAnomalySource, summarize_patterns
+from app.services.fundamental_service import FundamentalService
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -466,6 +467,16 @@ def mini_stock_detail_v2(request: Request, symbol: str, db: Session = Depends(ge
         logger.warning(f"技术异动查询失败 {symbol}: {e}")
         anomaly_summary = {"error": str(e)}
 
+    # 8. v2 新增：获取基本面快照
+    fundamental = None
+    if stock and stock.name:
+        try:
+            fund_service = FundamentalService()
+            fundamental = fund_service.get_snapshot(symbol, stock.name)
+        except Exception as e:
+            logger.warning(f"基本面查询失败 {symbol}: {e}")
+            fundamental = {"error": str(e)}
+
     return templates.TemplateResponse("mini-v2/detail.html", {
         "request": request,
         "symbol": symbol,
@@ -481,6 +492,7 @@ def mini_stock_detail_v2(request: Request, symbol: str, db: Session = Depends(ge
         "weight": weight,
         "indicator_summary": indicator_summary,
         "anomaly_summary": anomaly_summary,
+        "fundamental": fundamental,
     })
 
 

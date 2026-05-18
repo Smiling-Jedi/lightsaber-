@@ -621,6 +621,43 @@
 </div>
 {% endif %}
 
+<!-- ━━━━━━━━━━ v2 新增：基本面快照 ━━━━━━━━━━ -->
+{% if fundamental and not fundamental.get('error') %}
+<div class="d-section">
+  <div class="d-section-title">基本面快照<span class="d-section-title-aux">{{ fundamental.report_date }}</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:13px;">
+    {% set pe = fundamental.get('pe') %}
+    {% if pe is not none %}
+    <div style="display:flex;justify-content:space-between;">
+      <span style="color:#666;">PE(TTM)</span>
+      <span style="font-weight:600;">{{ "%.1f"|format(pe) }}</span>
+    </div>
+    {% endif %}
+    {% set pb = fundamental.get('pb') %}
+    {% if pb is not none %}
+    <div style="display:flex;justify-content:space-between;">
+      <span style="color:#666;">PB</span>
+      <span style="font-weight:600;">{{ "%.2f"|format(pb) }}</span>
+    </div>
+    {% endif %}
+    {% set profit_growth = fundamental.get('profit_growth') %}
+    {% if profit_growth is not none %}
+    <div style="display:flex;justify-content:space-between;">
+      <span style="color:#666;">净利润增长</span>
+      <span style="font-weight:600;{{ 'color:#d32f2f' if profit_growth > 0 else 'color:#388e3c' }}">{{ "+%.1f"|format(profit_growth) if profit_growth > 0 else "%.1f"|format(profit_growth) }}%</span>
+    </div>
+    {% endif %}
+    {% set gross_margin = fundamental.get('gross_margin') %}
+    {% if gross_margin is not none %}
+    <div style="display:flex;justify-content:space-between;">
+      <span style="color:#666;">毛利率</span>
+      <span style="font-weight:600;">{{ "%.1f"|format(gross_margin) }}%</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
 <!-- ━━━━━━━━━━ v2 新增：技术异动信号 ━━━━━━━━━━ -->
 {% if anomaly_summary and not anomaly_summary.get('error') %}
 <div class="d-section">
