@@ -1,0 +1,722 @@
+{% extends "mini/base.html" %}
+
+{% block title %}{{ stock.name if stock else symbol }} - 小光剑{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── 详情页 v3：决策优先 + 排版分层 ── */
+
+  /* 返回 */
+  .d-back {
+    display: inline-block;
+    padding: 10px 16px 6px;
+    font-size: 13px;
+    color: #888;
+    text-decoration: none;
+  }
+
+  /* ── 头部 ── */
+  .d-head {
+    padding: 0 16px 14px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  .d-head-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .d-name {
+    font-size: 19px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .d-code {
+    font-size: 12px;
+    font-weight: 400;
+    color: #999;
+    margin-left: 6px;
+  }
+  .d-price {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .d-change {
+    font-size: 13px;
+    font-weight: 400;
+    margin-left: 6px;
+  }
+  .d-meta {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.6;
+  }
+  .d-meta-label { color: #999; margin-right: 4px; }
+  .d-meta-sep { color: #ddd; margin: 0 8px; }
+
+  /* ── 通用区块 ── */
+  .d-section {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .d-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+  }
+  .d-section-title-aux {
+    font-size: 12px;
+    font-weight: 400;
+    color: #999;
+    margin-left: 6px;
+  }
+
+  /* ── 决策面板（核心）── */
+  .d-decision {
+    margin: 14px 12px;
+    padding: 16px;
+    background: #fffbf0;
+    border: 1px solid #ffe6a3;
+    border-radius: 6px;
+  }
+  .d-decision-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ffe6a3;
+  }
+  .d-decision-score {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .d-decision-score-aux {
+    font-size: 13px;
+    font-weight: 400;
+    color: #666;
+    margin-left: 4px;
+  }
+  .d-decision-risk {
+    font-size: 12px;
+    color: #c62828;
+    background: #ffebee;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .d-decision-risk.low { color: #2e7d32; background: #e8f5e9; }
+  .d-decision-risk.medium { color: #ef6c00; background: #fff3e0; }
+
+  .d-act-list {
+    padding: 12px 0;
+  }
+  .d-act-row {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 10px;
+    padding: 8px 0;
+    align-items: start;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .d-act-label {
+    color: #666;
+    font-weight: 600;
+  }
+  .d-act-text {
+    color: #1a1a1a;
+    font-weight: 400;
+  }
+  .d-act-alt {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #888;
+  }
+  .d-act-alt-label {
+    color: #1976d2;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+
+  .d-decision-hint {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid #ffe6a3;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #5a5a5a;
+  }
+  .d-decision-hint-label {
+    color: #ef6c00;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+
+  /* ── 三周期共振 + 表格（合并）── */
+  .d-reso-head {
+    margin-bottom: 10px;
+  }
+  .d-reso-state {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .d-reso-stars {
+    color: #f39c12;
+    margin-left: 4px;
+  }
+  .d-reso-detail {
+    font-size: 13px;
+    font-weight: 400;
+    color: #666;
+    margin-top: 4px;
+    line-height: 1.6;
+  }
+  .d-period-table {
+    margin-top: 10px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 4px;
+  }
+  .d-period-row {
+    display: grid;
+    grid-template-columns: 40px 1fr auto auto;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 13px;
+    gap: 12px;
+    border-bottom: 1px dashed #f0f0f0;
+  }
+  .d-period-row:last-child { border-bottom: none; }
+  .d-period-label {
+    font-weight: 600;
+    color: #666;
+    font-size: 12px;
+  }
+  .d-period-pattern {
+    color: #1a1a1a;
+    font-weight: 400;
+  }
+  .d-period-state {
+    font-size: 11px;
+    color: #999;
+  }
+  .d-period-dir {
+    font-weight: 600;
+    font-size: 13px;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  /* ── 形态分析 ── */
+  .d-summary {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 14px;
+  }
+  .d-prices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 20px;
+    font-size: 13px;
+  }
+  .d-price-row {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted #eee;
+    padding: 6px 0;
+  }
+  .d-price-label { color: #888; font-weight: 400; }
+  .d-price-val { font-weight: 600; color: #1a1a1a; font-size: 14px; }
+
+  /* ── 多维度验证（紧凑 1 行/项）── */
+  .d-val-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 6px 0;
+    border-bottom: 1px dashed #f5f5f5;
+  }
+  .d-val-item:last-child { border-bottom: none; }
+  .d-val-icon {
+    font-size: 13px;
+    min-width: 22px;
+  }
+  .d-val-label {
+    color: #888;
+    font-size: 12px;
+    min-width: 48px;
+    font-weight: 600;
+  }
+  .d-val-text {
+    color: #333;
+    font-weight: 400;
+    flex: 1;
+  }
+
+  /* ── 关注事项 ── */
+  .d-watch-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #f0f0f0;
+    font-size: 13px;
+  }
+  .d-watch-item:last-child { border-bottom: none; }
+  .d-watch-content { flex: 1; color: #1a1a1a; font-weight: 400; }
+  .d-watch-date {
+    font-size: 11px;
+    color: #999;
+    margin-left: 8px;
+  }
+  .d-watch-tag {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+  .d-watch-tag.high { background: #ffebee; color: #c62828; }
+  .d-watch-tag.medium { background: #fff3e0; color: #ef6c00; }
+  .d-watch-tag.low { background: #e8f5e9; color: #2e7d32; }
+
+  /* ── 通用色 ── */
+  .up { color: #E74C3C; }
+  .down { color: #27AE60; }
+  .neutral { color: #999; }
+  .dir-up { color: #E74C3C; }
+  .dir-down { color: #27AE60; }
+  .dir-neutral { color: #999; }
+
+  /* ── v2 新增：技术指标区域 ── */
+  .d-indicator {
+    margin: 14px 12px;
+    padding: 16px;
+    background: #f8f9ff;
+    border: 1px solid #d0d8f0;
+    border-radius: 6px;
+  }
+  .d-indicator-head {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .d-indicator-signal {
+    font-size: 13px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  .d-indicator-signal.bull { background: #ffebee; color: #c62828; }
+  .d-indicator-signal.bear { background: #e8f5e9; color: #2e7d32; }
+  .d-indicator-signal.neutral { background: #f5f5f5; color: #666; }
+
+  .d-indicator-conclusions {
+    margin: 10px 0;
+    padding: 10px 12px;
+    background: #fff;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #333;
+  }
+  .d-indicator-conclusions li {
+    list-style: none;
+    padding-left: 16px;
+    position: relative;
+  }
+  .d-indicator-conclusions li::before {
+    content: "•";
+    position: absolute;
+    left: 4px;
+    color: #666;
+  }
+
+  .d-indicator-suggestion {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: #fff8e1;
+    border-left: 3px solid #f39c12;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5a4a00;
+  }
+
+  .d-indicator-detail {
+    margin-top: 12px;
+    border-top: 1px dashed #d0d8f0;
+    padding-top: 12px;
+  }
+  .d-indicator-detail-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  .d-indicator-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+    font-size: 12px;
+  }
+  .d-indicator-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dotted #e8e8e8;
+  }
+  .d-indicator-label { color: #888; }
+  .d-indicator-val { font-weight: 600; color: #1a1a1a; }
+
+  .d-indicator-fold {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f0f2f5;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
+  }
+  .d-indicator-fold-content {
+    display: none;
+    margin-top: 8px;
+    padding: 8px;
+    background: #fff;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .d-indicator-fold-content.open {
+    display: block;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set price_change = current_price - prev_close %}
+{% set price_change_pct = (price_change / prev_close * 100) if prev_close > 0 else 0 %}
+{% set change_class = 'up' if price_change >= 0 else 'down' %}
+{% set pl_class = 'up' if pl_pct >= 0 else 'down' %}
+
+<a href="/mini/" class="d-back">← 返回</a>
+
+<!-- 头部：股票名 + 价格 + 持仓元信息 -->
+<div class="d-head">
+  <div class="d-head-top">
+    <div>
+      <span class="d-name">{{ stock.name if stock else symbol }}</span>
+      <span class="d-code">{{ symbol.split(':')[1] if ':' in symbol else symbol }}</span>
+    </div>
+    <div>
+      <span class="d-price {{ change_class }}">{{ "%.2f" | format(current_price) }}</span>
+      <span class="d-change {{ change_class }}">
+        {{ "+%.1f" | format(price_change_pct) if price_change_pct >= 0 else "%.1f" | format(price_change_pct) }}%
+      </span>
+    </div>
+  </div>
+  <div class="d-meta">
+    <span class="d-meta-label">盈亏</span><span class="{{ pl_class }}">{{ "+%.1f" | format(pl_pct) if pl_pct >= 0 else "%.1f" | format(pl_pct) }}%</span>
+    <span class="d-meta-sep">|</span>
+    <span class="d-meta-label">仓位</span>{{ "%.1f" | format(weight) }}%
+    {% if position and position.base_shares > 0 %}
+    <span class="d-meta-sep">|</span>
+    <span class="d-meta-label">底仓</span>{{ position.base_shares }}@{{ "%.1f" | format(position.base_cost or 0) }}
+    {% endif %}
+    {% if position and position.swing_shares > 0 %}
+    <span class="d-meta-sep">|</span>
+    <span class="d-meta-label">波段</span>{{ position.swing_shares }}@{{ "%.1f" | format(position.swing_cost or 0) }}
+    {% endif %}
+  </div>
+</div>
+
+{% if analyses.get('day') %}
+{% set day_pa = analyses['day'] %}
+{% set day_act = day_pa.actionable_json | fromjson if day_pa.actionable_json else {} %}
+{% set reso_act = resonance.actionable if resonance and resonance.actionable else {} %}
+
+<!-- 计算置信度总分 -->
+{% set scores = day_pa.confidence_scores_json | fromjson if day_pa.confidence_scores_json else {} %}
+{% set fc = (scores.form_completeness | string | replace('%','') | float) if scores.form_completeness else 0 %}
+{% set vm = (scores.volume_match | string | replace('%','') | float) if scores.volume_match else 0 %}
+{% set kld = (scores.key_level_distance | string | replace('%','') | float) if scores.key_level_distance else 0 %}
+{% set total = ((fc + vm + kld) / 3) if (fc + vm + kld) > 0 else 0 %}
+
+{% set conf_color = '#E74C3C' if day_pa.confidence == 'high' else ('#f39c12' if day_pa.confidence == 'medium' else '#27AE60') %}
+{% set conf_emoji = '🔴' if day_pa.confidence == 'high' else ('🟡' if day_pa.confidence == 'medium' else '🟢') %}
+{% set conf_label = '高' if day_pa.confidence == 'high' else ('中' if day_pa.confidence == 'medium' else '低') %}
+
+{% set risk = day_act.risk_level or reso_act.risk_level %}
+{% set risk_cls = 'high' if risk == '高' else ('low' if risk == '低' else 'medium') %}
+
+<!-- ━━━━━━━━━━ 决策面板（核心）━━━━━━━━━━ -->
+<div class="d-decision">
+  <div class="d-decision-head">
+    <div class="d-decision-score" style="color: {{ conf_color }};">
+      {{ conf_emoji }} {{ conf_label }}<span class="d-decision-score-aux">· {{ "%.1f" | format(total) }}/10</span>
+    </div>
+    {% if risk %}
+    <div class="d-decision-risk {{ risk_cls }}">⚠️ 风险 {{ risk }}</div>
+    {% endif %}
+  </div>
+
+  <div class="d-act-list">
+    {% if day_act.base_position or reso_act.base_position %}
+    <div class="d-act-row">
+      <div class="d-act-label">🏛️ 底仓</div>
+      <div>
+        <span class="d-act-text">{{ day_act.base_position or reso_act.base_position }}</span>
+        {% if reso_act.base_position and day_act.base_position and reso_act.base_position != day_act.base_position %}
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>{{ reso_act.base_position }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if day_act.swing_position or reso_act.swing_position %}
+    <div class="d-act-row">
+      <div class="d-act-label">🎯 波段</div>
+      <div>
+        <span class="d-act-text">{{ day_act.swing_position or reso_act.swing_position }}</span>
+        {% if reso_act.swing_position and day_act.swing_position and reso_act.swing_position != day_act.swing_position %}
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>{{ reso_act.swing_position }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if day_act.stop_loss_rule or reso_act.stop_loss_rule %}
+    <div class="d-act-row">
+      <div class="d-act-label">🛑 止损</div>
+      <div>
+        <span class="d-act-text">{{ day_act.stop_loss_rule or reso_act.stop_loss_rule }}</span>
+        {% if reso_act.stop_loss_rule and day_act.stop_loss_rule and reso_act.stop_loss_rule != day_act.stop_loss_rule %}
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>{{ reso_act.stop_loss_rule }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if day_act.targets or reso_act.targets %}
+    <div class="d-act-row">
+      <div class="d-act-label">🎁 目标</div>
+      <div>
+        <span class="d-act-text">{{ day_act.targets or reso_act.targets }}</span>
+        {% if reso_act.targets and day_act.targets and reso_act.targets != day_act.targets %}
+        <span class="d-act-alt"><span class="d-act-alt-label">三周期</span>{{ reso_act.targets }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if day_pa.confidence_upgrade_hint %}
+  <div class="d-decision-hint">
+    <span class="d-decision-hint-label">📈 如何提升</span>{{ day_pa.confidence_upgrade_hint }}
+  </div>
+  {% endif %}
+</div>
+
+<!-- ━━━━━━━━━━ v2 新增：技术指标综合分析 ━━━━━━━━━━ -->
+{% if indicator_summary and not indicator_summary.get('error') %}
+<div class="d-indicator">
+  <div class="d-indicator-head">
+    <span>📊 指标综合分析</span>
+    <span class="d-indicator-signal {{ 'bull' if indicator_summary.signal == '偏多' else ('bear' if indicator_summary.signal == '偏空' else 'neutral') }}">
+      {{ indicator_summary.signal }}
+    </span>
+  </div>
+
+  <ul class="d-indicator-conclusions">
+    {% for conclusion in indicator_summary.conclusions %}
+    <li>{{ conclusion }}</li>
+    {% endfor %}
+  </ul>
+
+  <div class="d-indicator-suggestion">
+    🎯 {{ indicator_summary.suggestion }}
+  </div>
+
+  <!-- 日K指标详情（默认展开） -->
+  <div class="d-indicator-detail">
+    <div class="d-indicator-detail-title">日K指标详情</div>
+    <div class="d-indicator-grid">
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">EMA20</span>
+        <span class="d-indicator-val">{{ "%.2f"|format(indicator_summary.ema20) }}</span>
+      </div>
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">EMA60</span>
+        <span class="d-indicator-val">{{ "%.2f"|format(indicator_summary.ema60) }}</span>
+      </div>
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">MACD</span>
+        <span class="d-indicator-val">{{ "%.2f"|format(indicator_summary.macd) }}</span>
+      </div>
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">MACD柱</span>
+        <span class="d-indicator-val {{ 'up' if indicator_summary.macd_hist > 0 else 'down' }}">{{ "%.2f"|format(indicator_summary.macd_hist) }}</span>
+      </div>
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">RSI(14)</span>
+        <span class="d-indicator-val {{ 'up' if indicator_summary.rsi > 70 else ('down' if indicator_summary.rsi < 30 else '') }}">{{ "%.1f"|format(indicator_summary.rsi) }}</span>
+      </div>
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">ADX(14)</span>
+        <span class="d-indicator-val">{{ "%.1f"|format(indicator_summary.adx) }}</span>
+      </div>
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">ATR(14)</span>
+        <span class="d-indicator-val">{{ "%.2f"|format(indicator_summary.atr) }}</span>
+      </div>
+      <div class="d-indicator-row">
+        <span class="d-indicator-label">趋势强度</span>
+        <span class="d-indicator-val">{{ indicator_summary.trend_strength }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 周/月指标（折叠） -->
+  <div class="d-indicator-fold" onclick="this.nextElementSibling.classList.toggle('open')">
+    ▼ 周/月指标（点击展开）
+  </div>
+  <div class="d-indicator-fold-content">
+    <div style="color:#999;font-size:12px;">
+      周/月指标用于判断中长期趋势方向。<br>
+      底仓持有建议参考周线EMA和MACD方向。<br>
+      当前版本仅展示日线指标详情。
+    </div>
+  </div>
+</div>
+{% elif indicator_summary and indicator_summary.get('error') %}
+<div class="d-indicator" style="background:#fff3e0;border-color:#ffe0b2;">
+  <div class="d-indicator-head">
+    <span>📊 指标综合分析</span>
+  </div>
+  <div style="font-size:13px;color:#666;">
+    指标计算失败：{{ indicator_summary.error }}
+  </div>
+</div>
+{% endif %}
+
+<!-- ━━━━━━━━━━ 三周期共振 + 形态表格 ━━━━━━━━━━ -->
+{% if resonance and resonance.resonance %}
+<div class="d-section">
+  <div class="d-section-title">三周期共振</div>
+  <div class="d-reso-head">
+    <div class="d-reso-state">
+      {{ resonance.resonance.state }}
+      <span class="d-reso-stars">
+        {% for i in range(resonance.resonance.strength) %}⭐{% endfor %}
+      </span>
+    </div>
+    <div class="d-reso-detail">{{ resonance.resonance.description }}</div>
+  </div>
+
+  {% if analyses %}
+  <div class="d-period-table">
+    {% for period, label in [('day', '日K'), ('week', '周K'), ('month', '月K')] %}
+      {% if analyses.get(period) %}
+        {% set pa = analyses[period] %}
+        {% set dir = (resonance[period].direction if resonance and resonance.get(period) else '中性') %}
+        {% set dir_cls = 'up' if dir == '看涨' else ('down' if dir == '看跌' else 'neutral') %}
+        <div class="d-period-row">
+          <div class="d-period-label">{{ label }}</div>
+          <div class="d-period-pattern">{{ pa.pattern_name or '-' }}</div>
+          <div class="d-period-state">{{ pa.pattern_state or '-' }}</div>
+          <div class="d-period-dir dir-{{ dir_cls }}">{{ dir }}</div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- ━━━━━━━━━━ 形态分析（日K）━━━━━━━━━━ -->
+<div class="d-section">
+  <div class="d-section-title">形态分析<span class="d-section-title-aux">日K</span></div>
+  <div class="d-summary">{{ day_pa.summary or '暂无分析' }}</div>
+
+  {% if day_pa.key_levels_json %}
+  {% set kl = day_pa.key_levels_json | fromjson %}
+  <div class="d-prices">
+    {% if kl.support %}
+    <div class="d-price-row"><span class="d-price-label">支撑</span><span class="d-price-val">{{ kl.support }}</span></div>
+    {% endif %}
+    {% if kl.resistance %}
+    <div class="d-price-row"><span class="d-price-label">阻力/颈线</span><span class="d-price-val">{{ kl.resistance }}</span></div>
+    {% endif %}
+    {% if day_pa.stop_loss %}
+    <div class="d-price-row"><span class="d-price-label">止损位</span><span class="d-price-val down">{{ "%.2f" | format(day_pa.stop_loss) }}</span></div>
+    {% endif %}
+    {% if day_pa.target_1 %}
+    <div class="d-price-row"><span class="d-price-label">目标一</span><span class="d-price-val up">{{ "%.2f" | format(day_pa.target_1) }}</span></div>
+    {% endif %}
+    {% if day_pa.target_2 %}
+    <div class="d-price-row"><span class="d-price-label">目标二</span><span class="d-price-val up">{{ "%.2f" | format(day_pa.target_2) }}</span></div>
+    {% endif %}
+    {% if kl.current_vs_key_pct %}
+    <div class="d-price-row"><span class="d-price-label">距关键位</span><span class="d-price-val">{{ kl.current_vs_key_pct }}</span></div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- ━━━━━━━━━━ 多维度验证（紧凑）━━━━━━━━━━ -->
+{% if day_pa.validation_json %}
+{% set val = day_pa.validation_json | fromjson %}
+{% if val.volume or val.volatility or val.cross_period_hint %}
+<div class="d-section">
+  <div class="d-section-title">多维度验证</div>
+  {% if val.volume %}
+  <div class="d-val-item">
+    <span class="d-val-icon">📈</span><span class="d-val-label">成交量</span><span class="d-val-text">{{ val.volume }}</span>
+  </div>
+  {% endif %}
+  {% if val.volatility %}
+  <div class="d-val-item">
+    <span class="d-val-icon">⚡</span><span class="d-val-label">波动</span><span class="d-val-text">{{ val.volatility }}</span>
+  </div>
+  {% endif %}
+  {% if val.cross_period_hint %}
+  <div class="d-val-item">
+    <span class="d-val-icon">🔭</span><span class="d-val-label">周期</span><span class="d-val-text">{{ val.cross_period_hint }}</span>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endif %}
+{% endif %}
+
+<!-- ━━━━━━━━━━ 关注事项 ━━━━━━━━━━ -->
+{% if watch_items %}
+<div class="d-section">
+  <div class="d-section-title">关注事项</div>
+  {% for item in watch_items %}
+  <div class="d-watch-item">
+    <div class="d-watch-content">{{ item.content }}</div>
+    {% if item.expected_date %}
+    <div class="d-watch-date">{{ item.expected_date.strftime('%m-%d') }}</div>
+    {% endif %}
+    {% if item.importance %}
+    <div class="d-watch-tag {{ item.importance }}">{{ item.importance }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- 底部留白 -->
+<div style="height: 40px;"></div>
+{% endblock %}
