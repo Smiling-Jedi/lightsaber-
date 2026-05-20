@@ -166,27 +166,32 @@ class TechnicalAnomalySource:
         lines = [line.strip() for line in content.split("\n") if line.strip()]
 
         for line in lines:
-            # 去掉日期前缀（如 "05/14 "）
+            # 保留日期前缀（如 "05/14 "）
+            date_match = re.match(r'^(\d{2}/\d{2})\s*', line)
+            date_prefix = date_match.group(1) if date_match else ""
             text = re.sub(r'^\d{2}/\d{2}\s*', '', line)
 
             # 判断方向
             is_bullish = any(kw in text for kw in self.BULLISH_KEYWORDS)
             is_bearish = any(kw in text for kw in self.BEARISH_KEYWORDS)
 
+            # 组合日期和文本
+            full_text = f"{date_prefix} {text}".strip() if date_prefix else text
+
             if is_bullish and is_bearish:
                 # 矛盾信号，归入mixed但分别记录
                 if "空头排列" in text or "下跌趋势" in text:
-                    bearish.append(text)
+                    bearish.append(full_text)
                 elif "多头排列" in text or "上涨趋势" in text:
-                    bullish.append(text)
+                    bullish.append(full_text)
                 else:
-                    neutral.append(text)
+                    neutral.append(full_text)
             elif is_bullish:
-                bullish.append(text)
+                bullish.append(full_text)
             elif is_bearish:
-                bearish.append(text)
+                bearish.append(full_text)
             else:
-                neutral.append(text)
+                neutral.append(full_text)
 
         # 判断总体方向
         b_count = len(bullish)

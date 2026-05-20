@@ -609,3 +609,225 @@ def mini_home_v2(request: Request, db: Session = Depends(get_db)):
         "last_update": last_update,
         "title": "小光剑 v2",
     })
+
+
+@router.get("/v3/stock/{symbol:path}")
+def mini_stock_detail_v3(request: Request, symbol: str, db: Session = Depends(get_db)):
+    """
+    小光剑详情页 v3 — 在 v2 基础上增加 #8/#9 优化
+    """
+    # 1. 获取股票和持仓信息（与 v2 相同）
+    stock = db.get(Stock, symbol)
+    position = (
+        db.query(Position)
+        .filter_by(stock_symbol=symbol)
+        .first()
+    )
+
+    # 2. 获取三周期形态分析（与 v2 相同）
+    from app.models.watch_item import WatchItem
+    analyses = {}
+    for period in ["day", "week", "month"]:
+        pa = (
+            db.query(PatternAnalysis)
+            .filter_by(stock_symbol=symbol, period=period)
+            .order_by(PatternAnalysis.analysis_date.desc())
+            .first()
+        )
+        if pa:
+            analyses[period] = pa
+
+    # 3. 计算共振（与 v2 相同）
+    resonance = None
+    if len(analyses) == 3:
+        svc = ResonanceService(db)
+        resonance = svc.analyze_resonance(symbol)
+
+    # 4. 获取关注事项（与 v2 相同）
+    watch_items = (
+        db.query(WatchItem)
+        .filter_by(stock_symbol=symbol, status="pending")
+        .filter(
+            WatchItem.expected_date.is_(None) |
+            (WatchItem.expected_date <= date.today() + timedelta(days=30))
+        )
+        .order_by(WatchItem.expected_date.asc())
+        .all()
+    )
+
+    # 5. 计算盈亏和仓位（与 v2 相同）
+    current_price = float(stock.current_price) if stock and stock.current_price else 0
+    prev_close = float(stock.prev_close_price) if stock and stock.prev_close_price else current_price
+    display_cost = position.display_avg_cost if position else None
+    avg_cost = float(display_cost) if display_cost else 0
+    pl_pct = ((current_price - avg_cost) / avg_cost * 100) if avg_cost > 0 else 0
+    market_value = position.total_shares * current_price if position else 0
+    market_fund = float(position.market_total_fund) if position and position.market_total_fund else 1
+    weight = (market_value / market_fund * 100) if market_fund > 0 else 0
+
+    # 6. v3：计算技术指标
+    indicator_summary = None
+    try:
+        kline_service = FutuKlineService()
+        rows = kline_service.get_kline(symbol, count=120, ktype_str="day")
+        if rows and len(rows) >= 30:
+            df = pd.DataFrame(rows)
+            df["close"] = pd.to_numeric(df["close"], errors="coerce")
+            df["high"] = pd.to_numeric(df["high"], errors="coerce")
+            df["low"] = pd.to_numeric(df["low"], errors="coerce")
+            df["open"] = pd.to_numeric(df["open"], errors="coerce")
+            df["volume"] = pd.to_numeric(df["volume"], errors="coerce")
+            df = df.dropna(subset=["close", "high", "low"])
+
+            if len(df) >= 30:
+                ind_service = IndicatorService()
+                df = ind_service.compute_all(df)
+                indicator_summary = _compute_indicator_summary(df)
+    except Exception as e:
+        logger.warning(f"指标计算失败 {symbol}: {e}")
+        indicator_summary = {"error": str(e)}
+
+    # 7. v3：获取技术异动信号
+    anomaly_summary = None
+    try:
+        anomaly_source = TechnicalAnomalySource()
+        anomaly_results = anomaly_source.fetch_all_timeframes(symbol)
+        anomaly_summary = summarize_patterns(anomaly_results)
+    except Exception as e:
+        logger.warning(f"技术异动查询失败 {symbol}: {e}")
+        anomaly_summary = {"error": str(e)}
+
+    # 8. v3：获取基本面快照
+    fundamental = None
+    if stock and stock.name:
+        try:
+            fund_service = FundamentalService()
+            fundamental = fund_service.get_snapshot(symbol, stock.name)
+        except Exception as e:
+            logger.warning(f"基本面查询失败 {symbol}: {e}")
+            fundamental = {"error": str(e)}
+
+    return templates.TemplateResponse("mini-v3/detail.html", {
+        "request": request,
+        "symbol": symbol,
+        "stock": stock,
+        "position": position,
+        "analyses": analyses,
+        "resonance": resonance,
+        "watch_items": watch_items,
+        "current_price": current_price,
+        "prev_close": prev_close,
+        "pl_pct": pl_pct,
+        "market_value": market_value,
+        "weight": weight,
+        "indicator_summary": indicator_summary,
+        "anomaly_summary": anomaly_summary,
+        "fundamental": fundamental,
+    })
+
+
+@router.get("/v3/")
+def mini_home_v3(request: Request, db: Session = Depends(get_db)):
+    """
+    小光剑首页 v3 — 链接指向 v3 详情页
+    """
+    positions = (
+        db.query(Position)
+        .filter(Position.total_shares > 0)
+        .all()
+    )
+
+    market_groups = {"HK": [], "US": [], "A": []}
+    for pos in positions:
+        market = pos.stock_symbol.split(":")[0] if ":" in pos.stock_symbol else "US"
+        stock = db.get(Stock, pos.stock_symbol)
+
+        analyses = {}
+        for period in ["day", "week", "month"]:
+            pa = (
+                db.query(PatternAnalysis)
+                .filter_by(stock_symbol=pos.stock_symbol, period=period)
+                .order_by(PatternAnalysis.analysis_date.desc())
+                .first()
+            )
+            if pa:
+                analyses[period] = pa
+
+        resonance = None
+        if len(analyses) == 3:
+            svc = ResonanceService(db)
+            resonance = svc.analyze_resonance(pos.stock_symbol)
+
+        current_price = float(stock.current_price) if stock and stock.current_price else 0
+        display_cost = pos.display_avg_cost
+        avg_cost = float(display_cost) if display_cost else 0
+        pl_pct = ((current_price - avg_cost) / avg_cost * 100) if avg_cost > 0 else 0
+
+        market_value = pos.total_shares * current_price
+        market_fund = float(pos.market_total_fund) if pos.market_total_fund else 1
+        weight = (market_value / market_fund * 100) if market_fund > 0 else 0
+
+        confidence = None
+        confidence_score = 0.0
+        direction = "中性"
+
+        day_pa = analyses.get("day")
+        if day_pa:
+            confidence = day_pa.confidence
+            if day_pa.confidence_scores_json:
+                try:
+                    scores = json.loads(day_pa.confidence_scores_json)
+                    fc = float(str(scores.get("form_completeness", "0")).replace("%", ""))
+                    vm = float(str(scores.get("volume_match", "0")).replace("%", ""))
+                    kld = float(str(scores.get("key_level_distance", "0")).replace("%", ""))
+                    confidence_score = round((fc + vm + kld) / 3, 1)
+                except (ValueError, KeyError, json.JSONDecodeError):
+                    confidence_score = 0.0
+
+        if resonance and resonance.get("resonance"):
+            state = resonance["resonance"].get("state", "")
+            if "看涨" in state:
+                direction = "看涨"
+            elif "看跌" in state:
+                direction = "看跌"
+
+        card = {
+            "symbol": pos.stock_symbol,
+            "name": stock.name if stock else pos.stock_symbol,
+            "market": market,
+            "currency": stock.currency if stock else "",
+            "current_price": current_price,
+            "prev_close": float(stock.prev_close_price) if stock and stock.prev_close_price else current_price,
+            "pl_pct": pl_pct,
+            "weight": weight,
+            "base_shares": pos.base_shares,
+            "base_cost": float(pos.base_cost) if pos.base_cost else 0,
+            "swing_shares": pos.swing_shares,
+            "swing_cost": float(pos.swing_cost) if pos.swing_cost else 0,
+            "analyses": analyses,
+            "resonance": resonance,
+            "confidence": confidence,
+            "confidence_score": confidence_score,
+            "direction": direction,
+        }
+
+        if market in market_groups:
+            market_groups[market].append(card)
+
+    for market in market_groups:
+        market_groups[market].sort(
+            key=lambda x: (
+                0 if x.get("resonance") else 1,
+                -(x["resonance"]["resonance"]["strength"] if x.get("resonance") else 0),
+                -x["weight"],
+            )
+        )
+
+    last_update = datetime.now().strftime("%m-%d %H:%M")
+
+    return templates.TemplateResponse("mini-v3/home.html", {
+        "request": request,
+        "market_groups": market_groups,
+        "last_update": last_update,
+        "title": "小光剑 v3",
+    })

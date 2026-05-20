@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>小光剑 v3 - 持仓列表</title>
+  <style>
+    /* ── 基础重置 ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #333;
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── 桌面端模拟手机 ── */
+    @media (min-width: 769px) {
+      body {
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .mobile-wrapper {
+        width: 100%;
+        max-width: 480px;
+        background: #fff;
+        min-height: 100vh;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      }
+    }
+    @media (max-width: 768px) {
+      .mobile-wrapper { width: 100%; }
+    }
+
+    /* ── 顶部导航 ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e8e8e8;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+    }
+    .header-meta {
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* ── 市场Tab ── */
+    .market-tabs {
+      display: flex;
+      border-bottom: 1px solid #e8e8e8;
+      background: #fff;
+      position: sticky;
+      top: 49px;
+      z-index: 99;
+    }
+    .market-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 14px;
+      color: #666;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .market-tab.active {
+      color: #333;
+      font-weight: 600;
+      border-bottom-color: #333;
+    }
+
+    /* ── 卡片 ── */
+    .card {
+      margin: 12px 16px;
+      border: 1px solid #e8e8e8;
+      background: #fff;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .card-stock-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .card-stock-code {
+      font-size: 12px;
+      color: #999;
+      margin-left: 4px;
+    }
+    .card-price {
+      text-align: right;
+    }
+    .card-price-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .card-price-change {
+      font-size: 12px;
+    }
+
+    /* ── 涨跌色 ── */
+    .up { color: #E74C3C; }
+    .down { color: #27AE60; }
+    .neutral { color: #999; }
+
+    /* ── 持仓信息 ── */
+    .card-position {
+      padding: 10px 16px;
+      font-size: 12px;
+      color: #666;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── 形态分析区 ── */
+    .card-patterns {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .pattern-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 13px;
+    }
+    .pattern-label {
+      color: #666;
+    }
+    .pattern-value {
+      font-weight: 500;
+    }
+
+    /* ── 共振状态 ── */
+    .card-resonance {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fafafa;
+    }
+    .resonance-title {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 4px;
+    }
+    .resonance-state {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .resonance-desc {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    /* ── 底部信息 ── */
+    .card-footer {
+      padding: 8px 16px;
+      font-size: 11px;
+      color: #bbb;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── 内容区 ── */
+    .content {
+      padding-bottom: 20px;
+    }
+
+    /* ── Tab内容 ── */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ── 空状态 ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+  </style>
+  
+<style>
+  /* ── 首页 v3：信号优先 + 视觉分层 ── */
+
+  .h-card {
+    position: relative;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    margin: 10px 16px;
+    border: 1px solid #e8e8e8;
+    background: #fff;
+    padding: 12px 14px 12px 18px;
+    transition: background 0.15s;
+  }
+  .h-card:active {
+    background: #fafafa;
+  }
+  /* 左侧色条(方向锚点)— 用 ::before 不影响 padding */
+  .h-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    bottom: -1px;
+    width: 4px;
+    background: #f0f0f0;
+  }
+  .h-card.dir-up::before { background: #E74C3C; }
+  .h-card.dir-down::before { background: #27AE60; }
+  .h-card.dir-neutral::before { background: #bbb; }
+  .h-card.dir-none::before { background: #f0f0f0; }
+
+  /* 顶行:股票名/代码 + 股价/涨跌 */
+  .h-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .h-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .h-code {
+    font-size: 11px;
+    font-weight: 400;
+    color: #999;
+    margin-left: 4px;
+  }
+  .h-price {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .h-change {
+    font-size: 12px;
+    font-weight: 400;
+    margin-left: 4px;
+  }
+
+  /* 元信息行:盈亏 / 仓位 / 置信度胶囊 / 风险胶囊 */
+  .h-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  .h-meta-label { color: #999; margin-right: 2px; }
+
+  /* 胶囊通用 */
+  .h-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 8px;
+    line-height: 1.5;
+    gap: 2px;
+  }
+  .h-pill-conf.high { background: #ffebee; color: #c62828; }
+  .h-pill-conf.medium { background: #fff3e0; color: #ef6c00; }
+  .h-pill-conf.low { background: #e8f5e9; color: #2e7d32; }
+  .h-pill-risk {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  /* 共振行:星级 + 状态(着色) + 描述(灰色) 2 行截断 */
+  .h-reso {
+    font-size: 13px;
+    line-height: 1.5;
+    border-top: 1px dashed #eee;
+    padding-top: 8px;
+    margin-top: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .h-reso-stars { color: #f39c12; margin-right: 2px; }
+  .h-reso-state {
+    font-size: 14px;
+    font-weight: 700;
+    margin-right: 2px;
+  }
+  .h-reso.dir-up .h-reso-state { color: #E74C3C; }
+  .h-reso.dir-down .h-reso-state { color: #27AE60; }
+  .h-reso.dir-neutral .h-reso-state { color: #666; }
+  .h-reso-desc {
+    color: #888;
+    font-size: 12px;
+  }
+
+  .h-no-analysis {
+    font-size: 12px;
+    color: #ccc;
+    border-top: 1px dashed #eee;
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+</style>
+
+</head>
+<body>
+  <div class="mobile-wrapper">
+    
+<!-- 顶部导航 -->
+<div class="header">
+  <div class="header-title">小光剑</div>
+  <div class="header-meta">05-20 21:54</div>
+</div>
+
+<!-- 市场Tab -->
+<div class="market-tabs">
+  <div class="market-tab" data-market="HK" onclick="switchTab('HK')">港股 8</div>
+  <div class="market-tab" data-market="US" onclick="switchTab('US')">美股 11</div>
+  <div class="market-tab" data-market="A" onclick="switchTab('A')">A股 11</div>
+</div>
+
+<!-- 内容区 -->
+<div class="content">
+
+  <div class="tab-content" data-market="HK">
+    
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-up" href="stock/HK_01888.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">建滔积层板</span>
+              <span class="h-code">01888</span>
+            </div>
+            <div>
+              <span class="h-price down">41.88</span>
+              <span class="h-change down">-7.4%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+0.0%</span></span>
+            <span><span class="h-meta-label">仓位</span>2.2%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-up">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">三周期共振看涨</span>
+              <span class="h-reso-desc">· 日/周/月三周期同步看涨，短中长期资金达成共识，信号最强</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-up" href="stock/HK_00270.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">粤海投资</span>
+              <span class="h-code">00270</span>
+            </div>
+            <div>
+              <span class="h-price up">8.47</span>
+              <span class="h-change up">+0.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+18.3%</span></span>
+            <span><span class="h-meta-label">仓位</span>6.5%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 5.7</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-up">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中长期共振看涨</span>
+              <span class="h-reso-desc">· 周线+月线同步看涨，中长期趋势向好，日线处于整理</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-down" href="stock/HK_01276.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">恒瑞医药</span>
+              <span class="h-code">01276</span>
+            </div>
+            <div>
+              <span class="h-price down">65.75</span>
+              <span class="h-change down">-1.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-10.5%</span></span>
+            <span><span class="h-meta-label">仓位</span>3.1%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.3</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-down">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中长期共振看跌</span>
+              <span class="h-reso-desc">· 日线+月线同步看跌，大周期承压，周线正在确认</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-down" href="stock/HK_01810.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">小米集团-W</span>
+              <span class="h-code">01810</span>
+            </div>
+            <div>
+              <span class="h-price down">30.70</span>
+              <span class="h-change down">-3.2%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-12.0%</span></span>
+            <span><span class="h-meta-label">仓位</span>1.3%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 5.7</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-down">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中短期共振看跌</span>
+              <span class="h-reso-desc">· 日线+周线同步看跌，中期调整中，月线尚未确认</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/HK_00700.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">腾讯控股</span>
+              <span class="h-code">00700</span>
+            </div>
+            <div>
+              <span class="h-price up">456.40</span>
+              <span class="h-change up">+0.3%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-10.2%</span></span>
+            <span><span class="h-meta-label">仓位</span>34.1%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf high">🔴 8.3</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐⭐
+              </span>
+              <span class="h-reso-state">周期冲突</span>
+              <span class="h-reso-desc">· 各周期信号不一致，方向不明，建议观望</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/HK_06160.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">百济神州</span>
+              <span class="h-code">06160</span>
+            </div>
+            <div>
+              <span class="h-price down">179.30</span>
+              <span class="h-change down">-2.9%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-1.4%</span></span>
+            <span><span class="h-meta-label">仓位</span>3.4%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 5.3</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐⭐
+              </span>
+              <span class="h-reso-state">周期冲突</span>
+              <span class="h-reso-desc">· 各周期信号不一致，方向不明，建议观望</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/HK_03690.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">美团-W</span>
+              <span class="h-code">03690</span>
+            </div>
+            <div>
+              <span class="h-price down">82.70</span>
+              <span class="h-change down">-3.5%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-21.3%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.2%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 5.7</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐⭐
+              </span>
+              <span class="h-reso-state">周期冲突</span>
+              <span class="h-reso-desc">· 各周期信号不一致，方向不明，建议观望</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/HK_09988.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">阿里巴巴-W</span>
+              <span class="h-code">09988</span>
+            </div>
+            <div>
+              <span class="h-price down">132.30</span>
+              <span class="h-change down">-4.1%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-11.9%</span></span>
+            <span><span class="h-meta-label">仓位</span>16.5%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐
+              </span>
+              <span class="h-reso-state">三周期混沌</span>
+              <span class="h-reso-desc">· 日/周/月均无明显方向，市场处于混沌整理期，等待形态明朗</span>
+            </div>
+          
+        </a>
+      
+    
+  </div>
+
+  <div class="tab-content" data-market="US">
+    
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-up" href="stock/US_RKLB.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">Rocket Lab</span>
+              <span class="h-code">RKLB</span>
+            </div>
+            <div>
+              <span class="h-price down">123.78</span>
+              <span class="h-change down">-6.6%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+0.0%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.0%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-up">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">三周期共振看涨</span>
+              <span class="h-reso-desc">· 日/周/月三周期同步看涨，短中长期资金达成共识，信号最强</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-down" href="stock/US_SOFI.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">SoFi Technologies</span>
+              <span class="h-code">SOFI</span>
+            </div>
+            <div>
+              <span class="h-price down">15.48</span>
+              <span class="h-change down">-3.4%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-20.0%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.3%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-down">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中短期共振看跌</span>
+              <span class="h-reso-desc">· 日线+周线同步看跌，中期调整中，月线尚未确认</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-down" href="stock/US_PDD.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">拼多多</span>
+              <span class="h-code">PDD</span>
+            </div>
+            <div>
+              <span class="h-price down">94.94</span>
+              <span class="h-change down">-0.7%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-6.3%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.2%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-down">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中短期共振看跌</span>
+              <span class="h-reso-desc">· 日线+周线同步看跌，中期调整中，月线尚未确认</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-up" href="stock/US_LITE.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">Lumentum</span>
+              <span class="h-code">LITE</span>
+            </div>
+            <div>
+              <span class="h-price down">979.37</span>
+              <span class="h-change down">-2.2%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+4.5%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.0%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf low">🟢 4.3</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-up">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中长期共振看涨</span>
+              <span class="h-reso-desc">· 周线+月线同步看涨，中长期趋势向好，日线处于整理</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-up" href="stock/US_CRCL.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">Circle</span>
+              <span class="h-code">CRCL</span>
+            </div>
+            <div>
+              <span class="h-price down">112.75</span>
+              <span class="h-change down">-9.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+32.6%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.0%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf low">🟢 3.7</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-up">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中长期共振看涨</span>
+              <span class="h-reso-desc">· 周线+月线同步看涨，中长期趋势向好，日线处于整理</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/US_TSLA.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">特斯拉</span>
+              <span class="h-code">TSLA</span>
+            </div>
+            <div>
+              <span class="h-price down">425.27</span>
+              <span class="h-change down">-4.1%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+5.6%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.9%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.3</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐⭐
+              </span>
+              <span class="h-reso-state">周期冲突</span>
+              <span class="h-reso-desc">· 各周期信号不一致，方向不明，建议观望</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/US_MSFT.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">微软</span>
+              <span class="h-code">MSFT</span>
+            </div>
+            <div>
+              <span class="h-price up">422.36</span>
+              <span class="h-change up">+3.2%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+6.4%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.7%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf low">🟢 3.3</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐⭐
+              </span>
+              <span class="h-reso-state">周期冲突</span>
+              <span class="h-reso-desc">· 各周期信号不一致，方向不明，建议观望</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/US_NVDA.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">英伟达</span>
+              <span class="h-code">NVDA</span>
+            </div>
+            <div>
+              <span class="h-price down">228.00</span>
+              <span class="h-change down">-3.3%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+29.0%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.6%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐⭐
+              </span>
+              <span class="h-reso-state">周期冲突</span>
+              <span class="h-reso-desc">· 各周期信号不一致，方向不明，建议观望</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/US_PLTR.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">Palantir</span>
+              <span class="h-code">PLTR</span>
+            </div>
+            <div>
+              <span class="h-price up">133.90</span>
+              <span class="h-change up">+0.1%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+4.4%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.0%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 5.3</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐⭐
+              </span>
+              <span class="h-reso-state">周期冲突</span>
+              <span class="h-reso-desc">· 各周期信号不一致，方向不明，建议观望</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/US_META.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">Meta Platforms</span>
+              <span class="h-code">META</span>
+            </div>
+            <div>
+              <span class="h-price down">613.37</span>
+              <span class="h-change down">-0.8%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-1.9%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.5%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐
+              </span>
+              <span class="h-reso-state">三周期混沌</span>
+              <span class="h-reso-desc">· 日/周/月均无明显方向，市场处于混沌整理期，等待形态明朗</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/US_NIO.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">蔚来</span>
+              <span class="h-code">NIO</span>
+            </div>
+            <div>
+              <span class="h-price down">6.10</span>
+              <span class="h-change down">-2.4%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-7.0%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.0%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf low">🟢 4.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐
+              </span>
+              <span class="h-reso-state">三周期混沌</span>
+              <span class="h-reso-desc">· 日/周/月均无明显方向，市场处于混沌整理期，等待形态明朗</span>
+            </div>
+          
+        </a>
+      
+    
+  </div>
+
+  <div class="tab-content" data-market="A">
+    
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-down" href="stock/A_01810.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">小米集团-W</span>
+              <span class="h-code">01810</span>
+            </div>
+            <div>
+              <span class="h-price down">30.70</span>
+              <span class="h-change down">-3.2%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-5.1%</span></span>
+            <span><span class="h-meta-label">仓位</span>94.9%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 7.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-down">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">三周期共振看跌</span>
+              <span class="h-reso-desc">· 日/周/月三周期同步看跌，短中长期资金同步离场，风险最高</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-up" href="stock/A_300750.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">宁德时代</span>
+              <span class="h-code">300750</span>
+            </div>
+            <div>
+              <span class="h-price up">423.60</span>
+              <span class="h-change up">+0.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+258.1%</span></span>
+            <span><span class="h-meta-label">仓位</span>7.6%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-up">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中长期共振看涨</span>
+              <span class="h-reso-desc">· 周线+月线同步看涨，中长期趋势向好，日线处于整理</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-down" href="stock/A_601328.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">交通银行</span>
+              <span class="h-code">601328</span>
+            </div>
+            <div>
+              <span class="h-price up">6.72</span>
+              <span class="h-change up">+0.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-5.3%</span></span>
+            <span><span class="h-meta-label">仓位</span>1.8%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-down">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中长期共振看跌</span>
+              <span class="h-reso-desc">· 日线+月线同步看跌，大周期承压，周线正在确认</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-down" href="stock/A_601166.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">兴业银行</span>
+              <span class="h-code">601166</span>
+            </div>
+            <div>
+              <span class="h-price up">17.67</span>
+              <span class="h-change up">+0.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-5.6%</span></span>
+            <span><span class="h-meta-label">仓位</span>1.8%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 5.7</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-down">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中短期共振看跌</span>
+              <span class="h-reso-desc">· 日线+周线同步看跌，中期调整中，月线尚未确认</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-down" href="stock/A_600036.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">招商银行</span>
+              <span class="h-code">600036</span>
+            </div>
+            <div>
+              <span class="h-price up">37.65</span>
+              <span class="h-change up">+0.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-4.4%</span></span>
+            <span><span class="h-meta-label">仓位</span>1.7%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 7.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-down">
+              <span class="h-reso-stars">
+                ⭐⭐⭐⭐
+              </span>
+              <span class="h-reso-state">中短期共振看跌</span>
+              <span class="h-reso-desc">· 日线+周线同步看跌，中期调整中，月线尚未确认</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/A_600030.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">中信证券</span>
+              <span class="h-code">600030</span>
+            </div>
+            <div>
+              <span class="h-price up">26.35</span>
+              <span class="h-change up">+0.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-5.3%</span></span>
+            <span><span class="h-meta-label">仓位</span>0.4%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.3</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐⭐
+              </span>
+              <span class="h-reso-state">周期冲突</span>
+              <span class="h-reso-desc">· 各周期信号不一致，方向不明，建议观望</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/A_09988.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">阿里巴巴-W</span>
+              <span class="h-code">09988</span>
+            </div>
+            <div>
+              <span class="h-price down">132.30</span>
+              <span class="h-change down">-4.1%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+7.0%</span></span>
+            <span><span class="h-meta-label">仓位</span>53.5%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 5.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐
+              </span>
+              <span class="h-reso-state">三周期混沌</span>
+              <span class="h-reso-desc">· 日/周/月均无明显方向，市场处于混沌整理期，等待形态明朗</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/A_002594.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">比亚迪</span>
+              <span class="h-code">002594</span>
+            </div>
+            <div>
+              <span class="h-price up">96.30</span>
+              <span class="h-change up">+0.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+9.5%</span></span>
+            <span><span class="h-meta-label">仓位</span>26.0%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf medium">🟡 6.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐
+              </span>
+              <span class="h-reso-state">三周期混沌</span>
+              <span class="h-reso-desc">· 日/周/月均无明显方向，市场处于混沌整理期，等待形态明朗</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-neutral" href="stock/A_300274.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">阳光电源</span>
+              <span class="h-code">300274</span>
+            </div>
+            <div>
+              <span class="h-price up">152.95</span>
+              <span class="h-change up">+0.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-4.8%</span></span>
+            <span><span class="h-meta-label">仓位</span>12.4%</span>
+            
+            
+            
+            <span class="h-pill h-pill-conf low">🟢 3.0</span>
+            
+            
+          </div>
+          
+            
+            <div class="h-reso dir-neutral">
+              <span class="h-reso-stars">
+                ⭐
+              </span>
+              <span class="h-reso-state">三周期混沌</span>
+              <span class="h-reso-desc">· 日/周/月均无明显方向，市场处于混沌整理期，等待形态明朗</span>
+            </div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-none" href="stock/A_512010.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">医药ETF易方达</span>
+              <span class="h-code">512010</span>
+            </div>
+            <div>
+              <span class="h-price up">0.36</span>
+              <span class="h-change up">+0.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="down">-10.2%</span></span>
+            <span><span class="h-meta-label">仓位</span>17.0%</span>
+            
+            
+          </div>
+          
+            <div class="h-no-analysis">— 暂无形态分析 —</div>
+          
+        </a>
+      
+        
+        
+        
+        
+
+        <a class="h-card dir-none" href="stock/A_562500.html">
+          <div class="h-card-top">
+            <div>
+              <span class="h-name">机器人ETF华夏</span>
+              <span class="h-code">562500</span>
+            </div>
+            <div>
+              <span class="h-price up">1.16</span>
+              <span class="h-change up">+0.0%</span>
+            </div>
+          </div>
+          <div class="h-meta">
+            <span><span class="h-meta-label">盈亏</span><span class="up">+21.6%</span></span>
+            <span><span class="h-meta-label">仓位</span>14.7%</span>
+            
+            
+          </div>
+          
+            <div class="h-no-analysis">— 暂无形态分析 —</div>
+          
+        </a>
+      
+    
+  </div>
+
+</div>
+
+  </div>
+
+  <script>
+    // Tab切换
+    function switchTab(market) {
+      document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelector('.market-tab[data-market="' + market + '"]').classList.add('active');
+      document.querySelector('.tab-content[data-market="' + market + '"]').classList.add('active');
+      localStorage.setItem('mini_active_tab', market);
+    }
+
+    // 恢复上次选中的Tab
+    document.addEventListener('DOMContentLoaded', function() {
+      const saved = localStorage.getItem('mini_active_tab') || 'HK';
+      switchTab(saved);
+    });
+  </script>
+  
+</body>
+</html>
