@@ -53,29 +53,45 @@ class FutuKlineService:
         count: 拉取根数，默认500
         ktype_str: K线周期 - day/week/month
         返回：按日期升序排列的 OHLCV + MA 列表
+
+        数据源优先级（2026-05-20更新）：
+        - A股：iFinD（首选）> tushare（回退）
+        - 港股/美股：富途 OpenD
         """
         cache_file = self._cache_path(symbol, ktype_str)
         if self._is_cache_valid(cache_file):
             logger.info(f"使用K线缓存: {symbol} ({ktype_str})")
             rows = self._read_cache(cache_file)
+        elif symbol.startswith("A:"):
+            # A股：iFinD 优先
+            logger.info(f"从 iFinD 拉取 A 股 K 线: {symbol} ({ktype_str})")
+            rows = self._fetch_from_ifind(symbol, count, ktype_str)
+            if rows:
+                self._write_cache(cache_file, rows)
+            else:
+                # iFinD 失败，回退 tushare
+                tushare_rows = self._fetch_from_tushare(symbol, count, ktype_str)
+                if tushare_rows:
+                    logger.info(f"iFinD 失败，使用 tushare 补全 A 股 K 线: {symbol} ({ktype_str})")
+                    rows = tushare_rows
+                    self._write_cache(cache_file, rows)
+                else:
+                    latest_cache = self._find_latest_cache(symbol, ktype_str)
+                    if latest_cache:
+                        logger.info(f"使用最近缓存: {latest_cache}")
+                        rows = self._read_cache(latest_cache)
         else:
+            # 港股/美股：富途
             logger.info(f"从富途拉取K线: {symbol} ({ktype_str})")
             rows = self._fetch_from_futu(symbol, count, ktype_str)
             if rows:
                 self._write_cache(cache_file, rows)
             else:
-                # 富途拉取失败，对 A 股尝试 tushare
-                tushare_rows = self._fetch_from_tushare(symbol, count, ktype_str)
-                if tushare_rows:
-                    logger.info(f"使用 tushare 补全 A 股 K 线: {symbol} ({ktype_str})")
-                    rows = tushare_rows
-                    self._write_cache(cache_file, rows)
-                else:
-                    # 富途拉取失败且无缓存
-                    latest_cache = self._find_latest_cache(symbol, ktype_str)
-                    if latest_cache:
-                        logger.info(f"使用最近缓存: {latest_cache}")
-                        rows = self._read_cache(latest_cache)
+                # 富途拉取失败且无缓存
+                latest_cache = self._find_latest_cache(symbol, ktype_str)
+                if latest_cache:
+                    logger.info(f"使用最近缓存: {latest_cache}")
+                    rows = self._read_cache(latest_cache)
 
         # 仅日K计算MA
         if ktype_str == "day":
@@ -155,6 +171,140 @@ class FutuKlineService:
         except Exception as e:
             logger.error(f"富途K线拉取异常: {symbol} ({ktype_str}): {e}")
             return []
+
+    def _fetch_from_ifind(
+        self, symbol: str, count: int, ktype_str: str = "day"
+    ) -> List[Dict]:
+        """iFinD 获取 A 股 K 线（首选数据源）"""
+        if not symbol.startswith("A:"):
+            return []
+        try:
+            from app.data_sources.ifind_source import iFinDSource, DataSourceError
+            from services.ifind_skill import call
+
+            code = symbol[2:]
+            # 从数据库查询股票名称
+            from app.core.database import SessionLocal
+            from app.models.stock import Stock
+            db = SessionLocal()
+            try:
+                stock = db.get(Stock, symbol)
+                name = stock.name if stock and stock.name else code
+            finally:
+                db.close()
+
+            source = iFinDSource()
+            if not source._is_available():
+                logger.warning("iFinD 未配置，跳过 A 股 K 线")
+                return []
+
+            # 查询日K线 OHLCV
+            query = f"{name}近{count}天开盘价最高价最低价收盘价成交量"
+            result = call("stock", "get_stock_performance", {"query": query})
+            if not result.get("ok"):
+                logger.warning(f"iFinD K 线查询失败: {symbol}")
+                return []
+
+            raw = result["data"].get("result", {}).get("content", [{}])[0].get("text", "")
+            return self._parse_ifind_kline(raw, count)
+
+        except Exception as e:
+            logger.warning(f"iFinD K 线获取异常: {symbol} ({ktype_str}): {e}")
+            return []
+
+    @staticmethod
+    def _parse_ifind_kline(raw: str, count: int) -> List[Dict]:
+        """解析 iFinD 返回的 Markdown 表格为 OHLCV 列表"""
+        import json
+        try:
+            # 尝试从 JSON 中提取 answer
+            parsed = json.loads(raw)
+            raw = parsed.get("data", {}).get("answer", raw)
+        except json.JSONDecodeError:
+            pass
+
+        lines = [l.strip() for l in raw.split("\n") if l.strip().startswith("|")]
+        if len(lines) < 3:
+            return []
+
+        # 表头行 + 数据行
+        header_line = lines[0]
+        data_lines = [l for l in lines[2:] if l.startswith("|") and "---" not in l]
+        if not data_lines:
+            return []
+
+        headers = [h.strip() for h in header_line.split("|") if h.strip()]
+
+        rows = []
+        for line in data_lines:
+            cells = [c.strip() for c in line.split("|")[1:-1]]
+            if len(cells) < len(headers):
+                continue
+
+            row = {}
+            for i, h in enumerate(headers):
+                row[h] = cells[i] if i < len(cells) else ""
+
+            # 提取关键字段
+            date_val = row.get("日期", "")
+            if not date_val:
+                continue
+
+            # 日期格式: 20260520 → 2026-05-20
+            if len(date_val) == 8 and date_val.isdigit():
+                date_val = f"{date_val[:4]}-{date_val[4:6]}-{date_val[6:]}"
+
+            # 成交量处理：去掉"万"/"亿"等后缀，转为数字
+            vol_str = ""
+            for k in row:
+                if "成交量" in k and row[k]:
+                    vol_str = row[k]
+                    break
+
+            volume = 0
+            if vol_str:
+                vol_str = vol_str.replace(",", "").strip()
+                if "万" in vol_str:
+                    volume = int(float(vol_str.replace("万", "")) * 10000)
+                elif "亿" in vol_str:
+                    volume = int(float(vol_str.replace("亿", "")) * 100000000)
+                else:
+                    try:
+                        volume = int(float(vol_str))
+                    except ValueError:
+                        volume = 0
+
+            # 提取价格字段
+            def get_price(row_dict, keys):
+                for k in keys:
+                    for rk in row_dict:
+                        if k in rk and row_dict[rk]:
+                            try:
+                                return float(row_dict[rk].replace(",", ""))
+                            except ValueError:
+                                continue
+                return 0.0
+
+            open_price = get_price(row, ["开盘价"])
+            high_price = get_price(row, ["最高价"])
+            low_price = get_price(row, ["最低价"])
+            close_price = get_price(row, ["收盘价"])
+
+            if close_price == 0:
+                continue
+
+            rows.append({
+                "date": date_val,
+                "open": open_price,
+                "high": high_price,
+                "low": low_price,
+                "close": close_price,
+                "volume": volume,
+            })
+
+        # 按日期升序排列，取最近 count 条
+        rows.sort(key=lambda x: x["date"])
+        return rows[-count:] if len(rows) > count else rows
 
     def _fetch_from_tushare(
         self, symbol: str, count: int, ktype_str: str = "day"
