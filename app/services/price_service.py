@@ -24,6 +24,25 @@ class PriceService:
         self.price_source = AggregatedPriceSource()
         self.exchange = ExchangeRateSource()
 
+    def _validate_price(self, stock: Stock, new_price: Decimal) -> Tuple[bool, str]:
+        """价格合理性校验
+
+        Returns: (is_valid: bool, reason: str)
+        """
+        if new_price is None or new_price <= 0:
+            return False, f"价格异常: {new_price} (必须 > 0)"
+
+        prev = stock.prev_close_price
+        if prev and prev > 0:
+            change_pct = abs((new_price - prev) / prev * 100)
+            if change_pct > 50:
+                return False, (
+                    f"价格波动过大: {prev} -> {new_price} "
+                    f"(变化 {change_pct:.1f}% > 50%，疑似数据源串号/复权错误)"
+                )
+
+        return True, ""
+
     def update_single_stock(self, stock: Stock) -> Tuple[bool, str]:
         """
         更新单只股票的股价
@@ -34,6 +53,12 @@ class PriceService:
         try:
             logger.info(f"更新股价: {stock.symbol}")
             price_data = self.price_source.get_price(stock.symbol)
+
+            # 价格合理性校验
+            valid, reason = self._validate_price(stock, price_data.current_price)
+            if not valid:
+                logger.warning(f"价格校验失败 {stock.symbol}: {reason}")
+                return False, reason
 
             # 更新股票记录
             stock.current_price = price_data.current_price
