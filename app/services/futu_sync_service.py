@@ -347,6 +347,7 @@ class FutuSyncService:
                 stock_symbol=symbol,
                 total_shares=total_shares,
                 base_shares=total_shares,       # 首次默认全部算底仓
+                base_cost=avg_cost,             # OpenD cost_price 作为底仓成本
                 avg_cost=avg_cost,
                 currency=currency,
                 market_total_fund=Decimal(str(total_assets)),
@@ -372,6 +373,9 @@ class FutuSyncService:
             # 负成本（历史卖出已回收成本）不被富途同步覆盖，保留手动设置值
             if position.avg_cost is None or position.avg_cost >= 0:
                 position.avg_cost = avg_cost
+            # base_cost 同步：若为空或负值，用 OpenD cost_price 填充
+            if position.base_cost is None or position.base_cost <= 0:
+                position.base_cost = avg_cost
             position.market_total_fund = Decimal(str(total_assets))
             position.source = "FUTU_AUTO" if old_source != "MANUAL" else "MIXED"
             position.last_sync_at = datetime.now()
