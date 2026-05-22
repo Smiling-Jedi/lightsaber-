@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚔️%3C/text%3E%3C/svg%3E">
   <title>阳光电源 - 小光剑</title>
   <style>
     /* ── 基础重置 ── */
@@ -943,7 +944,7 @@
 <!-- ━━━━━━━━━━ v2 新增：基本面快照 ━━━━━━━━━━ -->
 
 <div class="d-section">
-  <div class="d-section-title">基本面快照<span class="d-section-title-aux">20260331</span></div>
+  <div class="d-section-title">基本面快照<span class="d-section-title-aux"></span></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:13px;">
     
     
@@ -967,6 +968,11 @@
     </div>
     
     
+    
+    <div style="display:flex;justify-content:space-between;">
+      <span style="color:#666;">毛利率</span>
+      <span style="font-weight:600;">33.3%</span>
+    </div>
     
   </div>
 </div>
@@ -999,7 +1005,7 @@
         ⭐
       </span>
     </div>
-    <div class="d-reso-detail">日/周/月均无明显方向，市场处于混沌整理期，等待形态明朗</div>
+    <div class="d-reso-detail">日/周/月均无方向，等待形态明朗</div>
   </div>
 
   
@@ -1128,10 +1134,13 @@
   <script>
     // Tab切换
     function switchTab(market) {
+      const tab = document.querySelector('.market-tab[data-market="' + market + '"]');
+      const content = document.querySelector('.tab-content[data-market="' + market + '"]');
+      if (!tab || !content) return;
       document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelector('.market-tab[data-market="' + market + '"]').classList.add('active');
-      document.querySelector('.tab-content[data-market="' + market + '"]').classList.add('active');
+      tab.classList.add('active');
+      content.classList.add('active');
       localStorage.setItem('mini_active_tab', market);
     }
 

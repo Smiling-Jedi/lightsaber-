@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚔️%3C/text%3E%3C/svg%3E">
   <title>英伟达 - 小光剑</title>
   <style>
     /* ── 基础重置 ── */
@@ -945,14 +946,14 @@
     
     <div style="display:flex;justify-content:space-between;">
       <span style="color:#666;">PE(TTM)</span>
-      <span style="font-weight:600;">-16.6</span>
+      <span style="font-weight:600;">-9.8</span>
     </div>
     
     
     
     <div style="display:flex;justify-content:space-between;">
       <span style="color:#666;">PB</span>
-      <span style="font-weight:600;">4.29</span>
+      <span style="font-weight:600;">10.26</span>
     </div>
     
     
@@ -984,43 +985,7 @@
   
 
   
-    
-    <div style="margin-bottom:10px;">
-      <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:4px;">📅 日K（最近7天）→ 短期/波段</div>
-      
-      <div class="d-anomaly-signal" title="05/20 MA指标呈现多头排列，暗示价格可能进一步上涨。">
-        <span class="d-anomaly-dot">•</span>
-        <span class="d-anomaly-text">05/20 MA指标呈现多头排列，暗示价格可能进一步上涨。</span>
-      </div>
-      
-      <div class="d-anomaly-signal" title="05/21 MACD指标形成死叉，暗示潜在的下行动能。收盘价跌破MA10，MA5跌破MA10形成死叉，显示价格可能持续走弱。">
-        <span class="d-anomaly-dot">•</span>
-        <span class="d-anomaly-text">05/21 MACD指标形成死叉，暗示潜在的下行动能。收盘价跌破MA10，MA5...</span>
-      </div>
-      
-      
-    </div>
-    
-
-    
-    <div style="margin-bottom:10px;">
-      <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:4px;">📅 周K（最近30天）→ 中期/底仓</div>
-      
-      <div class="d-anomaly-signal" title="05/20 MA指标呈现多头排列，暗示价格可能进一步上涨。">
-        <span class="d-anomaly-dot">•</span>
-        <span class="d-anomaly-text">05/20 MA指标呈现多头排列，暗示价格可能进一步上涨。</span>
-      </div>
-      
-      <div class="d-anomaly-signal" title="05/21 MACD指标形成死叉，暗示潜在的下行动能。收盘价跌破MA10，MA5跌破MA10形成死叉，显示价格可能持续走弱。">
-        <span class="d-anomaly-dot">•</span>
-        <span class="d-anomaly-text">05/21 MACD指标形成死叉，暗示潜在的下行动能。收盘价跌破MA10，MA5...</span>
-      </div>
-      
-      
-    </div>
-    
-
-    
+    <div style="font-size:13px;color:#999;">最近7天无明显技术异动</div>
   
 </div>
 
@@ -1036,7 +1001,7 @@
         ⭐⭐⭐⭐
       </span>
     </div>
-    <div class="d-reso-detail">日线+月线同步看涨，大周期支撑，周线正在确认</div>
+    <div class="d-reso-detail">日线+月线看涨，周线待确认</div>
   </div>
 
   
@@ -1196,10 +1161,13 @@
   <script>
     // Tab切换
     function switchTab(market) {
+      const tab = document.querySelector('.market-tab[data-market="' + market + '"]');
+      const content = document.querySelector('.tab-content[data-market="' + market + '"]');
+      if (!tab || !content) return;
       document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelector('.market-tab[data-market="' + market + '"]').classList.add('active');
-      document.querySelector('.tab-content[data-market="' + market + '"]').classList.add('active');
+      tab.classList.add('active');
+      content.classList.add('active');
       localStorage.setItem('mini_active_tab', market);
     }
 

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚔️%3C/text%3E%3C/svg%3E">
   <title>宁德时代 - 小光剑</title>
   <style>
     /* ── 基础重置 ── */
@@ -986,7 +987,7 @@
         ⭐⭐⭐⭐
       </span>
     </div>
-    <div class="d-reso-detail">周线+月线同步看涨，中长期趋势向好，日线处于整理</div>
+    <div class="d-reso-detail">周线+月线看涨，日线整理</div>
   </div>
 
   
@@ -1115,10 +1116,13 @@
   <script>
     // Tab切换
     function switchTab(market) {
+      const tab = document.querySelector('.market-tab[data-market="' + market + '"]');
+      const content = document.querySelector('.tab-content[data-market="' + market + '"]');
+      if (!tab || !content) return;
       document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelector('.market-tab[data-market="' + market + '"]').classList.add('active');
-      document.querySelector('.tab-content[data-market="' + market + '"]').classList.add('active');
+      tab.classList.add('active');
+      content.classList.add('active');
       localStorage.setItem('mini_active_tab', market);
     }
 
