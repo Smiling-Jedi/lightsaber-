@@ -155,7 +155,7 @@
         {% set pl_class = 'up' if card.pl_pct >= 0 else 'down' %}
         {% set dir_cls = 'dir-up' if card.direction == '看涨' else ('dir-down' if card.direction == '看跌' else ('dir-neutral' if card.resonance else 'dir-none')) %}
 
-        <a class="h-card {{ dir_cls }}" href="/mini/v2/stock/{{ card.symbol }}">
+        <a class="h-card {{ dir_cls }}" href="./stock/{{ card.symbol }}.html">
           <div class="h-card-top">
             <div>
               <span class="h-name">{{ card.name }}</span>
