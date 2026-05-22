@@ -40,12 +40,12 @@ def symbol_to_filename(symbol: str) -> str:
 
 
 def rewrite_home_links(html: str) -> str:
-    """首页里的详情页链接 /mini/v3/stock/HK:00700 → stock/HK_00700.html"""
+    """首页里的详情页链接 ./stock/HK:00700.html → stock/HK_00700.html"""
     def replace(m):
         market, code = m.group(1), m.group(2)
         return f'stock/{market}_{code}.html'
     return re.sub(
-        r'/mini/v3/stock/([A-Z]+):(\w+)',
+        r'\./stock/([A-Z]+):(\w+)\.html',
         replace,
         html,
     )
