@@ -421,9 +421,12 @@ def _compute_indicator_summary(df: pd.DataFrame) -> dict:
     # ═══════════════════════════════════════════════
     # 组装结论 + 最终建议
     # ═══════════════════════════════════════════════
-    conclusions = [section1, section2]
+    conclusions = [
+        f"<b>📈 趋势与强度：</b>{section1}",
+        f"<b>⚠️ 价格风险：</b>{section2}",
+    ]
     if section3:
-        conclusions.append(section3)
+        conclusions.append(f"<b>💰 量价权衡：</b>{section3}")
 
     # ═══════════════════════════════════════════════
     # 最终建议（基于三段综合：趋势+价格+量价）

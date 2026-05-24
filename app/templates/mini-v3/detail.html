@@ -639,7 +639,7 @@
 
   <ul class="d-indicator-conclusions">
     {% for conclusion in indicator_summary.conclusions %}
-    <li>{{ conclusion }}</li>
+    <li>{{ conclusion|safe }}</li>
     {% endfor %}
   </ul>
 
