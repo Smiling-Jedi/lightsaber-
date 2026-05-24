@@ -277,7 +277,8 @@ def _compute_indicator_summary(df: pd.DataFrame) -> dict:
     # 第一段：趋势与强度
     # ═══════════════════════════════════════════════
     trend_parts = []
-    trend_parts.append(f"EMA20({ema20:.2f}){'>' if ema_bull else '<'}EMA60({ema60:.2f})")
+    ema_direction = "&gt;" if ema_bull else "&lt;"
+    trend_parts.append(f"EMA20({ema20:.2f}){ema_direction}EMA60({ema60:.2f})")
 
     if macd_expand:
         trend_parts.append(f"MACD柱({'+' if macd_hist > 0 else ''}{macd_hist:.2f})扩大")
