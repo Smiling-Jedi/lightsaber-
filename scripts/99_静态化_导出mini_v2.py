@@ -45,7 +45,7 @@ def rewrite_home_links(html: str) -> str:
         market, code = m.group(1), m.group(2)
         return f'stock/{market}_{code}.html'
     return re.sub(
-        r'/mini/v2/stock/([A-Z]+):(\w+)',
+        r'\./stock/([A-Z]+):(\w+)\.html',
         replace,
         html,
     )

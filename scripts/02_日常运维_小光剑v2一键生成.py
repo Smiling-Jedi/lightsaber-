@@ -275,7 +275,7 @@ def step_static_export():
         raise RuntimeError(f"首页导出失败: status={resp.status_code}")
 
     home_html = re.sub(
-        r'/mini/v2/stock/([A-Z]+):(\w+)',
+        r'\./stock/([A-Z]+):(\w+)\.html',
         lambda m: f'stock/{m.group(1)}_{m.group(2)}.html',
         resp.text,
     )

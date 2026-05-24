@@ -123,7 +123,18 @@ class TechnicalAnomalySource:
         )
 
         if result.returncode != 0:
-            raise RuntimeError(f"脚本执行失败: {result.stderr}")
+            stderr = result.stderr or ""
+            # 富途不支持该股票的技术异动查询（如 US:NIO），静默返回空结果
+            if "未知的协议" in stderr or "unknown protocol" in stderr.lower():
+                logger.debug(f"富途不支持技术异动查询: {futu_symbol} ({label})")
+                return TechnicalAnomalyResult(
+                    stock_symbol=futu_symbol,
+                    time_range=time_range,
+                    timeframe_label=label,
+                    raw_content="",
+                    overall_direction="unsupported",
+                )
+            raise RuntimeError(f"脚本执行失败: {stderr}")
 
         # 解析JSON（处理日志输出混杂的情况）
         output = result.stdout
