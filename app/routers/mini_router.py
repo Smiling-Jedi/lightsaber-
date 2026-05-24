@@ -230,130 +230,277 @@ def mini_stock_detail(request: Request, symbol: str, db: Session = Depends(get_d
 
 
 def _compute_indicator_summary(df: pd.DataFrame) -> dict:
-    """基于指标计算综合分析结论"""
+    """基于指标计算三段式综合分析结论"""
     if df.empty or len(df) < 30:
         return {"error": "数据不足"}
 
     latest = df.iloc[-1]
     prev = df.iloc[-2] if len(df) >= 2 else latest
 
-    # EMA趋势判断
-    ema_trend = "向上" if latest["ema20"] > latest["ema60"] else "向下"
-    ema_golden = latest["ema20"] > latest["ema60"] and prev["ema20"] <= prev["ema60"]
-    ema_dead = latest["ema20"] < latest["ema60"] and prev["ema20"] >= prev["ema60"]
-
-    # MACD判断
-    macd_bull = latest["macd_hist"] > 0
-    macd_strengthen = latest["macd_hist"] > prev["macd_hist"]
-    macd_weaken = latest["macd_hist"] < prev["macd_hist"]
-
-    # RSI判断
+    # ── 基础指标提取 ──
+    ema20 = latest["ema20"]
+    ema60 = latest["ema60"]
+    macd_hist = latest["macd_hist"]
+    macd_hist_prev = prev["macd_hist"]
     rsi = latest["rsi14"]
-    rsi_state = "超买" if rsi > 70 else ("超卖" if rsi < 30 else "正常")
-    rsi_near_high = 65 <= rsi <= 70
-    rsi_near_low = 30 <= rsi <= 35
-
-    # 布林带判断
-    bb_pos = "上轨附近" if latest["close"] >= latest["bb_upper"] * 0.995 else (
-        "下轨附近" if latest["close"] <= latest["bb_lower"] * 1.005 else "中轨区域"
-    )
-    bb_break_upper = latest["close"] > latest["bb_upper"]
-    bb_break_lower = latest["close"] < latest["bb_lower"]
-
-    # ADX判断
     adx = latest["adx14"]
+    bb_upper = latest["bb_upper"]
+    bb_lower = latest["bb_lower"]
+    close = latest["close"]
+    obv = latest.get("obv")
+    obv_prev = prev.get("obv") if len(df) >= 2 else obv
+    vwap = latest.get("vwap20")
+
+    # ── 布尔状态 ──
+    ema_bull = ema20 > ema60
+    macd_positive = macd_hist > 0
+    macd_expand = macd_hist > macd_hist_prev
+    bb_break_upper = close > bb_upper
+    bb_break_lower = close < bb_lower
+    obv_rise = obv is not None and obv_prev is not None and obv > obv_prev
+    obv_fall = obv is not None and obv_prev is not None and obv < obv_prev
+    vwap_pct = ((close - vwap) / vwap * 100) if vwap and vwap != 0 else 0
+
+    # ── 兼容字段（供返回用） ──
+    ema_trend = "向上" if ema_bull else "向下"
+    ema_golden = ema_bull and prev["ema20"] <= prev["ema60"]
+    ema_dead = not ema_bull and prev["ema20"] >= prev["ema60"]
+    rsi_state = "超买" if rsi > 70 else ("超卖" if rsi < 30 else "正常")
+    bb_pos = "上轨附近" if close >= bb_upper * 0.995 else (
+        "下轨附近" if close <= bb_lower * 1.005 else "中轨区域"
+    )
     trend_strength = "强趋势" if adx > 40 else ("弱趋势" if adx > 20 else "震荡")
-
-    # ATR
     atr = latest["atr14"]
-    atr_pct = atr / latest["close"] * 100 if latest["close"] > 0 else 0
+    atr_pct = atr / close * 100 if close > 0 else 0
 
-    # 综合结论生成
-    conclusions = []
-    signal = "中性"
-    confidence = "medium"
+    # ═══════════════════════════════════════════════
+    # 第一段：趋势与强度
+    # ═══════════════════════════════════════════════
+    trend_parts = []
+    trend_parts.append(f"EMA20({'>' if ema_bull else '<'}EMA60)")
 
-    # 趋势方向
-    if ema_trend == "向上" and macd_bull:
-        conclusions.append("中期趋势向上，动量偏多")
-        signal = "偏多"
-    elif ema_trend == "向下" and not macd_bull:
-        conclusions.append("中期趋势向下，动量偏空")
-        signal = "偏空"
+    if macd_expand:
+        trend_parts.append(f"MACD柱({'+' if macd_hist > 0 else ''}{macd_hist:.2f})扩大")
+    elif macd_positive:
+        trend_parts.append(f"MACD柱({macd_hist:.2f})为正但收窄")
     else:
-        conclusions.append("趋势方向不明，动量矛盾")
+        trend_parts.append(f"MACD柱({macd_hist:.2f})为负")
+
+    if adx > 40:
+        trend_parts.append(f"ADX={adx:.1f}，趋势极强")
+    elif adx > 25:
+        trend_parts.append(f"ADX={adx:.1f}，趋势强度中等")
+    elif adx >= 20:
+        trend_parts.append(f"ADX={adx:.1f}，趋势偏弱")
+    else:
+        trend_parts.append(f"ADX={adx:.1f}，震荡环境")
+
+    # 精确趋势描述
+    if adx < 20:
+        if ema_bull and macd_positive:
+            trend_summary = "方向偏强，但动能不足，震荡为主"
+        elif not ema_bull and not macd_positive:
+            trend_summary = "方向偏弱，但动能不足，震荡为主"
+        else:
+            trend_summary = "趋势动能不足，震荡为主"
+    elif ema_bull and macd_positive:
+        trend_summary = "中期趋势向上，顺势格局清晰"
+    elif ema_bull and not macd_positive:
+        trend_summary = "趋势向上但动能在减弱"
+    elif not ema_bull and macd_positive:
+        trend_summary = "趋势向下但动能在修复"
+    else:
+        trend_summary = "中期趋势向下，空头格局清晰"
+
+    section1 = "、".join(trend_parts) + "，" + trend_summary
+
+    # ═══════════════════════════════════════════════
+    # 第二段：价格风险
+    # ═══════════════════════════════════════════════
+    risk_parts = []
+    if rsi > 70:
+        risk_parts.append(f"RSI(14)={rsi:.1f}，超买区间(>70)")
+    elif rsi > 65:
+        risk_parts.append(f"RSI(14)={rsi:.1f}，接近超买区")
+    elif rsi < 30:
+        risk_parts.append(f"RSI(14)={rsi:.1f}，超卖区间(<30)")
+    elif rsi < 35:
+        risk_parts.append(f"RSI(14)={rsi:.1f}，接近超卖区")
+
+    if bb_break_upper:
+        risk_parts.append(f"价格({close:.2f})突破布林带上轨({bb_upper:.2f})")
+    elif bb_break_lower:
+        risk_parts.append(f"价格({close:.2f})跌破布林带下轨({bb_lower:.2f})")
+
+    if abs(vwap_pct) > 3:
+        if vwap_pct > 0:
+            risk_parts.append(f"高于20日加权均价(VWAP={vwap:.2f}){vwap_pct:.1f}%")
+        else:
+            risk_parts.append(f"低于20日加权均价(VWAP={vwap:.2f}){abs(vwap_pct):.1f}%")
+    elif vwap is not None and abs(vwap_pct) <= 3:
+        risk_parts.append(f"接近20日加权均价(VWAP={vwap:.2f})")
+
+    overheat = sum([rsi > 70, bb_break_upper, vwap_pct > 3])
+    oversold = sum([rsi < 30, bb_break_lower, vwap_pct < -3])
+
+    if overheat >= 2:
+        risk_summary = "短期偏贵，不宜追高"
+        confidence = "low"
+        signal = "偏空"
+    elif overheat == 1:
+        risk_summary = "短期有溢价，谨慎追高"
+        confidence = "medium"
+        signal = "中性"
+    elif oversold >= 2:
+        risk_summary = "短期超卖，或有反弹机会"
+        confidence = "high"
+        signal = "偏多"
+    elif oversold == 1:
+        risk_summary = "短期偏低，可关注"
+        confidence = "medium"
+        signal = "偏多"
+    else:
+        risk_summary = "价格处于合理区间"
+        confidence = "medium"
         signal = "中性"
 
-    # RSI警告
-    if rsi > 70:
-        conclusions.append(f"RSI={rsi:.1f}，进入超买区，不宜追高")
-        confidence = "low"
-    elif rsi > 65:
-        conclusions.append(f"RSI={rsi:.1f}，接近超买，谨慎加仓")
-    elif rsi < 30:
-        conclusions.append(f"RSI={rsi:.1f}，进入超卖区，可能有反弹机会")
-        confidence = "high"
-    elif rsi < 35:
-        conclusions.append(f"RSI={rsi:.1f}，接近超卖，可关注")
-
-    # MACD动量
-    if macd_strengthen:
-        conclusions.append("MACD动量增强，趋势有望延续")
-    elif macd_weaken:
-        conclusions.append("MACD动量减弱，警惕趋势反转")
-
-    # 布林带
-    if bb_break_upper:
-        conclusions.append("价格突破布林带上轨，短期偏贵")
-    elif bb_break_lower:
-        conclusions.append("价格跌破布林带下轨，短期超卖")
-
-    # ADX
-    if adx > 40:
-        conclusions.append(f"ADX={adx:.1f}，强趋势环境，顺势操作")
-    elif adx < 20:
-        conclusions.append(f"ADX={adx:.1f}，震荡环境，减少波段操作")
-
-    # OBV 和 VWAP 分析
-    obv = latest.get("obv")
-    vwap = latest.get("vwap20")
-    obv_prev = prev.get("obv") if len(df) >= 2 else obv
-    if obv is not None and obv_prev is not None:
-        obv_change = obv - obv_prev
-        if obv_change > 0:
-            conclusions.append("OBV上升，资金流入，量价配合健康")
-        elif obv_change < 0:
-            conclusions.append("OBV下降，资金流出，警惕量价背离")
-
-    if vwap is not None:
-        price_vs_vwap = latest["close"] - vwap
-        vwap_pct = price_vs_vwap / vwap * 100 if vwap != 0 else 0
-        if abs(vwap_pct) < 1:
-            conclusions.append(f"价格接近VWAP({vwap:.2f})，处于机构成本中枢")
-        elif vwap_pct > 3:
-            conclusions.append(f"价格高于VWAP({vwap:.2f}) {vwap_pct:.1f}%，偏离机构成本")
-        elif vwap_pct < -3:
-            conclusions.append(f"价格低于VWAP({vwap:.2f}) {abs(vwap_pct):.1f}%，低于机构成本")
-
-    # 最终建议
-    if signal == "偏多" and rsi < 70 and not bb_break_upper:
-        suggestion = "方向偏多，等待回踩再考虑加仓"
-    elif signal == "偏多" and (rsi > 70 or bb_break_upper):
-        suggestion = "方向偏多但短期过热，暂缓加仓"
-    elif signal == "偏空" and rsi > 30:
-        suggestion = "趋势偏弱，观望或减仓"
-    elif signal == "偏空" and rsi < 30:
-        suggestion = "超跌区域，不宜追空，等企稳"
+    if risk_parts:
+        section2 = "、".join(risk_parts) + "，" + risk_summary
     else:
-        suggestion = "方向不明，观望为主"
+        section2 = risk_summary
+
+    # ═══════════════════════════════════════════════
+    # 第三段：量价权衡（场景化描述）
+    # ═══════════════════════════════════════════════
+    volume_parts = []
+    if obv_rise:
+        volume_parts.append("OBV上升")
+    elif obv_fall:
+        volume_parts.append("OBV下降")
+
+    # VWAP偏离（第3段只给定性描述，不重复数值）
+    vwap_desc = ""
+    if vwap_pct > 3:
+        vwap_desc = "价格已大幅偏离均价"
+    elif vwap_pct < -3:
+        vwap_desc = "价格低于均价"
+
+    # 场景化结论
+    if obv_rise and ema_bull and vwap_pct > 3:
+        volume_summary = "资金持续追捧推高价格，偏离均价较远，追高风险较大"
+    elif obv_rise and not ema_bull and vwap_pct < -3:
+        volume_summary = "资金在低位持续流入，或为左侧布局信号，但趋势未扭转前需谨慎"
+    elif obv_rise and not ema_bull and abs(vwap_pct) <= 3:
+        volume_summary = "资金流入但趋势向下，存在量价背离"
+    elif obv_fall and ema_bull and vwap_pct > 3:
+        volume_summary = "资金开始撤离但价格仍处高位，风险在积聚"
+    elif obv_fall and ema_bull and vwap_pct < -3:
+        volume_summary = "资金流出但价格已偏低，或进入洗盘阶段"
+    elif obv_fall and not ema_bull and vwap_pct < -3:
+        volume_summary = "资金持续撤离，弱势格局未改"
+    elif obv_fall and not ema_bull and abs(vwap_pct) <= 3:
+        volume_summary = "资金流出配合趋势向下，弱势确认"
+    elif obv_rise and ema_bull and abs(vwap_pct) <= 3:
+        volume_summary = "资金流入配合趋势向上，量价健康"
+    elif obv_fall and ema_bull and abs(vwap_pct) <= 3:
+        volume_summary = "价格上涨但资金跟进不足，上涨持续性存疑"
+    elif obv_rise and not ema_bull and vwap_pct > 3:
+        volume_summary = "资金流入但价格偏高且趋势向下，矛盾信号"
+    elif obv_fall and not ema_bull and vwap_pct > 3:
+        volume_summary = "资金撤离配合趋势向下且价格偏高，调整压力较大"
+    else:
+        volume_summary = ""
+
+    if volume_parts and volume_summary:
+        section3 = "、".join(volume_parts) + "，" + volume_summary
+    elif volume_summary:
+        section3 = volume_summary
+    else:
+        section3 = ""
+
+    # ═══════════════════════════════════════════════
+    # 组装结论 + 最终建议
+    # ═══════════════════════════════════════════════
+    conclusions = [section1, section2]
+    if section3:
+        conclusions.append(section3)
+
+    # ═══════════════════════════════════════════════
+    # 最终建议（基于三段综合：趋势+价格+量价）
+    # ═══════════════════════════════════════════════
+
+    # 重新计算 signal，基于趋势方向（不被价格风险覆盖）
+    if adx < 20:
+        trend_signal = "震荡"
+    elif ema_bull and macd_positive:
+        trend_signal = "偏多"
+    elif not ema_bull and not macd_positive:
+        trend_signal = "偏空"
+    else:
+        trend_signal = "矛盾"
+
+    # 量价状态
+    volume_health = "健康" if (obv_rise and ema_bull) or (obv_fall and not ema_bull) else (
+        "背离" if (obv_rise and not ema_bull) or (obv_fall and ema_bull) else "中性"
+    )
+
+    # 建议矩阵
+    if trend_signal == "偏多":
+        if overheat >= 2:
+            suggestion = "趋势向好但短期严重过热，不宜追高，持仓者继续持有"
+        elif overheat == 1:
+            suggestion = "趋势向好但价格偏高，等待回踩再考虑加仓"
+        elif oversold >= 1:
+            suggestion = "趋势向好且价格偏低，是较好的加仓机会"
+        elif volume_health == "背离":
+            suggestion = "趋势向好但资金不配合，上涨持续性存疑，谨慎加仓"
+        else:
+            suggestion = "趋势向好，量价配合健康，可持仓或逢回调加仓"
+    elif trend_signal == "偏空":
+        if oversold >= 2:
+            suggestion = "趋势偏弱但已超卖，不宜追空，等企稳信号"
+        elif oversold == 1:
+            suggestion = "趋势偏弱且价格偏低，左侧布局需谨慎"
+        elif overheat >= 1:
+            suggestion = "趋势向下且价格偏高，减仓为宜"
+        elif volume_health == "背离":
+            suggestion = "趋势偏弱但有资金在低位流入，关注能否企稳"
+        else:
+            suggestion = "趋势偏弱，观望或减仓"
+    elif trend_signal == "震荡":
+        if oversold >= 1:
+            suggestion = "震荡环境中价格偏低，可小仓位试探"
+        elif overheat >= 1:
+            suggestion = "震荡环境中价格偏高，减仓或观望"
+        else:
+            suggestion = "震荡为主，减少波段操作，观望"
+    else:  # 矛盾
+        if overheat >= 1:
+            suggestion = "动能与趋势方向矛盾且价格偏高，观望为宜"
+        elif oversold >= 1:
+            suggestion = "动能与趋势方向矛盾但价格偏低，等待方向明朗"
+        else:
+            suggestion = "动能与趋势方向矛盾，方向不明，观望为主"
+
+    # signal 用于前端兼容性，综合趋势+价格+量价
+    if trend_signal == "偏多" and overheat < 2 and volume_health != "背离":
+        signal = "偏多"
+    elif trend_signal == "偏空" and oversold < 2 and volume_health != "背离":
+        signal = "偏空"
+    elif oversold >= 2 and trend_signal in ("偏多", "震荡"):
+        signal = "偏多"
+    elif overheat >= 2 and trend_signal in ("偏空", "震荡"):
+        signal = "偏空"
+    else:
+        signal = "中性"
 
     return {
         "ema_trend": ema_trend,
         "ema_golden_cross": ema_golden,
         "ema_dead_cross": ema_dead,
-        "macd_bull": macd_bull,
-        "macd_strengthen": macd_strengthen,
-        "macd_weaken": macd_weaken,
+        "macd_bull": macd_positive,
+        "macd_strengthen": macd_expand,
+        "macd_weaken": macd_hist < macd_hist_prev,
         "rsi": round(rsi, 1),
         "rsi_state": rsi_state,
         "bb_position": bb_pos,
@@ -368,16 +515,16 @@ def _compute_indicator_summary(df: pd.DataFrame) -> dict:
         "suggestion": suggestion,
         "confidence": confidence,
         # 原始数值
-        "ema20": round(latest["ema20"], 2),
-        "ema60": round(latest["ema60"], 2),
+        "ema20": round(ema20, 2),
+        "ema60": round(ema60, 2),
         "macd": round(latest["macd"], 2),
-        "macd_hist": round(latest["macd_hist"], 2),
-        "bb_upper": round(latest["bb_upper"], 2),
+        "macd_hist": round(macd_hist, 2),
+        "bb_upper": round(bb_upper, 2),
         "bb_mid": round(latest["bb_mid"], 2),
-        "bb_lower": round(latest["bb_lower"], 2),
+        "bb_lower": round(bb_lower, 2),
         # v2 新增成交量指标
-        "obv": round(latest["obv"], 0) if "obv" in latest and pd.notna(latest["obv"]) else None,
-        "vwap20": round(latest["vwap20"], 2) if "vwap20" in latest and pd.notna(latest["vwap20"]) else None,
+        "obv": round(obv, 0) if obv is not None else None,
+        "vwap20": round(vwap, 2) if vwap is not None else None,
     }
 
 
