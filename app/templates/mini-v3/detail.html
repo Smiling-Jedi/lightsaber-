@@ -647,56 +647,6 @@
     🎯 {{ indicator_summary.suggestion }}
   </div>
 
-  <!-- 日K指标详情（默认展开） -->
-  <div class="d-indicator-detail">
-    <div class="d-indicator-detail-title">日K指标详情</div>
-    <div class="d-indicator-grid">
-      <div class="d-indicator-row">
-        <span class="d-indicator-label">EMA20</span>
-        <span class="d-indicator-val">{{ "%.2f"|format(indicator_summary.ema20) }}</span>
-      </div>
-      <div class="d-indicator-row">
-        <span class="d-indicator-label">EMA60</span>
-        <span class="d-indicator-val">{{ "%.2f"|format(indicator_summary.ema60) }}</span>
-      </div>
-      <div class="d-indicator-row">
-        <span class="d-indicator-label">MACD</span>
-        <span class="d-indicator-val">{{ "%.2f"|format(indicator_summary.macd) }}</span>
-      </div>
-      <div class="d-indicator-row">
-        <span class="d-indicator-label">MACD柱</span>
-        <span class="d-indicator-val {{ 'up' if indicator_summary.macd_hist > 0 else 'down' }}">{{ "%.2f"|format(indicator_summary.macd_hist) }}</span>
-      </div>
-      <div class="d-indicator-row">
-        <span class="d-indicator-label">RSI(14)</span>
-        <span class="d-indicator-val {{ 'up' if indicator_summary.rsi > 70 else ('down' if indicator_summary.rsi < 30 else '') }}">{{ "%.1f"|format(indicator_summary.rsi) }}</span>
-      </div>
-      <div class="d-indicator-row">
-        <span class="d-indicator-label">ADX(14)</span>
-        <span class="d-indicator-val">{{ "%.1f"|format(indicator_summary.adx) }}</span>
-      </div>
-      <div class="d-indicator-row">
-        <span class="d-indicator-label">ATR(14)</span>
-        <span class="d-indicator-val">{{ "%.2f"|format(indicator_summary.atr) }}</span>
-      </div>
-      <div class="d-indicator-row">
-        <span class="d-indicator-label">趋势强度</span>
-        <span class="d-indicator-val">{{ indicator_summary.trend_strength }}</span>
-      </div>
-      {% if indicator_summary.vwap20 %}
-      <div class="d-indicator-row">
-        <span class="d-indicator-label">VWAP(20)</span>
-        <span class="d-indicator-val">{{ "%.2f"|format(indicator_summary.vwap20) }}</span>
-      </div>
-      {% endif %}
-      {% if indicator_summary.obv %}
-      <div class="d-indicator-row">
-        <span class="d-indicator-label">OBV</span>
-        <span class="d-indicator-val">{{ "%.0f"|format(indicator_summary.obv) }}</span>
-      </div>
-      {% endif %}
-    </div>
-  </div>
 
   <!-- 周/月指标（折叠） -->
   <div class="d-indicator-fold" onclick="this.nextElementSibling.classList.toggle('open')">
