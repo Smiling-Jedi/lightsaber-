@@ -876,6 +876,7 @@ def mini_stock_detail_v3(request: Request, symbol: str, db: Session = Depends(ge
         "indicator_summary": indicator_summary,
         "anomaly_summary": anomaly_summary,
         "fundamental": fundamental,
+        "today": date.today(),
     })
 
 
