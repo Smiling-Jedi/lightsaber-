@@ -277,7 +277,7 @@ def _compute_indicator_summary(df: pd.DataFrame) -> dict:
     # 第一段：趋势与强度
     # ═══════════════════════════════════════════════
     trend_parts = []
-    trend_parts.append(f"EMA20({'>' if ema_bull else '<'}EMA60)")
+    trend_parts.append(f"EMA20({ema20:.2f}){'>' if ema_bull else '<'}EMA60({ema60:.2f})")
 
     if macd_expand:
         trend_parts.append(f"MACD柱({'+' if macd_hist > 0 else ''}{macd_hist:.2f})扩大")
@@ -326,6 +326,8 @@ def _compute_indicator_summary(df: pd.DataFrame) -> dict:
         risk_parts.append(f"RSI(14)={rsi:.1f}，超卖区间(<30)")
     elif rsi < 35:
         risk_parts.append(f"RSI(14)={rsi:.1f}，接近超卖区")
+    else:
+        risk_parts.append(f"RSI(14)={rsi:.1f}，正常区间(30-70)")
 
     if bb_break_upper:
         risk_parts.append(f"价格({close:.2f})突破布林带上轨({bb_upper:.2f})")
