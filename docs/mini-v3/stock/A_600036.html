@@ -607,6 +607,10 @@
     left: 4px;
     color: #666;
   }
+  .d-indicator-tip {
+    border-bottom: 1px dotted #bbb;
+    cursor: help;
+  }
 
   .d-indicator-suggestion {
     margin-top: 10px;
@@ -866,41 +870,88 @@
     </div>
   </div>
 
-  <!-- 指标说明 -->
-  <div style="margin-top:10px;padding:10px 12px;background:#f8f9fa;border-radius:4px;font-size:12px;line-height:1.9;color:#555;">
-    <div style="font-weight:600;color:#333;margin-bottom:6px;font-size:13px;">📖 指标说明</div>
-    <b>EMA</b>：指数移动平均线，短期EMA上穿长期EMA = 趋势转强<br>
-    <b>MACD</b>：异同移动平均线，MACD柱扩大 = 动量加速，收窄 = 动量减弱<br>
-    <b>RSI</b>：相对强弱指标，>70超买（不宜追高），<30超卖（或有反弹）<br>
-    <b>ADX</b>：平均趋向指数，只衡量趋势<strong>强度</strong>，不判断方向。>40极强，20-40中等，<20震荡（无趋势）。ADX高不代表一定会涨，只说明当前趋势很强<br>
-    <b>VWAP</b>：成交量加权平均价，过去20个交易日按成交量加权的平均成交价。价格高于VWAP = 溢价，低于 = 折价<br>
-    <b>OBV</b>：能量潮指标，把上涨日的成交量累加、下跌日的成交量累减。OBV上升 = 资金净流入，下降 = 资金净流出
-</div>
+  <!-- 指标悬浮提示：自动给结论中的指标名称加 title -->
+  <script>
+  (function() {
+    var tooltips = {
+      'EMA': '指数移动平均线，短期EMA上穿长期EMA = 趋势转强',
+      'MACD': '异同移动平均线，MACD柱扩大 = 动量加速，收窄 = 动量减弱',
+      'RSI': '相对强弱指标，>70超买（不宜追高），<30超卖（或有反弹）',
+      'ADX': '平均趋向指数，只衡量趋势强度，不判断方向。>40极强，20-40中等，<20震荡',
+      'VWAP': '成交量加权平均价，过去20个交易日按成交量加权的平均成交价。高于 = 溢价，低于 = 折价',
+      'OBV': '能量潮指标，上涨日成交量累加、下跌日累减。上升 = 资金净流入'
+    };
+    var list = document.querySelector('.d-indicator-conclusions');
+    if (!list) return;
+    list.querySelectorAll('li').forEach(function(li) {
+      var html = li.innerHTML;
+      Object.keys(tooltips).forEach(function(key) {
+        var re = new RegExp('(^|[^\\w])(' + key + ')(?![\\w])', 'g');
+        html = html.replace(re, '$1<span class="d-indicator-tip" title="' + tooltips[key] + '">$2</span>');
+      });
+      li.innerHTML = html;
+    });
+  })();
+  </script>
 
 
-<!-- ━━━━━━━━━━ v2 新增：基本面快照 ━━━━━━━━━━ -->
+<!-- ━━━━━━━━━━ v2 改造：基本面快照 — 估值历史百分位 ━━━━━━━━━━ -->
 
 <div class="d-section">
-  <div class="d-section-title">基本面快照<span class="d-section-title-aux">20260331</span></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:13px;">
+  <div class="d-section-title">基本面快照<span class="d-section-title-aux">05-24</span></div>
+  <div style="font-size:13px;line-height:1.8;">
+
     
     
-    <div style="display:flex;justify-content:space-between;">
-      <span style="color:#666;">PE(TTM)</span>
-      <span style="font-weight:600;">6.2</span>
+    
+    
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="color:#666;min-width:52px;">PE(TTM)</span>
+      <span style="font-weight:600;min-width:36px;">6.2</span>
+      
+      <span style="color:#bbb;">|</span>
+      <span style="font-size:11px;color:#999;">
+        
+          
+            
+            
+            <span style="color:#999;">3年42%</span>
+            <span style="color:#ddd;margin:0 3px;">/</span>
+          
+        
+          
+            
+            
+            <span style="color:#388e3c;">5年28%</span>
+            <span style="color:#ddd;margin:0 3px;">/</span>
+          
+        
+          
+            
+            
+            <span style="color:#388e3c;">10年13%</span>
+            
+          
+        
+      </span>
+      
     </div>
     
+
     
     
     
     
-    <div style="display:flex;justify-content:space-between;">
-      <span style="color:#666;">净利润增长</span>
-      <span style="font-weight:600;color:#d32f2f">+1.5%</span>
+
+    
+    
+    
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="color:#666;min-width:52px;">ROE</span>
+      <span style="font-weight:600;">3.0%</span>
     </div>
     
-    
-    
+
   </div>
 </div>
 

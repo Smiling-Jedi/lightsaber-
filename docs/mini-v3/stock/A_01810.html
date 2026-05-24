@@ -607,6 +607,10 @@
     left: 4px;
     color: #666;
   }
+  .d-indicator-tip {
+    border-bottom: 1px dotted #bbb;
+    cursor: help;
+  }
 
   .d-indicator-suggestion {
     margin-top: 10px;
@@ -828,34 +832,80 @@
 <!-- ━━━━━━━━━━ v2 新增：技术指标综合分析 ━━━━━━━━━━ -->
 
 
-<!-- ━━━━━━━━━━ v2 新增：基本面快照 ━━━━━━━━━━ -->
+<!-- ━━━━━━━━━━ v2 改造：基本面快照 — 估值历史百分位 ━━━━━━━━━━ -->
 
 <div class="d-section">
-  <div class="d-section-title">基本面快照<span class="d-section-title-aux">20260331</span></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:13px;">
+  <div class="d-section-title">基本面快照<span class="d-section-title-aux">05-24</span></div>
+  <div style="font-size:13px;line-height:1.8;">
+
     
     
-    <div style="display:flex;justify-content:space-between;">
-      <span style="color:#666;">PE(TTM)</span>
-      <span style="font-weight:600;">16.7</span>
+    
+    
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="color:#666;min-width:52px;">PE(TTM)</span>
+      <span style="font-weight:600;min-width:36px;">16.7</span>
+      
+      <span style="color:#bbb;">|</span>
+      <span style="font-size:11px;color:#999;">
+        
+          
+        
+          
+        
+          
+            
+            
+            <span style="color:#388e3c;">10年23%</span>
+            
+          
+        
+      </span>
+      
     </div>
     
+
     
     
-    <div style="display:flex;justify-content:space-between;">
-      <span style="color:#666;">PB</span>
-      <span style="font-weight:600;">2.61</span>
+    
+    
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="color:#666;min-width:52px;">PB</span>
+      <span style="font-weight:600;min-width:36px;">2.61</span>
+      
+      <span style="color:#bbb;">|</span>
+      <span style="font-size:11px;color:#999;">
+        
+          
+            
+            
+            <span style="color:#999;">3年50%</span>
+            <span style="color:#ddd;margin:0 3px;">/</span>
+          
+        
+          
+            
+            
+            <span style="color:#999;">5年50%</span>
+            <span style="color:#ddd;margin:0 3px;">/</span>
+          
+        
+          
+            
+            
+            <span style="color:#999;">10年39%</span>
+            
+          
+        
+      </span>
+      
     </div>
     
+
     
     
     
-    
-    <div style="display:flex;justify-content:space-between;">
-      <span style="color:#666;">毛利率</span>
-      <span style="font-weight:600;">22.2%</span>
-    </div>
-    
+
   </div>
 </div>
 
